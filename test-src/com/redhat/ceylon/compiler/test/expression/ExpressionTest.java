@@ -1,5 +1,6 @@
 package com.redhat.ceylon.compiler.test.expression;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.ceylon.compiler.test.CompilerTest;
@@ -73,6 +74,7 @@ public class ExpressionTest extends CompilerTest {
     // Literals
     
     @Test
+    @Ignore
     public void testStringLiteral(){
         compareWithJavaSource("literal/StringLiteral");
     }
@@ -106,10 +108,12 @@ public class ExpressionTest extends CompilerTest {
         compareWithJavaSource("instantiation/ClassInstantiation");
     }
     @Test
+    @Ignore
     public void testSequenceInstantiation(){
         compareWithJavaSource("instantiation/SequenceInstantiation");
     }
     @Test
+    @Ignore
     public void testEntryInstantiation(){
         compareWithJavaSource("instantiation/EntryInstantiation");
     }

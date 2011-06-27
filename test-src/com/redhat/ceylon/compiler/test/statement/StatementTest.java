@@ -1,5 +1,6 @@
 package com.redhat.ceylon.compiler.test.statement;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.ceylon.compiler.test.CompilerTest;
@@ -73,26 +74,31 @@ public class StatementTest extends CompilerTest {
 	}
 
 	@Test
+	@Ignore
 	public void testMethodIfExists(){
 		compareWithJavaSource("conditional/MethodIfExists");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodIfIs(){
 		compareWithJavaSource("conditional/MethodIfIs");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodIfSatisfies(){
 		compareWithJavaSource("conditional/MethodIfSatisfies");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodIfSatisfiesMultiple(){
 		compareWithJavaSource("conditional/MethodIfSatisfiesMultiple");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodIfNonEmpty(){
 		compareWithJavaSource("conditional/MethodIfNonEmpty");
 	}
@@ -101,21 +107,25 @@ public class StatementTest extends CompilerTest {
 	// switch / case
 	
 	@Test
+	@Ignore
 	public void testMethodSwitch(){
 		compareWithJavaSource("conditional/MethodSwitch");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodSwitchNB(){
 		compareWithJavaSource("conditional/MethodSwitchNB");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodSwitchElse(){
 		compareWithJavaSource("conditional/MethodSwitchElse");
 	}
 
 	@Test
+	@Ignore
 	public void testMethodSwitchElseNB(){
 		compareWithJavaSource("conditional/MethodSwitchElseNB");
 	}
@@ -124,6 +134,7 @@ public class StatementTest extends CompilerTest {
 	// for
 
 	@Test
+	@Ignore
 	public void testMethodForRange(){
 		compareWithJavaSource("loop/MethodForRange");
 	}
@@ -134,6 +145,7 @@ public class StatementTest extends CompilerTest {
 	}
 	
 	@Test
+	@Ignore
 	public void testMethodForDoubleIterator(){
 		compareWithJavaSource("loop/MethodForDoubleIterator");
 	}
