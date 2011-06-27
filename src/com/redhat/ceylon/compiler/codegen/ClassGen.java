@@ -14,12 +14,12 @@ import java.util.Map;
 
 import com.redhat.ceylon.compiler.codegen.Gen2.Singleton;
 import com.redhat.ceylon.compiler.codegen.StatementGen.StatementVisitor;
-import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeGetterDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.ClassOrInterface;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.ObjectDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
 import com.redhat.ceylon.compiler.util.Util;
 import com.sun.source.tree.Tree.Kind;
@@ -66,10 +66,12 @@ public class ClassGen extends GenPart {
 
             public void visit(Tree.Parameter param) {
                 JCVariableDecl var = at(cdecl).VarDef(make().Modifiers(0), names().fromString(param.getIdentifier().getText()), gen.convert(param.getType()), null);
-                JCVariableDecl localVar = at(cdecl).VarDef(make().Modifiers(FINAL | PRIVATE), names().fromString(param.getIdentifier().getText()), gen.convert(param.getType()), null);
                 params.append(var);
-                defs.append(localVar);
-                initStmts.append(at(param).Exec(at(param).Assign(makeSelect("this", localVar.getName().toString()), at(param).Ident(var.getName()))));
+            	if (param.getDeclarationModel().isCaptured()) {
+	                JCVariableDecl localVar = at(cdecl).VarDef(make().Modifiers(FINAL | PRIVATE), names().fromString(param.getIdentifier().getText()), gen.convert(param.getType()), null);
+	                defs.append(localVar);
+	                initStmts.append(at(param).Exec(at(param).Assign(makeSelect("this", localVar.getName().toString()), at(param).Ident(var.getName()))));
+            	}
             }
 
             public void visit(Tree.Block b) {
@@ -97,34 +99,46 @@ public class ClassGen extends GenPart {
             // FIXME: Here we've simplified CeylonTree.MemberDeclaration to
             // Tree.AttributeDeclaration
             public void visit(Tree.AttributeDeclaration decl) {
-            	// Remember attribute to be able to generate
-            	// missing getters and setters later on
-            	attributeDecls.append(decl);
-
+            	boolean useField = decl.getDeclarationModel().isCaptured() || isShared(decl);
+            	
             	Name attrName = names().fromString(decl.getIdentifier().getText());
             	
-            	// Only non-formal attributes have corresponding fields
+            	// Only a non-formal attribute has a corresponding field
             	// and if a class parameter exists with the same name we skip this part as well
             	if (!isFormal(decl) && !existsParam(params, attrName)) {
+            		JCExpression initialValue = null;
 	                if (decl.getSpecifierOrInitializerExpression() != null) {
-	                	// The attribute's initializer gets moved to the constructor (why?)
-	                	JCExpression initialValue = gen.expressionGen.convertExpression(decl.getSpecifierOrInitializerExpression().getExpression());
-	                    stmts.append(at(decl).Exec(at(decl).Assign(at(decl).Ident(attrName), initialValue)));
+	                	initialValue = gen.expressionGen.convertExpression(decl.getSpecifierOrInitializerExpression().getExpression());
 	                }
 	
 	                final ListBuffer<JCAnnotation> langAnnotations = new ListBuffer<JCAnnotation>();
 	
 	                JCExpression type = gen.convert(decl.getType());
 	
-	                if (isActual(decl)) {
-	                	langAnnotations.append(makeOverride());
-	                }
 	                if (gen.isOptional(decl.getType())) {
 	                    type = gen.optionalType(type);
 	                }
 	                
-	                int modifiers = convertAttributeFieldDeclFlags(decl);
-	                defs.append(at(decl).VarDef(at(decl).Modifiers(modifiers, langAnnotations.toList()), attrName, type, null));
+                	if (useField) {
+                		// A captured attribute gets turned into a field
+		                int modifiers = convertAttributeFieldDeclFlags(decl);
+		                defs.append(at(decl).VarDef(at(decl).Modifiers(modifiers, langAnnotations.toList()), attrName, type, null));
+		                if (initialValue != null) {
+		                	// The attribute's initializer gets moved to the constructor
+		                	// because it might be using locals of the initializer
+		                    stmts.append(at(decl).Exec(at(decl).Assign(makeSelect("this", decl.getIdentifier().getText()), initialValue)));
+		                }
+                	} else {
+                		// Otherwise it's local to the constructor
+		                int modifiers = convertLocalDeclFlags(decl);
+		                stmts.append(at(decl).VarDef(at(decl).Modifiers(modifiers, langAnnotations.toList()), attrName, type, initialValue));
+                	}
+            	}
+            	
+            	if (useField) {
+                	// Remember attribute to be able to generate
+                	// missing getters and setters later on
+                	attributeDecls.append(decl);
             	}
             }
 
@@ -211,10 +225,13 @@ public class ClassGen extends GenPart {
         return classDef;
     }
 
-	public boolean existsParam(ListBuffer<JCVariableDecl> params, Name attrName) {
-		for (JCVariableDecl decl : params) {
-			if (decl.name.equals(attrName)) {
-				return true;
+	public boolean existsParam(ListBuffer<? extends JCTree> params, Name attrName) {
+		for (JCTree decl : params) {
+			if (decl instanceof JCVariableDecl) {
+				JCVariableDecl var = (JCVariableDecl)decl;
+				if (var.name.equals(attrName)) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -241,7 +258,7 @@ public class ClassGen extends GenPart {
                 body, null);
     }
 
-    private int convertClassDeclFlags(Tree.Declaration cdecl) {
+    private int convertClassDeclFlags(Tree.ClassOrInterface cdecl) {
         int result = 0;
 
         result |= isShared(cdecl) ? PUBLIC : 0;
@@ -277,11 +294,28 @@ public class ClassGen extends GenPart {
         return result;
     }
 
+    private int convertLocalDeclFlags(Tree.AttributeDeclaration cdecl) {
+        int result = 0;
+
+        result |= isMutable(cdecl) ? 0 : FINAL;
+
+        return result;
+    }
+
     private int convertAttributeGetSetDeclFlags(Tree.AttributeDeclaration cdecl) {
         int result = 0;
 
         result |= isMutable(cdecl) ? 0 : FINAL;
         result |= isShared(cdecl) ? PUBLIC : PRIVATE;
+
+        return result;
+    }
+
+    private int convertObjectDeclFlags(Tree.ObjectDefinition cdecl) {
+        int result = 0;
+
+        result |= FINAL;
+        result |= isShared(cdecl) ? PUBLIC : 0;
 
         return result;
     }
@@ -523,38 +557,32 @@ public class ClassGen extends GenPart {
         return result;
     }
 
-    private boolean isShared(Tree.Declaration cdecl) {
-        // FIXME
-        return hasCompilerAnnotation(cdecl, "shared");
+    private boolean isShared(Tree.Declaration decl) {
+        return decl.getDeclarationModel().isShared();
     }
 
-    private boolean isAbstract(Tree.Declaration cdecl) {
-        // FIXME
-        return hasCompilerAnnotation(cdecl, "abstract");
+    private boolean isAbstract(Tree.ClassOrInterface decl) {
+        return decl.getDeclarationModel().isAbstract();
     }
 
-    private boolean isDefault(Tree.Declaration cdecl) {
-        // FIXME
-        return hasCompilerAnnotation(cdecl, "default");
+    private boolean isDefault(Tree.Declaration decl) {
+        return decl.getDeclarationModel().isDefault();
     }
 
-    private boolean isFormal(Tree.Declaration cdecl) {
-        // FIXME
-        return hasCompilerAnnotation(cdecl, "formal");
+    private boolean isFormal(Tree.Declaration decl) {
+        return decl.getDeclarationModel().isFormal();
     }
 
-    private boolean isActual(Tree.Declaration cdecl) {
-        // FIXME
-        return hasCompilerAnnotation(cdecl, "actual");
+    private boolean isActual(Tree.Declaration decl) {
+        return decl.getDeclarationModel().isActual();
     }
 
     private boolean isMutable(Tree.AttributeDeclaration decl) {
-        // FIXME
-        return hasCompilerAnnotation(decl, "variable");
+        return decl.getDeclarationModel().isVariable();
     }
 
     public JCAnnotation makeOverride() {
-    	return make().Annotation(makeIdent(syms().overrideType), null);
+    	return make().Annotation(makeIdent(syms().overrideType), List.<JCExpression> nil());
 	}
 
     private JCTypeParameter convert(Tree.TypeParameterDeclaration param) {
@@ -585,9 +613,8 @@ public class ClassGen extends GenPart {
         String className = "$"+name;
         String getterName = Util.getGetterName(name);
         String fieldName = "value";
-        Value model = decl.getDeclarationModel();
-        boolean shared = model.isShared();
-        boolean variable = model.isVariable();
+        boolean shared = isShared(decl);
+        boolean variable = isMutable(decl);
         JCExpression type = gen.convert(decl.getType());
         
         // its value
@@ -633,4 +660,13 @@ public class ClassGen extends GenPart {
         return make().ClassDef(make().Modifiers(classMods), names().fromString(className), 
                 List.<JCTree.JCTypeParameter>nil(), null, List.<JCTree.JCExpression>nil(), defs);
     }
+
+	public JCTree convert(ObjectDefinition decl) {
+        // we make a class for it
+        String name = decl.getIdentifier().getText();
+        
+        int classMods = convertObjectDeclFlags(decl);
+        return make().ClassDef(make().Modifiers(classMods), names().fromString(name), 
+                List.<JCTree.JCTypeParameter>nil(), null, List.<JCTree.JCExpression>nil(), null);
+	}
 }
