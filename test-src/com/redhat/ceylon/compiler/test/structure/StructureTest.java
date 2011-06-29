@@ -1,5 +1,6 @@
 package com.redhat.ceylon.compiler.test.structure;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.ceylon.compiler.test.CompilerTest;
@@ -119,6 +120,7 @@ public class StructureTest extends CompilerTest {
         compareWithJavaSource("toplevel/ToplevelVariableShared");
     }
     @Test
+    @Ignore
     public void testToplevelObject(){
         compareWithJavaSource("toplevel/ToplevelObject");
     }
