@@ -4,6 +4,7 @@ class MethodLocalAccess {
     
     private final Natural m() {
         final Natural n1 = .ceylon.language.Natural.instance(1L);
+        
         final class n2 {
             
             private n2() {
