@@ -491,6 +491,35 @@ public class ClassGen extends GenPart {
                 List.<JCExpression>nil(),
                 meth);
     }
+    
+    /**
+     * Generates a synthetic class for handling access to an attribute getter
+     * @param def
+     * @return
+     */
+    public JCClassDecl attributeClass(Tree.AttributeGetterDefinition def) {
+        Name name = names().fromString(def.getIdentifier().getText());
+        List<JCTree> meth = List.<JCTree>of(convert(def));
+        // make a private constructor
+        JCMethodDecl constr = make().MethodDef(make().Modifiers(Flags.PRIVATE),
+                names().init,
+                make().TypeIdent(VOID),
+                List.<JCTree.JCTypeParameter>nil(),
+                List.<JCTree.JCVariableDecl>nil(),
+                List.<JCTree.JCExpression>nil(),
+                make().Block(0, List.<JCTree.JCStatement>nil()),
+                null);
+        meth = meth.prepend(constr);
+        
+        List<JCAnnotation> annots = gen.makeAtCeylon().appendList(gen.makeAtMethod());
+        return at(def).ClassDef(
+                at(def).Modifiers(FINAL | (isShared(def) ? PUBLIC : 0), annots),
+                name,
+                List.<JCTypeParameter>nil(),
+                null,
+                List.<JCExpression>nil(),
+                meth);
+    }
 
     /**
      * Generates the class name for a method, object or attribute definition. If <tt>topLevel</tt> is <tt>true</tt>,

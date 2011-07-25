@@ -3,6 +3,11 @@ package com.redhat.ceylon.compiler.codegen;
 import com.redhat.ceylon.compiler.typechecker.tree.NaturalVisitor;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyAttribute;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeGetterDefinition;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.QualifiedMemberOrTypeExpression;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.TypedDeclaration;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
@@ -55,7 +60,19 @@ class StatementVisitor extends Visitor implements NaturalVisitor {
     public void visit(Tree.AttributeDeclaration decl) {
         append(statementGen.convert(decl));
     }
-
+    
+    public void visit(AttributeGetterDefinition decl) { 
+    	JCTree.JCClassDecl innerDecl = statementGen.gen.classGen.attributeClass(decl);
+        append(innerDecl);
+        JCTree.JCIdent name = statementGen.make().Ident(innerDecl.name);
+        JCVariableDecl call = statementGen.at(decl).VarDef(
+                statementGen.make().Modifiers(FINAL),
+                statementGen.names().fromString(decl.getIdentifier().getText()),
+                name,
+                statementGen.at(decl).NewClass(null, null, name, List.<JCTree.JCExpression>nil(), null));
+        append(call); 
+    }
+    
     public void visit(Tree.SpecifierStatement op) {
         append(statementGen.convert(op));
     }

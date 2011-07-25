@@ -7,7 +7,7 @@ class InnerAttributeGetter {
         final class innerGetter {
             private static final Natural value = .ceylon.language.Natural.instance(0L);
             
-            private innerGetter {
+            private innerGetter() {
             }
             
             Natural getInnerGetter() {

@@ -504,7 +504,7 @@ public class ExpressionGen extends GenPart {
             public void visit(Tree.QualifiedMemberExpression op) {
                 result = convert(op);
             }
-
+            
             public void visit(Tree.Expression tree) {
                 result = convertExpression(tree);
             }
@@ -532,7 +532,15 @@ public class ExpressionGen extends GenPart {
             JCExpression targetType = gen.makeJavaType(access.getTarget().getDeclaringType(), false);
             expr = gen.makeSelect(make().TypeCast(targetType, v.result), memberName.getText());
         } else {
-            expr = gen.makeSelect(v.result, memberName.getText());
+        	Declaration decl = access.getDeclaration();
+        	if (!(decl instanceof Value)) {
+        		expr = gen.makeSelect(v.result, memberName.getText());
+        	} else {
+	        	expr = gen.at(access).Apply(List.<JCExpression>nil(),
+	        			makeSelect(v.result, Util.getGetterName(memberName.getText())), 
+	        			List.<JCExpression>nil());
+        	}
+        	
         }
         return expr;
     }
