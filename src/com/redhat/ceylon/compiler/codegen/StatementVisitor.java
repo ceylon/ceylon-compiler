@@ -6,6 +6,7 @@ import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyAttribute;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeGetterDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.QualifiedMemberOrTypeExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.TypedDeclaration;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -71,7 +72,7 @@ class StatementVisitor extends Visitor implements NaturalVisitor {
                 statementGen.at(decl).NewClass(null, null, name, List.<JCTree.JCExpression>nil(), null));
         append(call); 
     }
-
+    
     public void visit(Tree.SpecifierStatement op) {
         append(statementGen.convert(op));
     }

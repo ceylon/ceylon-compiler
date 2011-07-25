@@ -5,11 +5,11 @@ class QualifiedAttributeAccess {
     private Boolean b2;
     
     private final Boolean m() {
-        return this.b;
+        return this.getB();
     }
     
     private final Boolean m2() {
-        return this.b2;
+        return this.getB2();
     }
     
     private final Boolean qm() {
