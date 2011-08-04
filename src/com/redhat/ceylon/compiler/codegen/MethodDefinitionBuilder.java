@@ -5,6 +5,7 @@ import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.TypeTags.VOID;
 
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
+import com.redhat.ceylon.compiler.typechecker.model.UnionType;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.util.Util;
 import com.sun.tools.javac.tree.JCTree;
@@ -64,7 +65,7 @@ public class MethodDefinitionBuilder {
     
     public static MethodDefinitionBuilder setter(AbstractTransformer gen, String name, ProducedType attrType) {
         return method(gen, Util.getSetterName(name))
-            .parameter(0, name, attrType);
+            .parameter(0, name, attrType, false);
     }
     
     public static MethodDefinitionBuilder setter(AbstractTransformer gen, String name, JCExpression attrType, List<JCAnnotation> annots) {
@@ -164,8 +165,15 @@ public class MethodDefinitionBuilder {
         return this;
     }
     
-    public MethodDefinitionBuilder parameter(long modifiers, String name, ProducedType paramType) {
-        JCExpression type = gen.makeJavaType(paramType);
+    public MethodDefinitionBuilder parameter(long modifiers, String name, ProducedType paramType, boolean sequenced) {
+        JCExpression type;
+        if (sequenced) {
+            ProducedType sequenceType = ((UnionType)paramType.getDeclaration()).getCaseTypes().get(1).getTypeArgumentList().get(0);
+            type = gen.makeJavaType(sequenceType, gen.TYPE_PARAM);
+            type = gen.sequenceType(type);
+        } else {
+            type = gen.makeJavaType(paramType);
+        }
         List<JCAnnotation> annots = gen.makeJavaTypeAnnotations(paramType, true);
         return parameter(gen.make().VarDef(gen.make().Modifiers(modifiers, annots), gen.names().fromString(name), type, null));
     }
@@ -178,7 +186,11 @@ public class MethodDefinitionBuilder {
         gen.at(param);
         String name = param.getIdentifier().getText();
         ProducedType paramType = gen.actualType(param);
-        return parameter(FINAL, name, paramType);
+        boolean sequenced = param.getDeclarationModel().isSequenced();
+        if (sequenced) {
+            //gen.getTypeArguments(tal)
+        }
+        return parameter(FINAL, name, paramType, sequenced);
     }
 
     public MethodDefinitionBuilder isActual(boolean isActual) {

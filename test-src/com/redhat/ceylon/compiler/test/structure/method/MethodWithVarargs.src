@@ -2,6 +2,16 @@ package com.redhat.ceylon.compiler.test.structure.method;
 
 class MethodWithVarargs {
     //FIXME
+    public void f1(Integer... ns) {
+        for (Integer n: ns) { 
+        }    
+    }
+    
+    public void f2(Integer i, Integer... ns) {
+        for (Integer n: ns) { 
+        }
+    }
+    
     MethodWithVarargs() {
     }
 }
