@@ -3,7 +3,7 @@ package ceylon.language;
 import com.redhat.ceylon.compiler.metadata.java.SatisfiedTypes;
 
 @SatisfiedTypes({
-    "ceylon.language.Correspondence<ceylon.language.Natural, ceylon.language.Bottom>",
+    "ceylon.language.Correspondence<ceylon.language.Natural,ceylon.language.Bottom>",
     "ceylon.language.Iterable<ceylon.language.Bottom>",
     "ceylon.language.Sized"
 })
