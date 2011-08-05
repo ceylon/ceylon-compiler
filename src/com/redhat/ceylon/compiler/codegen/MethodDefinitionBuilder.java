@@ -4,10 +4,8 @@ import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.TypeTags.VOID;
 
-import com.redhat.ceylon.compiler.loader.LazyClass;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
-import com.redhat.ceylon.compiler.typechecker.model.UnionType;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.util.Util;
 import com.sun.tools.javac.tree.JCTree;
@@ -172,8 +170,7 @@ public class MethodDefinitionBuilder {
         if (sequenced) {
             TypeDeclaration decl = paramType.getDeclaration();
             ProducedType sequenceParamType = decl.getCaseTypes().get(1).getTypeArgumentList().get(0);
-            type = gen.makeJavaType(sequenceParamType, gen.TYPE_PARAM);
-            type = gen.sequenceType(type);
+            type = gen.makeJavaType(gen.typeFact().getSequenceType(sequenceParamType));
         } else {
             type = gen.makeJavaType(paramType);
         }

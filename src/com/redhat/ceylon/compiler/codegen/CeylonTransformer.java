@@ -2,10 +2,6 @@ package com.redhat.ceylon.compiler.codegen;
 
 import static com.sun.tools.javac.code.Flags.FINAL;
 
-
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import java.util.Iterator;
 
 import javax.tools.JavaFileObject;
@@ -186,6 +182,5 @@ public class CeylonTransformer extends AbstractTransformer {
     }
 
     // FIXME: figure out what CeylonTree.ReflectedLiteral maps to
-
 
 }
