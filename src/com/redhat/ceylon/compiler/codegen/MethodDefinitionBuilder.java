@@ -4,6 +4,7 @@ import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.TypeTags.VOID;
 
+import com.redhat.ceylon.compiler.loader.TypeFactory;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
@@ -170,7 +171,9 @@ public class MethodDefinitionBuilder {
         if (sequenced) {
             TypeDeclaration decl = paramType.getDeclaration();
             ProducedType sequenceParamType = decl.getCaseTypes().get(1).getTypeArgumentList().get(0);
-            type = gen.makeJavaType(gen.typeFact().getSequenceType(sequenceParamType));
+            TypeFactory typeFactory = gen.typeFact();
+            ProducedType emptyOrSequence = typeFactory.unionType(typeFactory.getEmptyType(typeFactory.getSequenceType(sequenceParamType)));
+            type = gen.makeJavaType(emptyOrSequence);
         } else {
             type = gen.makeJavaType(paramType);
         }
@@ -187,9 +190,6 @@ public class MethodDefinitionBuilder {
         String name = param.getIdentifier().getText();
         ProducedType paramType = gen.actualType(param);
         boolean sequenced = param.getDeclarationModel().isSequenced();
-        if (sequenced) {
-            //gen.getTypeArguments(tal)
-        }
         return parameter(FINAL, name, paramType, sequenced);
     }
 

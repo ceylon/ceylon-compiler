@@ -1,14 +1,16 @@
 package com.redhat.ceylon.compiler.test.structure.method;
 
 class MethodWithVarargs {
-    //FIXME
-    public void f1(Integer... ns) {
-        for (Integer n: ns) { 
-        }    
+    
+    public final void f1(final final java.lang.Object ns) {
+        for (ceylon.language.Iterator<? extends .java.lang.Integer> $ns$iter$0 = ((ceylon.language.Iterable<? extends java.lang.Integer>)ns).iterator(); $ns$iter$0.getHead() != null; $s$iter$0 = $ns$iter$0.getTail()) {
+            final .java.lang.Integer n = $ns$iter$0.getHead();
+        }
     }
     
-    public void f2(Integer i, Integer... ns) {
-        for (Integer n: ns) { 
+    public final void f2(final int i, final java.lang.Object ns) {
+        for (ceylon.language.Iterator<? extends .java.lang.Integer> $ns$iter$0 = ((ceylon.language.Iterable<? extends java.lang.Integer>)ns).iterator(); $ns$iter$0.getHead() != null; $s$iter$0 = $ns$iter$0.getTail()) {
+            final .java.lang.Integer n = $ns$iter$0.getHead();
         }
     }
     
