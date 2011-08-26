@@ -1,3 +1,5 @@
+package com.redhat.ceylon.compiler.test.statement.trycatch;
+
 class E extends .java.lang.RuntimeException {
     
     E(ceylon.language.String message, .java.lang.RuntimeException cause) {

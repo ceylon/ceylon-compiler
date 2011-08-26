@@ -208,11 +208,6 @@ public class StatementTest extends CompilerTest {
     }
     
     @Test
-    public void testTryThrowLocal(){
-        compareWithJavaSource("trycatch/ThrowLocal");
-    }
-    
-    @Test
     public void testTryTryFinally(){
         compareWithJavaSource("trycatch/TryFinally");
     }
@@ -230,11 +225,6 @@ public class StatementTest extends CompilerTest {
     @Test
     public void testTryTryCatchSubclass(){
         compareWithJavaSource("trycatch/TryCatchSubclass");
-    }
-    
-    @Test
-    public void testTryTryCatchIntersection(){
-        compareWithJavaSource("trycatch/TryCatchIntersection");
     }
     
     @Test

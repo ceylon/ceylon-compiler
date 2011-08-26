@@ -132,6 +132,22 @@ public class TypeFactory {
     public Class getEntryDeclaration() {
         return (Class) ((TypeDeclaration) getLanguageModuleDeclaration("Entry"));
     }
+
+    /**
+     * Gets the declaration of {@code Exception}
+     * @return The declaration
+     */
+    public Class getExceptionDeclaration() {
+        return (Class) ((TypeDeclaration) getLanguageModuleDeclaration("Exception"));
+    }
+
+    /**
+     * Gets the declaration of {@code String}
+     * @return The declaration
+     */
+    public Class getStringDeclaration() {
+        return (Class) ((TypeDeclaration) getLanguageModuleDeclaration("String"));
+    }
     
     /**
      * Gets the declaration of {@code Range}
@@ -339,5 +355,13 @@ public class TypeFactory {
 
     public ProducedType getNonemptyIterableType(ProducedType pt) {
         return pt.minus(getEmptyDeclaration()).getSupertype(getIterableDeclaration());
+    }
+
+    public ProducedType getExceptionType() {
+        return getExceptionDeclaration().getType();
+    }
+
+    public ProducedType getStringType() {
+        return getStringDeclaration().getType();
     }
 }

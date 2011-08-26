@@ -9,24 +9,24 @@ class E extends .java.lang.RuntimeException {
 class TryCatchSubclass {
     
     private final void t() {
-        throw new .java.lang.RuntimeException("Bang!", null);
     }
     
-    private final void ce(final E e) {
+    private final void ce(final com.redhat.ceylon.compiler.test.statement.trycatch.E e) {
     }
+    
     private final void cexception(final .java.lang.RuntimeException e) {
     }
     
     private final void m() {
         try {
             t();
-        } catch (final E e) {
-            c(e);
+        } catch (final com.redhat.ceylon.compiler.test.statement.trycatch.E e) {
+            ce(e);
         } catch (final .java.lang.RuntimeException e) {
-            c(e);
+            cexception(e);
         }
     }
     
-    TryCatch() {
+    TryCatchSubclass() {
     }
 }

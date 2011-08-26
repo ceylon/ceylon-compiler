@@ -15,7 +15,6 @@ import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
-import com.redhat.ceylon.compiler.typechecker.tree.Tree.StringLiteral;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AndOp;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AssignOp;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.BaseMemberOrTypeExpression;
@@ -32,6 +31,7 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.Primary;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.QualifiedMemberOrTypeExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.QualifiedTypeExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.SequenceEnumeration;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.StringLiteral;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Super;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Term;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.This;
@@ -796,7 +796,17 @@ public class ExpressionTransformer extends AbstractTransformer {
 
     public JCExpression transform(Tree.BaseTypeExpression typeExp, List<JCExpression> typeArgs, List<JCExpression> args) {
         // A constructor
-        return at(typeExp).NewClass(null, typeArgs, makeIdent(typeExp.getIdentifier().getText()), args, null);
+        final List<JCExpression> hardArgs;
+        if (typeExp.getTypeModel().isExactly(typeFact().getExceptionType())) {
+            // unbox the message arg for "Exception()";
+            ListBuffer<JCExpression> a = ListBuffer.<JCExpression>lb();
+            a.add(unboxType(args.head, typeFact().getStringType()));
+            a.addAll(args.tail);
+            hardArgs = a.toList();
+        } else {
+            hardArgs = args;
+        }
+        return at(typeExp).NewClass(null, typeArgs, makeJavaType(typeExp.getTypeModel(), CLASS_NEW), hardArgs, null);
     }
 
     public JCExpression transform(SequenceEnumeration value) {

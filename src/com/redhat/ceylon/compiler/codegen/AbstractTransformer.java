@@ -333,6 +333,13 @@ public abstract class AbstractTransformer implements Transformation {
                 || typeFact().isUnion(type));
     }
     
+    protected boolean willEraseToRuntimeException(ProducedType type) {
+        type = simplifyType(type);
+        return (sameType(syms().ceylonExceptionType, type)
+                || sameType(syms().throwableType, type)
+                || sameType(syms().exceptionType, type));
+    }
+
     protected boolean isCeylonString(ProducedType type) {
         return (sameType(syms().ceylonStringType, type));
     }
@@ -397,6 +404,8 @@ public abstract class AbstractTransformer implements Transformation {
                     return make().Type(syms().objectType);
                 }
             }
+        } else if (willEraseToRuntimeException(type)) {
+            return make().Type(syms().runtimeExceptionType);
         } else if (satisfiesOrExtendsOrTypeParam == 0 && !isOptional(type)) {
             if (isCeylonString(type)) {
                 return make().Type(syms().stringType);
