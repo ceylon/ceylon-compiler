@@ -247,6 +247,14 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         classBuilder.extending(extendedType);
     }
 
+    public void visit(Tree.Throw t) {
+        append(gen.statementGen().transform(t));
+    }
+
+    public void visit(Tree.TryCatchStatement t) {
+        append(gen.statementGen().transform(t));
+    }
+
     // FIXME: implement
     public void visit(Tree.TypeConstraint l) {
     }

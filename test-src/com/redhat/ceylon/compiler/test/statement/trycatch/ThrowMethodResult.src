@@ -1,13 +1,15 @@
+package com.redhat.ceylon.compiler.test.statement.trycatch;
+
 class ThrowMethodResult {
     
-    private final java.lang.RuntimeException e() {
-        return new java.lang.RuntimeException("Bang!", null);
+    private final .java.lang.RuntimeException e() {
+        return new .java.lang.RuntimeException(.ceylon.language.String.instance("Bang!").toString(), null);
     }
     
     private final void t() {
         throw e();
     }
     
-    ThrowExceptionResult() {
+    ThrowMethodResult() {
     }
 }

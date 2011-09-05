@@ -247,8 +247,17 @@ public class ClassDefinitionBuilder {
         if (extendedType.getInvocationExpression().getPositionalArgumentList() != null) {
             List<JCExpression> args = List.<JCExpression> nil();
 
-            for (Tree.PositionalArgument arg : extendedType.getInvocationExpression().getPositionalArgumentList().getPositionalArguments())
-                args = args.append(gen.expressionGen().transformArg(arg));
+            int index = 0;
+            for (Tree.PositionalArgument arg : extendedType.getInvocationExpression().getPositionalArgumentList().getPositionalArguments()) {
+                if (index == 0 
+                        && extendedType.getInvocationExpression().getTypeModel().isExactly(gen.typeFact().getExceptionType())) {
+                    // unbox message argument to super for direct subclasses of Exception
+                    args = args.append(gen.unboxType(gen.expressionGen().transformArg(arg), gen.typeFact().getStringType()));
+                } else {
+                    args = args.append(gen.expressionGen().transformArg(arg));
+                }
+                index += 1;
+            }
 
             init(gen.at(extendedType).Exec(gen.make().Apply(List.<JCExpression> nil(), gen.make().Ident(gen.names()._super), args)));
         }
