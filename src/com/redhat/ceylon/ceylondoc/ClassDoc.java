@@ -3,6 +3,7 @@ package com.redhat.ceylon.ceylondoc;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -14,20 +15,20 @@ import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Getter;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
-import com.redhat.ceylon.compiler.typechecker.model.Parameter;
-import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 
-public class ClassDoc extends CeylonDoc {
+public class ClassDoc extends ClassOrPackageDoc {
 
 	private ClassOrInterface klass;
     private List<Method> methods;
     private List<MethodOrValue> attributes;
+    private List<Class> subclasses;
 
-	public ClassDoc(String destDir, ClassOrInterface klass) throws IOException {
+	public ClassDoc(String destDir, ClassOrInterface klass, List<Class> subclasses) throws IOException {
 		super(destDir);
+		this.subclasses = subclasses;
 		this.klass = klass;
 		loadMembers();
 	}
@@ -84,10 +85,14 @@ public class ClassDoc extends CeylonDoc {
         write("Class");
         close("div");
         close("div");
-
+       
         open("div class='head'");
+        
+        // name
 		around("div class='package'", getPackage(klass).getNameAsString());
 		around("div class='type'", klass instanceof Class ? "Class " : "Interface ", klass.getName());
+		
+		// hierarchy tree
 		LinkedList<ClassOrInterface> superTypes = new LinkedList<ClassOrInterface>();
 		superTypes.add(klass);
 		ClassOrInterface type = klass.getExtendedTypeDeclaration(); 
@@ -104,27 +109,54 @@ public class ClassDoc extends CeylonDoc {
 		while(i-- > 0){
 			close("li", "ul");
 		}
-		open("div class='type-parameters'");
-		write("Type parameters:");
-		open("ul");
-		for(TypeParameter typeParam : klass.getTypeParameters()){
-			around("li", typeParam.getName());
-		}
-		close("ul");
-		close("div");
-		open("div class='implements'");
-		write("Implemented interfaces: ");
-		boolean first = true;
-		for (TypeDeclaration satisfied : klass.getSatisfiedTypeDeclarations()){
-			if(!first){
-				write(", ");
-			}else{
-				first = false;
+		
+		// type parameters
+		if (isNullorEmpty(klass.getTypeParameters()) == false ) {
+			open("div class='type-parameters'");
+			write("Type parameters:");
+			open("ul");
+			for(TypeParameter typeParam : klass.getTypeParameters()){
+				around("li", typeParam.getName());
 			}
-			link(satisfied, true);
+			close("ul");
+			close("div");
 		}
-		close("div");
-        around("div class='doc'", getDoc(klass));
+		
+		// interfaces
+		if (isNullorEmpty(klass.getSatisfiedTypeDeclarations())==  false) {
+			open("div class='implements'");
+			write("Implemented interfaces: ");
+			boolean first = true;
+			for (TypeDeclaration satisfied : klass.getSatisfiedTypeDeclarations()){
+				if(!first){
+					write(", ");
+				}else{
+					first = false;
+				}
+				link(satisfied, true);
+			}
+			close("div");
+		}
+		
+		// subclasses
+		if (isNullorEmpty(subclasses) == false) {
+			boolean first = true;
+			open("div class='sublclases'");
+			write("Direct Known Subclasses: ");
+			for (TypeDeclaration sublcass : subclasses) {
+				if (!first) {
+					write(", ");
+				} else {
+					first = false;
+				}
+				link(sublcass, true);
+			}
+			close("div");
+		}
+		
+		// description
+		around("div class='doc'", getDoc(klass));
+		
 		close("div");
 	}
 
@@ -149,68 +181,11 @@ public class ClassDoc extends CeylonDoc {
 	private void attributes() throws IOException {
 	    if(attributes.isEmpty())
 	        return;
-	    openTable("Attributes", "Modifier and Type", "Attribute and Description");
+	    openTable("Attributes", "Modifier and Type", "Name and Description");
 		for(MethodOrValue attribute : attributes){
 		    doc(attribute);
 		}
 		close("table");
-	}
-
-    private void doc(Method m) throws IOException {
-        open("tr class='TableRowColor'");
-		open("td");
-		link(m.getType());
-		List<TypeParameter> typeParameters = m.getTypeParameters();
-		if(!typeParameters.isEmpty()){
-		    write("&lt;");
-		    boolean first = true;
-		    for(TypeParameter type : typeParameters){
-		        if(first)
-		            first = false;
-		        else
-		            write(", ");
-		        write(type.getName());
-		    }
-            write("&gt;");
-		}
-		close("td");
-		open("td");
-		write(m.getName());
-		writeParameterList(m.getParameterLists());
-		tag("br");
-		around("span class='doc'", getDoc(m));
-		close("td");
-		close("tr");
-	}
-
-    private void writeParameterList(List<ParameterList> parameterLists) throws IOException {
-		for(ParameterList lists : parameterLists){
-			write("(");
-			boolean first = true;
-			for(Parameter param : lists.getParameters()){
-				if(!first){
-					write(", ");
-				}else{
-					first = false;
-				}
-				link(param.getType());
-				write(" ", param.getName());
-			}
-			write(")");
-		}
-	}
-
-	private void doc(MethodOrValue f) throws IOException {
-        open("tr class='TableRowColor'");
-		open("td");
-		link(f.getType());
-		close("td");
-        open("td");
-		write(f.getName());
-        tag("br");
-        around("span class='doc'", getDoc(f));
-        close("td");
-		close("tr");
 	}
 
 	@Override
@@ -222,4 +197,10 @@ public class ClassDoc extends CeylonDoc {
     protected File getOutputFile() {
         return new File(getFolder(klass), getFileName(klass));
     }
+    
+    private boolean isNullorEmpty(Collection<? extends Object> collection ) {
+    	return collection == null || collection.isEmpty(); 
+    }
+    
+    
 }
