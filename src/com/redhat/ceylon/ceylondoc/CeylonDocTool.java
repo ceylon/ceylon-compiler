@@ -11,20 +11,22 @@ import java.util.List;
 import java.util.Map;
 
 import com.redhat.ceylon.compiler.typechecker.context.PhasedUnit;
-import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Module;
-import com.redhat.ceylon.compiler.typechecker.model.Package;
 import com.redhat.ceylon.compiler.typechecker.model.Modules;
+import com.redhat.ceylon.compiler.typechecker.model.Package;
+import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 
 public class CeylonDocTool {
 
     private List<PhasedUnit> phasedUnits;
     private Modules modules;
     private String destDir;
-    private Map<Declaration,List<Class>> subclassesMap = new HashMap<Declaration, List<Class>>();
-
+    private Map<ClassOrInterface,List<ClassOrInterface>> subclassesMap = new HashMap<ClassOrInterface, List<ClassOrInterface>>();
+    private Map<TypeDeclaration,List<ClassOrInterface>> implementingClassesMap = new HashMap<TypeDeclaration, List<ClassOrInterface>>();
+    
+    
     public CeylonDocTool(List<PhasedUnit> phasedUnits, Modules modules) {
         this.phasedUnits = phasedUnits;
         this.modules = modules;
@@ -38,14 +40,23 @@ public class CeylonDocTool {
     	
     	for (PhasedUnit pu : phasedUnits) {
             for(Declaration decl : pu.getUnit().getDeclarations()){
-            	 if(decl instanceof Class){
-            		 Class c = (Class) decl;
-            		 Class superclass = c.getExtendedTypeDeclaration();            		 
+            	 if(decl instanceof ClassOrInterface){
+            		 ClassOrInterface c = (ClassOrInterface) decl;
+            		 ClassOrInterface superclass = c.getExtendedTypeDeclaration();            		 
             		 if (superclass != null) {
                 		 if (subclassesMap.get(superclass) ==  null) {
-                			 subclassesMap.put(superclass, new ArrayList<Class>());
+                			 subclassesMap.put(superclass, new ArrayList<ClassOrInterface>());
                 		 }
                 		 subclassesMap.get(superclass).add(c);
+            		 }
+            		 List<TypeDeclaration> satisfiedTypes = c.getSatisfiedTypeDeclarations();
+            		 if (satisfiedTypes != null && satisfiedTypes.isEmpty() == false) {
+            			 for (TypeDeclaration satisfiedType : satisfiedTypes) {
+                    		 if (implementingClassesMap.get(satisfiedType) ==  null) {
+                    			 implementingClassesMap.put(satisfiedType, new ArrayList<ClassOrInterface>());
+                    		 }
+                    		 implementingClassesMap.get(satisfiedType).add(c);
+						}
             		 }
                  }
             }
@@ -88,7 +99,7 @@ public class CeylonDocTool {
 
     private void doc(Declaration decl) throws IOException {
         if(decl instanceof ClassOrInterface){        	
-            new ClassDoc(destDir, (ClassOrInterface)decl,subclassesMap.get(decl)).generate();
+            new ClassDoc(destDir, (ClassOrInterface)decl,subclassesMap.get(decl), implementingClassesMap.get(decl)).generate();
         }
     }
 

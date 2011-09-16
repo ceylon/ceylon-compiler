@@ -24,11 +24,13 @@ public class ClassDoc extends ClassOrPackageDoc {
 	private ClassOrInterface klass;
     private List<Method> methods;
     private List<MethodOrValue> attributes;
-    private List<Class> subclasses;
+    private List<ClassOrInterface> subclasses;
+    private List<ClassOrInterface> implementingClasses;
 
-	public ClassDoc(String destDir, ClassOrInterface klass, List<Class> subclasses) throws IOException {
+	public ClassDoc(String destDir, ClassOrInterface klass, List<ClassOrInterface> subclasses, List<ClassOrInterface> implementingClasses) throws IOException {
 		super(destDir);
 		this.subclasses = subclasses;
+		this.implementingClasses = implementingClasses;
 		this.klass = klass;
 		loadMembers();
 	}
@@ -153,6 +155,22 @@ public class ClassDoc extends ClassOrPackageDoc {
 			}
 			close("div");
 		}
+		
+		// implementing classes
+		if (isNullorEmpty(implementingClasses) == false) {
+			boolean first = true;
+			open("div class='implementingClasses'");
+			write("All Known Implementing Classes: ");
+			for (TypeDeclaration sublcass : implementingClasses) {
+				if (!first) {
+					write(", ");
+				} else {
+					first = false;
+				}
+				link(sublcass, true);
+			}
+			close("div");
+		}		
 		
 		// description
 		around("div class='doc'", getDoc(klass));
