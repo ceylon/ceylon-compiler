@@ -14,85 +14,82 @@ import com.redhat.ceylon.compiler.typechecker.model.Value;
 
 public abstract class ClassOrPackageDoc extends CeylonDoc {
 
-	public ClassOrPackageDoc(String destDir) {
-		super(destDir);	
+	public ClassOrPackageDoc(final String destDir) {
+		super(destDir);
 	}
-	
-	protected String getModifiers(Declaration d) {
-		StringBuilder modifiers = new StringBuilder();
-		if (d.isShared()) {
+
+	protected String getModifiers(final Declaration decl) {
+		final StringBuilder modifiers = new StringBuilder();
+		if (decl.isShared()) {
 			modifiers.append("shared ");
 		}
-		if (d instanceof Value) {
-			Value v = (Value) d;
-			if (v.isVariable()) {
+		if (decl instanceof Value) {
+			final Value value = (Value) decl;
+			if (value.isVariable()) {
 				modifiers.append("variable");
 			}
-		} else if (d instanceof com.redhat.ceylon.compiler.typechecker.model.Class) {
-			com.redhat.ceylon.compiler.typechecker.model.Class c  = (com.redhat.ceylon.compiler.typechecker.model.Class) d;
-			if (c.isAbstract()) {
+		} else if (decl instanceof com.redhat.ceylon.compiler.typechecker.model.Class) {
+			final com.redhat.ceylon.compiler.typechecker.model.Class klass  = (com.redhat.ceylon.compiler.typechecker.model.Class) decl;
+			if (klass.isAbstract()) {
 				modifiers.append("abstract");
 			}
-		}			
+		}
 		return modifiers.toString().trim();
 	}
-	
 
-    protected void doc(Method m) throws IOException {
+	protected void doc(final Method method) throws IOException {
         open("tr class='TableRowColor'");
 		open("td");
-		around("span class='modifiers'",getModifiers(m));
+		around("span class='modifiers'", getModifiers(method));
 		write(" ");
-		link(m.getType());
-		List<TypeParameter> typeParameters = m.getTypeParameters();
-		if(!typeParameters.isEmpty()){
+		link(method.getType());
+		final List<TypeParameter> typeParameters = method.getTypeParameters();
+		if (!typeParameters.isEmpty()) {
 		    write("&lt;");
 		    boolean first = true;
-		    for(TypeParameter type : typeParameters){
-		        if(first)
+		    for (TypeParameter type : typeParameters) {
+		        if (first) {
 		            first = false;
-		        else
+		        } else {
 		            write(", ");
+		        }
 		        write(type.getName());
 		    }
             write("&gt;");
 		}
 		close("td");
 		open("td");
-		write(m.getName());
-		writeParameterList(m.getParameterLists());
+		write(method.getName());
+		writeParameterList(method.getParameterLists());
 		tag("br");
-		around("span class='doc'", getDoc(m));
+		around("span class='doc'", getDoc(method));
 		close("td");
 		close("tr");
 	}
-    
-	protected void doc(MethodOrValue f) throws IOException {
-		if (f instanceof Value) {
-			f = (Value) f;
-		}
+
+	protected void doc(final MethodOrValue methodOrValue) throws IOException {
         open("tr class='TableRowColor'");
 		open("td");
-		around("span class='modifiers'",getModifiers(f));
+		around("span class='modifiers'", getModifiers(methodOrValue));
 		write(" ");
-		link(f.getType());
+		link(methodOrValue.getType());
 		close("td");
         open("td");
-		write(f.getName());
+		write(methodOrValue.getName());
         tag("br");
-        around("span class='doc'", getDoc(f));
+        around("span class='doc'", getDoc(methodOrValue));
         close("td");
 		close("tr");
 	}
-    
-    protected void writeParameterList(List<ParameterList> parameterLists) throws IOException {
-		for(ParameterList lists : parameterLists){
+
+    protected void writeParameterList(final List<ParameterList> parameterLists) throws IOException {
+		for (ParameterList lists : parameterLists) {
 			write("(");
 			boolean first = true;
-			for(Parameter param : lists.getParameters()){
-				if(!first){
+			for (Parameter param : lists.getParameters()) {
+				if (!first) {
 					write(", ");
-				}else{
+				} else {
 					first = false;
 				}
 				link(param.getType());
@@ -101,14 +98,15 @@ public abstract class ClassOrPackageDoc extends CeylonDoc {
 			write(")");
 		}
 	}
-    
-	protected String getDoc(Declaration decl) {
-	    for (Annotation a : decl.getAnnotations()){
-	        if(a.getName().equals("doc"))
-	            return unquote(a.getPositionalArguments().get(0));
+
+	protected String getDoc(final Declaration decl) {
+		String doc = "";
+	    for (Annotation annotation : decl.getAnnotations()) {
+	        if (annotation.getName().equals("doc")) {
+	            doc = unquote(annotation.getPositionalArguments().get(0));
+	        }
 	    }
-        return "";
+        return doc;
     }
-	
 
 }
