@@ -17,7 +17,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Value;
 
 public class PackageDoc extends ClassOrPackageDoc {
 
-	final private Package pkg;
+	private final Package pkg;
     private List<Class> classes;
     private List<Interface> interfaces;
     private List<Value> attributes;
@@ -45,7 +45,7 @@ public class PackageDoc extends ClassOrPackageDoc {
                 methods.add((Method) members);
             }
         }
-        Comparator<Declaration> comparator = new Comparator<Declaration>(){
+        final Comparator<Declaration> comparator = new Comparator<Declaration>() {
             @Override
             public int compare(final Declaration a, final Declaration b) {
                 return a.getName().compareTo(b.getName());

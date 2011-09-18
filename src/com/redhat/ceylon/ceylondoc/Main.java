@@ -7,8 +7,8 @@ import com.redhat.ceylon.compiler.typechecker.TypeChecker;
 import com.redhat.ceylon.compiler.typechecker.TypeCheckerBuilder;
 
 public class Main {
-	
-    public static void main(String[] args) throws IOException{
+
+    public static void main(String[] args) throws IOException {
         String destDir = null;
         String srcDir = null;
 

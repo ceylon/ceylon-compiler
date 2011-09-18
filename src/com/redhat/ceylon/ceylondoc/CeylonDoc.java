@@ -66,7 +66,7 @@ public abstract class CeylonDoc {
 	protected void link(final TypeDeclaration decl, final boolean qualified) throws IOException {
 		if (decl instanceof UnionType) {
 			boolean first = true;
-			for (TypeDeclaration ud : ((UnionType)decl).getCaseTypeDeclarations()) {
+			for (TypeDeclaration ud : ((UnionType) decl).getCaseTypeDeclarations()) {
 				if (first) {
 					first = false;
 				} else {
@@ -106,7 +106,7 @@ public abstract class CeylonDoc {
 		return dir;
 	}
 
-	protected File getFolder(ClassOrInterface klass) {
+	protected File getFolder(final ClassOrInterface klass) {
 		return getFolder(getPackage(klass));
 	}
 
@@ -118,7 +118,7 @@ public abstract class CeylonDoc {
 		return (Package) decl;
 	}
 
-	protected void around(final String tag, final String... text) throws IOException {		
+	protected void around(final String tag, final String... text) throws IOException {
 		open(tag);
 		for (String s : text) {
 			writer.append(s);

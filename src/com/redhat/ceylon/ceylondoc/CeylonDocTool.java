@@ -20,11 +20,11 @@ import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 
 public class CeylonDocTool {
 
-    final private List<PhasedUnit> phasedUnits;
-    final private Modules modules;
+	private final List<PhasedUnit> phasedUnits;
+    private final Modules modules;
     private String destDir;
-    final private Map<ClassOrInterface,List<ClassOrInterface>> subclassesMap = new HashMap<ClassOrInterface, List<ClassOrInterface>>();
-    final private Map<TypeDeclaration,List<ClassOrInterface>> implementingClassesMap = new HashMap<TypeDeclaration, List<ClassOrInterface>>();
+    private final Map<ClassOrInterface, List<ClassOrInterface>> subclassesMap = new HashMap<ClassOrInterface, List<ClassOrInterface>>();
+    private final Map<TypeDeclaration, List<ClassOrInterface>> implementingClassesMap = new HashMap<TypeDeclaration, List<ClassOrInterface>>();
 
     public CeylonDocTool(final List<PhasedUnit> phasedUnits, final Modules modules) {
         this.phasedUnits = phasedUnits;
@@ -40,21 +40,21 @@ public class CeylonDocTool {
     	for (PhasedUnit pu : phasedUnits) {
             for (Declaration decl : pu.getUnit().getDeclarations()) {
             	 if (decl instanceof ClassOrInterface) {
-            		 ClassOrInterface c = (ClassOrInterface) decl;
-            		 ClassOrInterface superclass = c.getExtendedTypeDeclaration();
+            		 final ClassOrInterface classOrInteface = (ClassOrInterface) decl;
+            		 final ClassOrInterface superclass = classOrInteface.getExtendedTypeDeclaration();
             		 if (superclass != null)  {
                 		 if (subclassesMap.get(superclass) ==  null) {
                 			 subclassesMap.put(superclass, new ArrayList<ClassOrInterface>());
                 		 }
-                		 subclassesMap.get(superclass).add(c);
+                		 subclassesMap.get(superclass).add(classOrInteface);
             		 }
-            		 final List<TypeDeclaration> satisfiedTypes = c.getSatisfiedTypeDeclarations();
+            		 final List<TypeDeclaration> satisfiedTypes = classOrInteface.getSatisfiedTypeDeclarations();
             		 if (satisfiedTypes != null && satisfiedTypes.isEmpty() == false) {
             			 for (TypeDeclaration satisfiedType : satisfiedTypes) {
                     		 if (implementingClassesMap.get(satisfiedType) ==  null) {
                     			 implementingClassesMap.put(satisfiedType, new ArrayList<ClassOrInterface>());
                     		 }
-                    		 implementingClassesMap.get(satisfiedType).add(c);
+                    		 implementingClassesMap.get(satisfiedType).add(classOrInteface);
 						}
             		 }
                  }
@@ -66,7 +66,7 @@ public class CeylonDocTool {
                 doc(decl);
             }
         }
-        
+
         for (Module module : modules.getListOfModules()) {
             for (Package pkg : module.getPackages()) {
                 doc(pkg);
@@ -85,8 +85,8 @@ public class CeylonDocTool {
     }
 
     private void copyResource(final String path) throws IOException {
-        InputStream resource = getClass().getResourceAsStream(path);
-        OutputStream os = new FileOutputStream(new File(destDir, "style.css"));
+        final InputStream resource = getClass().getResourceAsStream(path);
+        final OutputStream os = new FileOutputStream(new File(destDir, "style.css"));
         byte[] buf = new byte[1024];
         int read;
         while ((read = resource.read(buf)) > -1) {

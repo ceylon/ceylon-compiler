@@ -13,7 +13,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Package;
 
 public class SummaryDoc extends CeylonDoc {
 
-    final private Modules modules;
+    private final Modules modules;
 
     public SummaryDoc(final String destDir, final Modules modules) throws IOException {
         super(destDir);
@@ -77,17 +77,17 @@ public class SummaryDoc extends CeylonDoc {
         return packages;
     }
 
-    private void doc(Package c) throws IOException {
+    private void doc(final Package pakage) throws IOException {
         open("tr class='TableRowColor'");
         open("td");
-        if (c.getNameAsString().isEmpty()) {
+        if (pakage.getNameAsString().isEmpty()) {
             around("a href='index.html'", "default package");
         } else {
-            around("a href='" + join("/", c.getName()) + "/index.html'", c.getNameAsString());
+            around("a href='" + join("/", pakage.getName()) + "/index.html'", pakage.getNameAsString());
         }
         close("td");
         open("td");
-        write(c.getNameAsString());
+        write(pakage.getNameAsString());
         close("td");
         close("tr");
     }

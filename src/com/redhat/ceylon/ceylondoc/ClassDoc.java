@@ -20,14 +20,14 @@ import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 
 public class ClassDoc extends ClassOrPackageDoc {
-	
-	final private ClassOrInterface klass;
+
+	private final ClassOrInterface klass;
     private List<Method> methods;
     private List<MethodOrValue> attributes;
     private List<ClassOrInterface> subclasses;
     private List<ClassOrInterface> implementingClasses;
-    
-    final private Comparator<Declaration> comparator = new Comparator<Declaration>() {
+
+    private final Comparator<Declaration> comparator = new Comparator<Declaration>() {
         @Override
         public int compare(final Declaration a, final Declaration b) {
             return a.getName().compareTo(b.getName());
@@ -49,7 +49,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 		this.klass = klass;
 		loadMembers();
 	}
-	
+
 	private void loadMembers() {
 	        methods = new ArrayList<Method>();
 	        attributes = new ArrayList<MethodOrValue>();
@@ -79,7 +79,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 		open("body");
 		summary();
 		if (klass instanceof Class) {
-			constructor((Class)klass);
+			constructor((Class) klass);
 		}
 		attributes();
 		methods();
@@ -109,7 +109,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 		around("div class='type'", klass instanceof Class ? "Class " : "Interface ", klass.getName());
 
 		// hierarchy tree
-		LinkedList<ClassOrInterface> superTypes = new LinkedList<ClassOrInterface>();
+		final LinkedList<ClassOrInterface> superTypes = new LinkedList<ClassOrInterface>();
 		superTypes.add(klass);
 		ClassOrInterface type = klass.getExtendedTypeDeclaration();
 		while (type != null) {
@@ -127,7 +127,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 		}
 
 		// type parameters
-		if (isNullOrEmpty(klass.getTypeParameters()) == false ) {
+		if (isNullOrEmpty(klass.getTypeParameters()) == false) {
 			open("div class='type-parameters'");
 			write("Type parameters:");
 			open("ul");
@@ -143,7 +143,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 			open("div class='implements'");
 			write("Implemented interfaces: ");
 			boolean first = true;
-			for (TypeDeclaration satisfied : klass.getSatisfiedTypeDeclarations() ) {
+			for (TypeDeclaration satisfied : klass.getSatisfiedTypeDeclarations()) {
 				if (!first) {
 					write(", ");
 				} else {
@@ -201,7 +201,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 	}
 
 	private void methods() throws IOException {
-        if(methods.isEmpty() == false) {
+        if (methods.isEmpty() == false) {
             openTable("Methods", "Modifier and Type", "Method and Description");
     		for (Method m : methods) {
     		    doc(m);
@@ -229,10 +229,9 @@ public class ClassDoc extends ClassOrPackageDoc {
     protected File getOutputFile() {
         return new File(getFolder(klass), getFileName(klass));
     }
-    
-    private boolean isNullOrEmpty(Collection<? extends Object> collection) {
+
+    private boolean isNullOrEmpty(final Collection<? extends Object> collection) {
     	return collection == null || collection.isEmpty();
     }
-    
-    
+
 }
