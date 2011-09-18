@@ -13,6 +13,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Getter;
+import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
@@ -25,7 +26,9 @@ public class ClassDoc extends ClassOrPackageDoc {
     private List<Method> methods;
     private List<MethodOrValue> attributes;
     private List<ClassOrInterface> subclasses;
-    private List<ClassOrInterface> implementingClasses;
+    private List<ClassOrInterface> satisfyingClassesOrInterfaces;
+    private List<Class> satisfyingClasses;
+    private List<Interface> satisfyingInterfaces;
 
     private final Comparator<Declaration> comparator = new Comparator<Declaration>() {
         @Override
@@ -34,17 +37,17 @@ public class ClassDoc extends ClassOrPackageDoc {
         }
     };
 
-	public ClassDoc(final String destDir, final ClassOrInterface klass, final List<ClassOrInterface> subclasses, final List<ClassOrInterface> implementingClasses) throws IOException {
+	public ClassDoc(final String destDir, final ClassOrInterface klass, final List<ClassOrInterface> subclasses, final List<ClassOrInterface> satisfyingClassesOrInterfaces) throws IOException {
 		super(destDir);
 		if (subclasses != null) {
 			this.subclasses = subclasses;
 		} else {
 			this.subclasses = new ArrayList<ClassOrInterface>();
 		}
-		if (implementingClasses != null) {
-			this.implementingClasses = implementingClasses;
+		if (satisfyingClassesOrInterfaces != null) {
+			this.satisfyingClassesOrInterfaces = satisfyingClassesOrInterfaces;
 		} else {
-			this.implementingClasses = new ArrayList<ClassOrInterface>();
+			this.satisfyingClassesOrInterfaces = new ArrayList<ClassOrInterface>();
 		}
 		this.klass = klass;
 		loadMembers();
@@ -53,6 +56,8 @@ public class ClassDoc extends ClassOrPackageDoc {
 	private void loadMembers() {
 	        methods = new ArrayList<Method>();
 	        attributes = new ArrayList<MethodOrValue>();
+	        satisfyingClasses = new ArrayList<Class>();
+	        satisfyingInterfaces = new ArrayList<Interface>();
 	        for (Declaration m : klass.getMembers()) {
 	            if (m instanceof Value) {
                     attributes.add((Value) m);
@@ -63,10 +68,19 @@ public class ClassDoc extends ClassOrPackageDoc {
 	            }
 	        }
 
+	        for (ClassOrInterface classOrInterface : satisfyingClassesOrInterfaces) {
+	        	if (classOrInterface instanceof Class) {
+	        		satisfyingClasses.add((Class) classOrInterface);
+	        	} else if (classOrInterface instanceof Interface) {
+	        		satisfyingInterfaces.add((Interface) classOrInterface);
+	        	}
+	        }
+
 	        Collections.sort(methods, comparator);
 	        Collections.sort(attributes, comparator);
 	        Collections.sort(subclasses, comparator);
-	        Collections.sort(implementingClasses, comparator);
+	        Collections.sort(satisfyingClasses, comparator);
+	        Collections.sort(satisfyingInterfaces, comparator);
     }
 
     public void generate() throws IOException {
@@ -141,7 +155,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 		// interfaces
 		if (isNullOrEmpty(klass.getSatisfiedTypeDeclarations()) ==  false) {
 			open("div class='implements'");
-			write("Implemented interfaces: ");
+			write("Satisfied interfaces: ");
 			boolean first = true;
 			for (TypeDeclaration satisfied : klass.getSatisfiedTypeDeclarations()) {
 				if (!first) {
@@ -170,18 +184,34 @@ public class ClassDoc extends ClassOrPackageDoc {
 			close("div");
 		}
 
-		// implementing classes
-		if (isNullOrEmpty(implementingClasses) == false) {
+		// satisfying classes
+		if (isNullOrEmpty(satisfyingClasses) == false) {
 			boolean first = true;
-			open("div class='implementingClasses'");
-			write("All Known Implementing Classes: ");
-			for (TypeDeclaration sublcass : implementingClasses) {
+			open("div class='satisfyingClasses'");
+			write("All Known Satisfying Classes: ");
+			for (TypeDeclaration subclass : satisfyingClasses) {
 				if (!first) {
 					write(", ");
 				} else {
 					first = false;
 				}
-				link(sublcass, true);
+				link(subclass, true);
+			}
+			close("div");
+		}
+
+		// satisfying interfaces
+		if (isNullOrEmpty(satisfyingInterfaces) == false) {
+			boolean first = true;
+			open("div class='satisfyingClasses'");
+			write("All Known Satisfying Interfaces: ");
+			for (TypeDeclaration subclass : satisfyingInterfaces) {
+				if (!first) {
+					write(", ");
+				} else {
+					first = false;
+				}
+				link(subclass, true);
 			}
 			close("div");
 		}
