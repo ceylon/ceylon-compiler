@@ -52,40 +52,42 @@ public class SummaryDoc extends CeylonDoc {
 
     private void packages() throws IOException {
         openTable("Packages", "Package", "Description");
-        for(Package pkg : getPackages()){
+        for (Package pkg : getPackages()) {
             doc(pkg);
         }
         close("table");
     }
 
-    private List<Package> getPackages(){
+    private List<Package> getPackages() {
         List<Package> packages = new ArrayList<Package>();
-        for(Module m : modules.getListOfModules()){
-            for(Package pkg : m.getPackages()){
-                if(pkg.getMembers().size() > 0)
+        for (Module m : modules.getListOfModules()) {
+            for (Package pkg : m.getPackages()) {
+                if (pkg.getMembers().size() > 0) {
                     packages.add(pkg);
+                }
             }
         }
-        Collections.sort(packages, new Comparator<Package>(){
+        Collections.sort(packages, new Comparator<Package>() {
             @Override
             public int compare(Package a, Package b) {
                 return a.getNameAsString().compareTo(b.getNameAsString());
             }
-            
+
         });
         return packages;
     }
 
-    private void doc(Package c) throws IOException {
+    private void doc(Package pakage) throws IOException {
         open("tr class='TableRowColor'");
         open("td");
-        if(c.getNameAsString().isEmpty())
+        if (pakage.getNameAsString().isEmpty()) {
             around("a href='index.html'", "default package");
-        else
-            around("a href='"+join("/",c.getName())+"/index.html'", c.getNameAsString());
+        } else {
+            around("a href='" + join("/", pakage.getName()) + "/index.html'", pakage.getNameAsString());
+        }
         close("td");
         open("td");
-        write(c.getNameAsString());
+        write(pakage.getNameAsString());
         close("td");
         close("tr");
     }

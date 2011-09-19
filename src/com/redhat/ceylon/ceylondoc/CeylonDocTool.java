@@ -20,42 +20,41 @@ import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 
 public class CeylonDocTool {
 
-    private List<PhasedUnit> phasedUnits;
+	private List<PhasedUnit> phasedUnits;
     private Modules modules;
     private String destDir;
-    private Map<ClassOrInterface,List<ClassOrInterface>> subclassesMap = new HashMap<ClassOrInterface, List<ClassOrInterface>>();
-    private Map<TypeDeclaration,List<ClassOrInterface>> implementingClassesMap = new HashMap<TypeDeclaration, List<ClassOrInterface>>();
-    
-    
+    private Map<ClassOrInterface, List<ClassOrInterface>> subclassesMap = new HashMap<ClassOrInterface, List<ClassOrInterface>>();
+    private Map<TypeDeclaration, List<ClassOrInterface>> implementingClassesMap = new HashMap<TypeDeclaration, List<ClassOrInterface>>();
+
     public CeylonDocTool(List<PhasedUnit> phasedUnits, Modules modules) {
         this.phasedUnits = phasedUnits;
         this.modules = modules;
     }
-    
-    public void setDestDir(String destDir){
+
+    public void setDestDir(String destDir) {
         this.destDir = destDir;
     }
 
-    public void makeDoc() throws IOException{
-    	
+    public void makeDoc() throws IOException {
+
     	for (PhasedUnit pu : phasedUnits) {
-            for(Declaration decl : pu.getUnit().getDeclarations()){
-            	 if(decl instanceof ClassOrInterface){
-            		 ClassOrInterface c = (ClassOrInterface) decl;
-            		 ClassOrInterface superclass = c.getExtendedTypeDeclaration();            		 
-            		 if (superclass != null) {
+            for (Declaration decl : pu.getUnit().getDeclarations()) {
+            	 if (decl instanceof ClassOrInterface) {
+            		 ClassOrInterface classOrInteface = (ClassOrInterface) decl;
+            		 ClassOrInterface superclass = classOrInteface.getExtendedTypeDeclaration();
+            		 if (superclass != null)  {
                 		 if (subclassesMap.get(superclass) ==  null) {
                 			 subclassesMap.put(superclass, new ArrayList<ClassOrInterface>());
                 		 }
-                		 subclassesMap.get(superclass).add(c);
+                		 subclassesMap.get(superclass).add(classOrInteface);
             		 }
-            		 List<TypeDeclaration> satisfiedTypes = c.getSatisfiedTypeDeclarations();
+            		 List<TypeDeclaration> satisfiedTypes = classOrInteface.getSatisfiedTypeDeclarations();
             		 if (satisfiedTypes != null && satisfiedTypes.isEmpty() == false) {
             			 for (TypeDeclaration satisfiedType : satisfiedTypes) {
                     		 if (implementingClassesMap.get(satisfiedType) ==  null) {
                     			 implementingClassesMap.put(satisfiedType, new ArrayList<ClassOrInterface>());
                     		 }
-                    		 implementingClassesMap.get(satisfiedType).add(c);
+                    		 implementingClassesMap.get(satisfiedType).add(classOrInteface);
 						}
             		 }
                  }
@@ -63,13 +62,13 @@ public class CeylonDocTool {
         }
 
         for (PhasedUnit pu : phasedUnits) {
-            for(Declaration decl : pu.getUnit().getDeclarations()){
+            for (Declaration decl : pu.getUnit().getDeclarations()) {
                 doc(decl);
             }
-        }    	
-        
-        for(Module module : modules.getListOfModules()){
-            for(Package pkg : module.getPackages()){
+        }
+
+        for (Module module : modules.getListOfModules()) {
+            for (Package pkg : module.getPackages()) {
                 doc(pkg);
             }
         }
@@ -90,7 +89,7 @@ public class CeylonDocTool {
         OutputStream os = new FileOutputStream(new File(destDir, "style.css"));
         byte[] buf = new byte[1024];
         int read;
-        while((read = resource.read(buf)) > -1){
+        while ((read = resource.read(buf)) > -1) {
             os.write(buf, 0, read);
         }
         os.flush();
@@ -98,8 +97,8 @@ public class CeylonDocTool {
     }
 
     private void doc(Declaration decl) throws IOException {
-        if(decl instanceof ClassOrInterface){        	
-            new ClassDoc(destDir, (ClassOrInterface)decl,subclassesMap.get(decl), implementingClassesMap.get(decl)).generate();
+        if (decl instanceof ClassOrInterface) {
+            new ClassDoc(destDir, (ClassOrInterface) decl, subclassesMap.get(decl), implementingClassesMap.get(decl)).generate();
         }
     }
 

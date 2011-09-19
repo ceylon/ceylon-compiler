@@ -26,20 +26,22 @@ public abstract class CeylonDoc {
 		this.destDir = destDir;
 	}
 
-	protected void setupWriter() throws IOException{
+	protected void setupWriter() throws IOException {
 	    this.writer = new FileWriter(getOutputFile());
 	}
-	
+
 	protected abstract File getOutputFile();
 
     protected void write(String... text) throws IOException {
-		for(String s : text)
+		for (String s : text) {
 			writer.append(s);
+		}
 	}
 
 	protected void tag(String... tags) throws IOException {
-		for(String tag : tags)
+		for (String tag : tags) {
 			writer.append("<").append(tag).append("/>\n");
+		}
 	}
 
 	protected String getPathToBase(ClassOrInterface klass) {
@@ -47,10 +49,11 @@ public abstract class CeylonDoc {
 	}
 	protected String getPathToBase(Package pkg) {
 		StringBuilder stringBuilder = new StringBuilder();
-		for(int i=pkg.getName().size()-1;i>=0;i--){
+		for (int i = pkg.getName().size() - 1; i >= 0; i--) {
 			stringBuilder.append("..");
-			if(i > 0)
+			if (i > 0) {
 				stringBuilder.append("/");
+			}
 		}
 		return stringBuilder.toString();
 	}
@@ -61,43 +64,44 @@ public abstract class CeylonDoc {
 	}
 
 	protected void link(TypeDeclaration decl, boolean qualified) throws IOException {
-		if(decl instanceof UnionType){
+		if (decl instanceof UnionType) {
 			boolean first = true;
-			for(TypeDeclaration ud : ((UnionType)decl).getCaseTypeDeclarations()){
-				if(first){
+			for (TypeDeclaration ud : ((UnionType) decl).getCaseTypeDeclarations()) {
+				if (first) {
 					first = false;
-				}else{
+				} else {
 					write("|");
 				}
 				link(ud, qualified);
 			}
-		}else if(decl instanceof ClassOrInterface){
-			link((ClassOrInterface)decl, qualified);
-        }else if(decl instanceof TypeParameter){
+		} else if (decl instanceof ClassOrInterface) {
+			link((ClassOrInterface) decl, qualified);
+        } else if (decl instanceof TypeParameter) {
             around("span class='type-parameter'", decl.getName());
-		}else{
+		} else {
 			write(decl.toString());
 		}
 	}
 
 	protected void link(ClassOrInterface decl, boolean qualified) throws IOException {
-		String path = getPathToBase() + "/" + join("/", getPackage(decl).getName())+"/"+getFileName(decl);
-		around("a href='"+path+"'", qualified ? decl.getQualifiedNameString() : decl.getName());
+		String path = getPathToBase() + "/" + join("/", getPackage(decl).getName()) + "/" + getFileName(decl);
+		around("a href='" + path + "'", qualified ? decl.getQualifiedNameString() : decl.getName());
 	}
 
 	protected abstract String getPathToBase();
 
-	protected String getFileName(Scope klass) {
+	protected String getFileName(Scope scope) {
+		Scope klass = scope;
 		List<String> name = new LinkedList<String>();
-		while(klass instanceof Declaration){
-			name.add(0, ((Declaration)klass).getName());
+		while (klass instanceof Declaration) {
+			name.add(0, ((Declaration) klass).getName());
 			klass = klass.getContainer();
 		}
-		return join(".", name)+".html";
+		return join(".", name) + ".html";
 	}
 
 	protected File getFolder(Package pkg) {
-		File dir = new File(destDir, join("/",pkg.getName()));
+		File dir = new File(destDir, join("/", pkg.getName()));
 		dir.mkdirs();
 		return dir;
 	}
@@ -106,8 +110,9 @@ public abstract class CeylonDoc {
 		return getFolder(getPackage(klass));
 	}
 
-	protected static Package getPackage(Scope decl) {
-		while(!(decl instanceof Package)){
+	protected static Package getPackage(Scope scope) {
+		Scope decl = scope;
+		while (!(decl instanceof Package)) {
 			decl = decl.getContainer();
 		}
 		return (Package) decl;
@@ -115,31 +120,37 @@ public abstract class CeylonDoc {
 
 	protected void around(String tag, String... text) throws IOException {
 		open(tag);
-		for(String s : text)
+		for (String s : text) {
 			writer.append(s);
-		int space = tag.indexOf(" ");
-		if(space > -1)
-			tag = tag.substring(0, space);
-		close(tag);
+		}
+		String result = tag;
+		int space = result.indexOf(' ');
+		if (space > -1) {
+			result = tag.substring(0, space);
+		}
+		close(result);
 	}
 
 	protected void close(String... tags) throws IOException {
-		for(String tag : tags)
+		for (String tag : tags) {
 			writer.append("</").append(tag).append(">\n");
+		}
 	}
 
 	protected void open(String... tags) throws IOException {
-		for(String tag : tags)
+		for (String tag : tags) {
 			writer.append("<").append(tag).append(">\n");
+		}
 	}
 
 	protected static String join(String str, List<String> parts) {
 		StringBuilder stringBuilder = new StringBuilder();
 		Iterator<String> iterator = parts.iterator();
-		while(iterator.hasNext()){
+		while (iterator.hasNext()) {
 			stringBuilder.append(iterator.next());
-			if(iterator.hasNext())
+			if (iterator.hasNext()) {
 				stringBuilder.append(str);
+			}
 		}
 		return stringBuilder.toString();
 	}
@@ -161,11 +172,9 @@ public abstract class CeylonDoc {
 	    around("th", secondColumnTitle);
 	    close("tr");
 	}
-	
 
-	
    protected String unquote(String string) {
-        return string.substring(1, string.length()-1);
+        return string.substring(1, string.length() - 1);
    }
-   
+
 }
