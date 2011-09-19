@@ -17,54 +17,56 @@ import com.redhat.ceylon.compiler.typechecker.model.Value;
 
 public class PackageDoc extends ClassOrPackageDoc {
 
-	private Package pkg;
+	private final Package pkg;
     private List<Class> classes;
     private List<Interface> interfaces;
     private List<Value> attributes;
     private List<Method> methods;
 
-	public PackageDoc(String destDir, Package pkg) throws IOException {
+	public PackageDoc(final String destDir, final Package pkg) throws IOException {
 		super(destDir);
 		this.pkg = pkg;
 		loadMembers();
 	}
-	
+
 	private void loadMembers() {
 	    classes = new ArrayList<Class>();
         interfaces = new ArrayList<Interface>();
         attributes = new ArrayList<Value>();
         methods = new ArrayList<Method>();
-        for(Declaration m : pkg.getMembers()){
-            if(m instanceof Interface)
-                interfaces.add((Interface) m);
-            else if(m instanceof Class)
-                classes.add((Class) m);
-            else if(m instanceof Value)
-                attributes.add((Value)m);
-            else if(m instanceof Method)
-                methods.add((Method)m);
+        for (Declaration members : pkg.getMembers()) {
+            if (members instanceof Interface) {
+                interfaces.add((Interface) members);
+            } else if (members instanceof Class) {
+                classes.add((Class) members);
+            } else if (members instanceof Value) {
+                attributes.add((Value) members);
+            } else if (members instanceof Method) {
+                methods.add((Method) members);
+            }
         }
-        Comparator<Declaration> comparator = new Comparator<Declaration>(){
+        final Comparator<Declaration> comparator = new Comparator<Declaration>() {
             @Override
-            public int compare(Declaration a, Declaration b) {
+            public int compare(final Declaration a, final Declaration b) {
                 return a.getName().compareTo(b.getName());
             }
         };
-        Collections.sort(classes, comparator );
-        Collections.sort(interfaces, comparator );
-        Collections.sort(attributes, comparator );
-        Collections.sort(methods, comparator );
+        Collections.sort(classes, comparator);
+        Collections.sort(interfaces, comparator);
+        Collections.sort(attributes, comparator);
+        Collections.sort(methods, comparator);
     }
 
     public void generate() throws IOException {
 	    setupWriter();
 		open("html");
 		open("head");
-		around("title", "Package "+pkg.getName());
-		if(pkg.getNameAsString().isEmpty())
+		around("title", "Package " + pkg.getName());
+		if (pkg.getNameAsString().isEmpty()) {
 		    tag("link href='style.css' rel='stylesheet' type='text/css'");
-		else
-		    tag("link href='"+getPathToBase(pkg)+"/style.css' rel='stylesheet' type='text/css'");
+		} else {
+		    tag("link href='" + getPathToBase(pkg) + "/style.css' rel='stylesheet' type='text/css'");
+		}
 		close("head");
 		open("body");
 		summary();
@@ -81,7 +83,7 @@ public class PackageDoc extends ClassOrPackageDoc {
 	private void summary() throws IOException {
 		open("div class='nav'");
 		open("div");
-		around("a href='"+getPathToBase()+"/overview-summary.html'", "Overview");
+		around("a href='" + getPathToBase() + "/overview-summary.html'", "Overview");
 		close("div");
         open("div class='selected'");
         write("Package");
@@ -97,18 +99,18 @@ public class PackageDoc extends ClassOrPackageDoc {
 	}
 	
 	private void methods() throws IOException {
-        if(methods.isEmpty())
-            return;
-        openTable("Methods", "Modifier and Type", "Method and Description");
-		for(Method m : methods){
-		    doc(m);
-		}
-		close("table");
+        if (methods.isEmpty() == false) {
+	        openTable("Methods", "Modifier and Type", "Method and Description");
+			for (Method m : methods) {
+			    doc(m);
+			}
+			close("table");
+        }
 	}
 
     private void attributes() throws IOException {
 	    openTable("Attributes", "Modifier and Type", "Name and Description");
-	    for(Value v : attributes){
+	    for (Value v : attributes) {
 	        doc(v);
 	    }
 	    close("table");
@@ -116,7 +118,7 @@ public class PackageDoc extends ClassOrPackageDoc {
 
 	private void interfaces() throws IOException {
 	    openTable("Interfaces", "Modifier and Type", "Description");
-		for(Interface i : interfaces){
+		for (Interface i : interfaces) {
 		    doc(i);
 		}
 		close("table");
@@ -124,21 +126,21 @@ public class PackageDoc extends ClassOrPackageDoc {
 
 	private void classes() throws IOException {
         openTable("Classes", "Modifier and Type", "Description");
-		for(Class c : classes){
+		for (Class c : classes) {
 		    doc(c);
 		}
 		close("table");
 	}
 
-	private void doc(ClassOrInterface d) throws IOException {
+	private void doc(final ClassOrInterface classOrInterface) throws IOException {
         open("tr class='TableRowColor'");
 		open("td");
-		around("span class='modifiers'",getModifiers(d));
+		around("span class='modifiers'", getModifiers(classOrInterface));
 		write(" ");
-		link(d.getType());
+		link(classOrInterface.getType());
 		close("td");
-		open("td");		
-		write(getDoc(d));
+		open("td");
+		write(getDoc(classOrInterface));
 		close("td");
 		close("tr");
 	}

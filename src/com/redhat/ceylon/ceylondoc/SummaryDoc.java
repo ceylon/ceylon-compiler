@@ -13,9 +13,9 @@ import com.redhat.ceylon.compiler.typechecker.model.Package;
 
 public class SummaryDoc extends CeylonDoc {
 
-    private Modules modules;
+    private final Modules modules;
 
-    public SummaryDoc(String destDir, Modules modules) throws IOException {
+    public SummaryDoc(final String destDir, final Modules modules) throws IOException {
         super(destDir);
         this.modules = modules;
     }
@@ -52,40 +52,42 @@ public class SummaryDoc extends CeylonDoc {
 
     private void packages() throws IOException {
         openTable("Packages", "Package", "Description");
-        for(Package pkg : getPackages()){
+        for (Package pkg : getPackages()) {
             doc(pkg);
         }
         close("table");
     }
 
-    private List<Package> getPackages(){
-        List<Package> packages = new ArrayList<Package>();
-        for(Module m : modules.getListOfModules()){
-            for(Package pkg : m.getPackages()){
-                if(pkg.getMembers().size() > 0)
+    private List<Package> getPackages() {
+        final List<Package> packages = new ArrayList<Package>();
+        for (Module m : modules.getListOfModules()) {
+            for (Package pkg : m.getPackages()) {
+                if (pkg.getMembers().size() > 0) {
                     packages.add(pkg);
+                }
             }
         }
-        Collections.sort(packages, new Comparator<Package>(){
+        Collections.sort(packages, new Comparator<Package>() {
             @Override
-            public int compare(Package a, Package b) {
+            public int compare(final Package a, final Package b) {
                 return a.getNameAsString().compareTo(b.getNameAsString());
             }
-            
+
         });
         return packages;
     }
 
-    private void doc(Package c) throws IOException {
+    private void doc(final Package pakage) throws IOException {
         open("tr class='TableRowColor'");
         open("td");
-        if(c.getNameAsString().isEmpty())
+        if (pakage.getNameAsString().isEmpty()) {
             around("a href='index.html'", "default package");
-        else
-            around("a href='"+join("/",c.getName())+"/index.html'", c.getNameAsString());
+        } else {
+            around("a href='" + join("/", pakage.getName()) + "/index.html'", pakage.getNameAsString());
+        }
         close("td");
         open("td");
-        write(c.getNameAsString());
+        write(pakage.getNameAsString());
         close("td");
         close("tr");
     }
