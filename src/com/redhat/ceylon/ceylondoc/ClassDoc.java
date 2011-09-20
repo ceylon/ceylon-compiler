@@ -13,6 +13,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Getter;
+import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
@@ -25,18 +26,38 @@ public class ClassDoc extends ClassOrPackageDoc {
     private List<Method> methods;
     private List<MethodOrValue> attributes;
     private List<ClassOrInterface> subclasses;
-    private List<ClassOrInterface> implementingClasses;
+    private List<ClassOrInterface> satisfyingClassesOrInterfaces;
+    private List<Class> satisfyingClasses;
+    private List<Interface> satisfyingInterfaces;
 
-	public ClassDoc(String destDir, ClassOrInterface klass, List<ClassOrInterface> subclasses, List<ClassOrInterface> implementingClasses) throws IOException {
+    private Comparator<Declaration> comparator = new Comparator<Declaration>() {
+        @Override
+        public int compare(Declaration a, Declaration b) {
+            return a.getName().compareTo(b.getName());
+        }
+    };
+    
+    
+	public ClassDoc(String destDir, ClassOrInterface klass, List<ClassOrInterface> subclasses, List<ClassOrInterface> satisfyingClassesOrInterfaces) throws IOException {
 		super(destDir);
-		this.subclasses = subclasses;
-		this.implementingClasses = implementingClasses;
+		if (subclasses != null) {
+			this.subclasses = subclasses;
+		} else {
+			this.subclasses = new ArrayList<ClassOrInterface>();
+		}
+		if (satisfyingClassesOrInterfaces != null) {
+			this.satisfyingClassesOrInterfaces = satisfyingClassesOrInterfaces;
+		} else {
+			this.satisfyingClassesOrInterfaces = new ArrayList<ClassOrInterface>();
+		}
 		this.klass = klass;
 		loadMembers();
 	}
 	
 	private void loadMembers() {
 	        methods = new ArrayList<Method>();
+	        satisfyingClasses = new ArrayList<Class>();
+	        satisfyingInterfaces = new ArrayList<Interface>();	        
 	        attributes = new ArrayList<MethodOrValue>();
 	        for(Declaration m : klass.getMembers()){
 	            if(m instanceof Value)
@@ -46,14 +67,20 @@ public class ClassDoc extends ClassOrPackageDoc {
 	            else if(m instanceof Method)
                     methods.add((Method) m);
 	        }
-	        Comparator<MethodOrValue> comparator = new Comparator<MethodOrValue>(){
-	            @Override
-	            public int compare(MethodOrValue a, MethodOrValue b) {
-	                return a.getName().compareTo(b.getName());
-	            }
-	        };
+
+	        for (ClassOrInterface classOrInterface : satisfyingClassesOrInterfaces) {
+	        	if (classOrInterface instanceof Class) {
+	        		satisfyingClasses.add((Class) classOrInterface);
+	        	} else if (classOrInterface instanceof Interface) {
+	        		satisfyingInterfaces.add((Interface) classOrInterface);
+	        	}
+	        }	        
+	        
 	        Collections.sort(methods, comparator );
 	        Collections.sort(attributes, comparator );
+	        Collections.sort(subclasses, comparator);	        
+	        Collections.sort(satisfyingClasses, comparator);
+	        Collections.sort(satisfyingInterfaces, comparator);        
     }
 
     public void generate() throws IOException {
@@ -113,7 +140,7 @@ public class ClassDoc extends ClassOrPackageDoc {
 		}
 		
 		// type parameters
-		if (isNullorEmpty(klass.getTypeParameters()) == false ) {
+		if (isNullOrEmpty(klass.getTypeParameters()) == false ) {
 			open("div class='type-parameters'");
 			write("Type parameters:");
 			open("ul");
@@ -125,52 +152,19 @@ public class ClassDoc extends ClassOrPackageDoc {
 		}
 		
 		// interfaces
-		if (isNullorEmpty(klass.getSatisfiedTypeDeclarations())==  false) {
-			open("div class='implements'");
-			write("Implemented interfaces: ");
-			boolean first = true;
-			for (TypeDeclaration satisfied : klass.getSatisfiedTypeDeclarations()){
-				if(!first){
-					write(", ");
-				}else{
-					first = false;
-				}
-				link(satisfied, true);
-			}
-			close("div");
-		}
-		
+		writeListOnSumary("satisfied", "Satisfied interfaces: ", klass.getSatisfiedTypeDeclarations());
+
 		// subclasses
-		if (isNullorEmpty(subclasses) == false) {
-			boolean first = true;
-			open("div class='sublclases'");
-			write("Direct Known Subclasses: ");
-			for (TypeDeclaration sublcass : subclasses) {
-				if (!first) {
-					write(", ");
-				} else {
-					first = false;
-				}
-				link(sublcass, true);
-			}
-			close("div");
-		}
-		
-		// implementing classes
-		if (isNullorEmpty(implementingClasses) == false) {
-			boolean first = true;
-			open("div class='implementingClasses'");
-			write("All Known Implementing Classes: ");
-			for (TypeDeclaration sublcass : implementingClasses) {
-				if (!first) {
-					write(", ");
-				} else {
-					first = false;
-				}
-				link(sublcass, true);
-			}
-			close("div");
-		}		
+		writeListOnSumary("subclasses", "Direct Known Subclasses: ", subclasses);
+
+		// satisfying classes
+		writeListOnSumary("satisfyingClasses", "All Known Satisfying Classes: ", satisfyingClasses);
+
+		// satisfying interfaces
+		writeListOnSumary("satisfyingClasses", "All Known Satisfying Interfaces: ", satisfyingInterfaces);
+
+		// description
+		around("div class='doc'", getDoc(klass));		
 		
 		// description
 		around("div class='doc'", getDoc(klass));
@@ -216,9 +210,26 @@ public class ClassDoc extends ClassOrPackageDoc {
         return new File(getFolder(klass), getFileName(klass));
     }
     
-    private boolean isNullorEmpty(Collection<? extends Object> collection ) {
+    private boolean isNullOrEmpty(Collection<? extends Object> collection ) {
     	return collection == null || collection.isEmpty(); 
     }
+    
+    private void writeListOnSumary(String divClass, String label, List<? extends TypeDeclaration> list) throws IOException {
+		if (isNullOrEmpty(list) == false) {
+			boolean first = true;
+			open("div class='" + divClass + "'");
+			write(label);
+			for (TypeDeclaration typeDeclaration : list) {
+				if (!first) {
+					write(", ");
+				} else {
+					first = false;
+				}
+				link(typeDeclaration, true);
+			}
+			close("div");
+		}
+    }    
     
     
 }
