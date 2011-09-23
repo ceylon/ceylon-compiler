@@ -11,27 +11,35 @@ import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
+import com.redhat.ceylon.compiler.typechecker.model.Class;
 
 public abstract class ClassOrPackageDoc extends CeylonDoc {
 
-	public ClassOrPackageDoc(String destDir) {
-		super(destDir);	
+	public ClassOrPackageDoc(String destDir, boolean showPrivate) {
+		super(destDir, showPrivate);		
 	}
-	
+
+
 	protected String getModifiers(Declaration d) {
 		StringBuilder modifiers = new StringBuilder();
 		if (d.isShared()) {
 			modifiers.append("shared ");
+		}		
+		if (d.isFormal()) {
+			modifiers.append("formal ");
 		}
+		if (d.isDefault()) {
+			modifiers.append("default ");
+		}		
 		if (d instanceof Value) {
 			Value v = (Value) d;
 			if (v.isVariable()) {
-				modifiers.append("variable");
-			}
-		} else if (d instanceof com.redhat.ceylon.compiler.typechecker.model.Class) {
-			com.redhat.ceylon.compiler.typechecker.model.Class c  = (com.redhat.ceylon.compiler.typechecker.model.Class) d;
+				modifiers.append("variable ");
+			}			
+		} else if (d instanceof Class) {
+			Class c  = (Class) d;
 			if (c.isAbstract()) {
-				modifiers.append("abstract");
+				modifiers.append("abstract ");
 			}
 		}			
 		return modifiers.toString().trim();
