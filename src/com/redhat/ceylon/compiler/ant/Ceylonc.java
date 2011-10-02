@@ -47,8 +47,8 @@ public class Ceylonc extends MatchingTask {
     // compiler into the compile() method. Once that better way is
     // found, remove all references to compilerExecutable in this file.
     private File compilerExecutable;
-
-    /**
+    
+	/**
      * Set the source directories to find the source Java and Ceylon files.
      * @param srcDir the source directories as a path
      */
@@ -81,21 +81,13 @@ public class Ceylonc extends MatchingTask {
     }
 
     /**
-     * Set the classpath of the Ceylon compiler and its associated libraries.
-     * @param classpath the classpath
-     */
-    public void setCompiler(File executable) {
-        compilerExecutable = executable;
-    }
-
-    /**
      * Executes the task.
      * @exception BuildException if an error occurs
      */
     public void execute() throws BuildException {
         checkParameters();
         resetFileLists();
-
+       
         String[] list = src.list();
         for (int i = 0; i < list.length; i++) {
             File srcDir = getProject().resolveFile(list[i]);
@@ -113,6 +105,17 @@ public class Ceylonc extends MatchingTask {
     }
 
     /**
+     * Set compiler executable depending on the OS.
+     */
+    public void setCompiler(String compilerPath) {
+		if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
+			compilerExecutable = new File(compilerPath + ".bat");
+		} else {
+			compilerExecutable = new File(compilerPath);
+		}		
+	}
+
+	/**
      * Clear the list of files to be compiled and copied..
      */
     protected void resetFileLists() {
