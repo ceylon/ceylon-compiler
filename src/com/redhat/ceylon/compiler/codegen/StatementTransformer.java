@@ -193,9 +193,14 @@ public class StatementTransformer extends AbstractTransformer {
             if (cond instanceof Tree.ExistsCondition) {
                 test = make().Binary(JCTree.NE, make().Ident(decl.name), makeNull());                
             } else {
-                // is/nonempty
-                JCExpression testExpr = make().Ident(decl.name);
-                test = makeTypeTest(testExpr, toType);
+                // is/nonempty               
+                // "is Nothing" is transformed to "== null"
+                if (cond instanceof Tree.IsCondition && typeFact().getNothingDeclaration().getType().isExactly(toType)) {
+                	test = make().Binary(JCTree.EQ, make().Ident(decl.name), makeNull());
+                } else {
+                	JCExpression testExpr = make().Ident(decl.name);
+                	test = makeTypeTest(testExpr, toType);
+                }	
             }
         } else if (cond instanceof Tree.BooleanCondition) {
             Tree.BooleanCondition booleanCondition = (Tree.BooleanCondition) cond;
