@@ -338,6 +338,9 @@ public abstract class AbstractTransformer implements Transformation {
     
     // A type is optional when it is a union of Nothing|Type...
     protected boolean isOptional(ProducedType type) {
+    	// Nothing is not optional. This should by fixed in the Typechecker as well??
+    	if (typeFact.getNothingDeclaration().getType().isExactly(type))
+    		return false;
         return typeFact().isOptionalType(type);
     }
 
@@ -686,11 +689,12 @@ public abstract class AbstractTransformer implements Transformation {
         return makeModelAnnotation(syms().ceylonAtTypeInfoType, List.<JCExpression>of(make().Literal(name)));
     }
 
-    public JCAnnotation makeAtTypeParameter(String name, java.util.List<ProducedType> satisfiedTypes) {
+    public JCAnnotation makeAtTypeParameter(TypeParameter typeParameter) {
+        String name = typeParameter.getName();
         JCExpression nameAttribute = make().Assign(makeIdent("value"), make().Literal(name));
         // upper bounds
         ListBuffer<JCExpression> upperBounds = new ListBuffer<JCTree.JCExpression>();
-        for(ProducedType satisfiedType : satisfiedTypes){
+        for(ProducedType satisfiedType : typeParameter.getSatisfiedTypes()){
             String type = serialiseTypeSignature(satisfiedType);
             upperBounds.append(make().Literal(type));
         }
