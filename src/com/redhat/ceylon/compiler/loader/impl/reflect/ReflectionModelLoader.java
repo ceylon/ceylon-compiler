@@ -83,6 +83,9 @@ public class ReflectionModelLoader extends AbstractModelLoader {
                     klass = Class.forName(name);
             } catch (ClassNotFoundException e) {
                 // next
+            } catch (NoClassDefFoundError e) {
+                // when running junit test CeylonDocToolTest in eclipse on windows
+                // is thrown NoClassDefFoundError: ceylon/language/Module (wrong name: ceylon/language/module)
             }
         }
         return klass != null ? new ReflectionClass(klass) : null;
