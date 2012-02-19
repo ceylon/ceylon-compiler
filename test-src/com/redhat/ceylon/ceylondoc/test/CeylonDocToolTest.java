@@ -60,18 +60,18 @@ public class CeylonDocToolTest {
 
     protected void assertFileExists(File destDir, String path) {
         File file = new File(destDir, path);
-        Assert.assertTrue(file + " doesn't exist", file.exists());
+        Assert.assertTrue(file + " doesn't exist", fileExistsCaseSensitive(file));
         Assert.assertTrue(file + " exists but is not a file", file.isFile());
     }
     
     protected void assertFileNotExists(File destDir, String path) {
         File file = new File(destDir, path);
-        Assert.assertFalse(file + " does exist", file.exists());
+        Assert.assertFalse(file + " does exist", fileExistsCaseSensitive(file));
     }
     
     protected void assertDirectoryExists(File destDir, String path) {
         File file = new File(destDir, path);
-        Assert.assertTrue(file + " doesn't exist", file.exists());
+        Assert.assertTrue(file + " doesn't exist", fileExistsCaseSensitive(file));
         Assert.assertTrue(file + " exist but isn't a directory", file.isDirectory());
     }
     
@@ -292,4 +292,19 @@ public class CeylonDocToolTest {
         Boolean ret = task.call();
         Assert.assertEquals("Compilation failed", Boolean.TRUE, ret);
     }
+    
+    private boolean fileExistsCaseSensitive(File file) {
+        // windows file system is not case sensitive 
+        try {
+            String osName = System.getProperty("os.name");
+            if (osName != null && osName.startsWith("Windows")) {
+                return file.exists() && file.getCanonicalPath().endsWith(file.getName());
+            } else {
+                return file.exists();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
 }
