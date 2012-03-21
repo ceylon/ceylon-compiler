@@ -213,14 +213,14 @@ public class CeylonDocToolTest {
     
     private void assertIcons(File destDir) throws IOException {
         assertMatchInFile(destDir, "interface_StubInterface.html", Pattern.compile("Interface <i class='icon-interface'></i><code>StubInterface</code>"));
-        assertMatchInFile(destDir, "interface_StubInterface.html", Pattern.compile("id='defaultMethod'><td><code><i class='icon-shared-member'></i>"));
-        assertMatchInFile(destDir, "interface_StubInterface.html", Pattern.compile("id='formalMethod'><td><code><i class='icon-shared-member'><i class='icon-decoration-formal'></i></i>"));
+        assertMatchInFile(destDir, "interface_StubInterface.html", Pattern.compile("<td id='defaultMethod'><code><i class='icon-shared-member'></i>"));
+        assertMatchInFile(destDir, "interface_StubInterface.html", Pattern.compile("<td id='formalMethod'><code><i class='icon-shared-member'><i class='icon-decoration-formal'></i></i>"));
         
         assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("<i class='icon-interface'></i><a href='interface_StubClass.StubInnerInterface.html'>StubInnerInterface</a>"));
         assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("<i class='icon-class'></i><a href='class_StubClass.StubInnerClass.html'>StubInnerClass</a>"));
         assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("<i class='icon-class'></i>StubClass()"));
-        assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("id='formalMethod'><td><code><i class='icon-shared-member'><i class='icon-decoration-impl'></i></i>"));
-        assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("id='defaultMethod'><td><code><i class='icon-shared-member'><i class='icon-decoration-over'></i></i>"));        
+        assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("<td id='formalMethod'><code><i class='icon-shared-member'><i class='icon-decoration-impl'></i></i>"));
+        assertMatchInFile(destDir, "class_StubClass.html", Pattern.compile("<td id='defaultMethod'><code><i class='icon-shared-member'><i class='icon-decoration-over'></i></i>"));        
     }
     
     private void assertInnerTypesDoc(File destDir) throws IOException {
