@@ -20,6 +20,8 @@
 
 package com.redhat.ceylon.compiler.java.loader;
 
+import java.io.File;
+
 import javax.lang.model.element.NestingKind;
 import javax.tools.JavaFileObject.Kind;
 
@@ -34,8 +36,8 @@ import com.redhat.ceylon.compiler.java.tools.LanguageCompiler;
 import com.redhat.ceylon.compiler.java.util.Util;
 import com.redhat.ceylon.compiler.loader.AbstractModelLoader;
 import com.redhat.ceylon.compiler.loader.JDKPackageList;
-import com.redhat.ceylon.compiler.loader.SourceDeclarationVisitor;
 import com.redhat.ceylon.compiler.loader.ModelLoaderFactory;
+import com.redhat.ceylon.compiler.loader.SourceDeclarationVisitor;
 import com.redhat.ceylon.compiler.loader.TypeParser;
 import com.redhat.ceylon.compiler.loader.mirror.ClassMirror;
 import com.redhat.ceylon.compiler.loader.mirror.MethodMirror;
@@ -55,7 +57,6 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.OptionName;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Abort;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Convert;
@@ -74,6 +75,7 @@ public class CeylonModelLoader extends AbstractModelLoader {
     private Log log;
     private Types types;
     private Options options;
+    private String languageDump;
     
     public static AbstractModelLoader instance(Context context) {
         AbstractModelLoader instance = context.get(AbstractModelLoader.class);
@@ -104,6 +106,7 @@ public class CeylonModelLoader extends AbstractModelLoader {
         isBootstrap = options.get(OptionName.BOOTSTRAPCEYLON) != null;
         moduleManager = phasedUnits.getModuleManager();
         modules = ceylonContext.getModules();
+        languageDump = options.get(OptionName.CEYLONLANGUAGEDUMP);
     }
 
     @Override
@@ -368,5 +371,15 @@ public class CeylonModelLoader extends AbstractModelLoader {
         super.logDuplicateModuleError(module, loadedModule);
         // let's just give up, otherwise typechecking will likely throw some more and confuse the users
         throw new Abort();
+    }
+
+    @Override
+    protected File getLanguageDumpFile() {
+        return new File(languageDump);
+    }
+    
+    @Override
+    protected boolean useLanguageDump() {
+        return languageDump != null;
     }
 }

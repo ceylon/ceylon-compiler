@@ -19,6 +19,11 @@
  */
 package com.redhat.ceylon.compiler.loader;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -98,6 +103,8 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
 
     public static final String CEYLON_LANGUAGE = "ceylon.language";
     
+    private static final String[] LANGUAGE_MODULE_PACKAGES = new String[]{"ceylon.language.descriptor", "ceylon.language.metamodel", "ceylon.language"};
+
     private static final String TIMER_MODEL_LOADER_CATEGORY = "model loader";
     public static final String ORACLE_JDK_MODULE = "oracle";
     public static final String JDK_MODULE = "java";
@@ -168,11 +175,12 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
     }
 
     protected Map<String, Declaration> declarationsByName = new HashMap<String, Declaration>();
+    protected Map<String, Declaration> languageDeclarationsByName = new HashMap<String, Declaration>();
     protected Map<Package, Unit> unitsByPackage = new HashMap<Package, Unit>();
     protected TypeParser typeParser;
     protected Unit typeFactory;
     protected final Set<String> loadedPackages = new HashSet<String>();
-    protected final Map<String,LazyPackage> packagesByName = new HashMap<String,LazyPackage>();
+    protected final Map<String,Package> packagesByName = new HashMap<String,Package>();
     protected boolean packageDescriptorsNeedLoading = false;
     protected boolean isBootstrap;
     protected ModuleManager moduleManager;
@@ -255,12 +263,65 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
      */
     protected abstract void logError(String message);
     
+    /**
+     * Very experimental stuff, don't touch yet unless you know what you're doing
+     */
+    protected boolean useLanguageDump(){
+        return false;
+    }
+    
+    /**
+     * Returns the language dump file to use
+     */
+    protected abstract File getLanguageDumpFile();
+    
+    private void loadLanguageDump(){
+        ObjectInputStream is;
+        try {
+            // remove the generated language module
+            if(modules.getLanguageModule() != null)
+                modules.getListOfModules().remove(modules.getLanguageModule());
+            // read from binary dump
+            is = new ObjectInputStream(new FileInputStream(getLanguageDumpFile()));
+            Module languageModule;
+            try{
+                languageModule = (Module) is.readObject();
+            }finally{
+                is.close();
+            }
+            // set the new language module
+            modules.getListOfModules().add(languageModule);
+            modules.setLanguageModule(languageModule);
+            // patch previous modules
+            for(Module module : modules.getListOfModules())
+                module.setLanguageModule(languageModule);
+            // set up our type factory
+            typeFactory.setPackage(languageModule.getPackage("ceylon.language"));
+            // set up some caching
+            for(Package pkg : languageModule.getPackages()){
+                loadedPackages.add(pkg.getQualifiedNameString());
+                packagesByName.put(pkg.getQualifiedNameString(), pkg);
+                rehashTypes(pkg);
+            }
+        } catch (IOException e) {
+            logError("Failed to load language dump: "+e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            logError("Failed to load language dump: "+e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+    
     public void loadStandardModules(){
-        // set up the type factory
-        Module languageModule = findOrCreateModule(CEYLON_LANGUAGE);
-        addModuleToClassPath(languageModule, null);
-        Package languagePackage = findOrCreatePackage(languageModule, CEYLON_LANGUAGE);
-        typeFactory.setPackage(languagePackage);
+        if(useLanguageDump()){
+            loadLanguageDump();
+        }else{
+            // set up the type factory
+            Module languageModule = findOrCreateModule(CEYLON_LANGUAGE);
+            addModuleToClassPath(languageModule, null);
+            Package languagePackage = findOrCreatePackage(languageModule, CEYLON_LANGUAGE);
+            typeFactory.setPackage(languagePackage);
+        }
         
         // make sure the jdk modules are loaded
         findOrCreateModule(AbstractModelLoader.JDK_MODULE);
@@ -275,7 +336,7 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         /*
          * We do not load the ceylon.language module from class files if we're bootstrapping it
          */
-        if(!isBootstrap){
+        if(!isBootstrap && !useLanguageDump()){
             loadPackage(CEYLON_LANGUAGE, true);
             loadPackage("ceylon.language.descriptor", true);
         }
@@ -292,6 +353,37 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         if(languagePackage == null)
             throw new RuntimeException("Assertion failed: language package is null");
         typeFactory.setPackage(languagePackage);
+    }
+    
+    private void rehashTypes(Package pkg) {
+        HashSet<Declaration> done = new HashSet<Declaration>();
+        for(Declaration decl : pkg.getMembers()){
+            rehashTypes(decl, done);
+        }
+    }
+
+    private void rehashTypes(Declaration decl, HashSet<Declaration> done) {
+        if(!done.add(decl))
+            return;
+        if(decl instanceof TypedDeclaration){
+            ((TypedDeclaration)decl).getType().rehash();
+        }
+        if(decl instanceof Method){
+            for(ParameterList paramList : ((Method)decl).getParameterLists()){
+                for(Parameter param : paramList.getParameters()){
+                    rehashTypes(param, done);
+                }
+            }
+        }
+        if(decl instanceof TypeDeclaration){
+            TypeDeclaration typeDecl = ((TypeDeclaration)decl);
+            for(TypeParameter tp : typeDecl.getTypeParameters())
+                rehashTypes(tp, done);
+            typeDecl.getType().rehash();
+        }
+        for(Declaration innerDecl : decl.getMembers()){
+            rehashTypes(innerDecl, done);
+        }
     }
 
     enum ClassType {
@@ -352,10 +444,14 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         // find its module
         String pkgName = classMirror.getPackage().getQualifiedName();
         Module module = findOrCreateModule(pkgName);
-        LazyPackage pkg = findOrCreatePackage(module, pkgName);
+        Package pkg = findOrCreatePackage(module, pkgName);
+        if(!(pkg instanceof LazyPackage)){
+            throw new RuntimeException("Got a package which is not lazy, compiler is broken");
+        }
+        LazyPackage lazyPkg = (LazyPackage) pkg;
 
         // find/make its Unit
-        Unit unit = getCompiledUnit(pkg, classMirror);
+        Unit unit = getCompiledUnit(lazyPkg, classMirror);
 
         // set all the containers
         for(Declaration d : decls){
@@ -611,12 +707,15 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
             } else if ("java.lang.Exception".equals(typeName)) {
                 return convertToDeclaration("ceylon.language.Exception", declarationType);
             }
-            ClassMirror classMirror = lookupClassMirror(typeName);
-            if (classMirror == null) {
-                Declaration languageModuleDeclaration = typeFactory.getLanguageModuleDeclaration(typeName);
+            if(useLanguageDump()){
+                // first try the language module
+                Declaration languageModuleDeclaration = loadFromLanguageModule(typeName);
                 if (languageModuleDeclaration != null) {
                     return languageModuleDeclaration;
                 }
+            }
+            ClassMirror classMirror = lookupClassMirror(typeName);
+            if (classMirror == null) {
                 throw new ModelResolutionException("Failed to resolve "+typeName);
             }
             // we only allow source loading when it's java code we're compiling in the same go
@@ -627,6 +726,56 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         }finally{
             Timer.stopIgnore(TIMER_MODEL_LOADER_CATEGORY);
         }
+    }
+
+    private Declaration loadFromLanguageModule(String quotedQualifiedTypeName) {
+        // FIXME: looks suspiciously similar with some of the code in getType()
+        if(!quotedQualifiedTypeName.startsWith("ceylon.language."))
+            return null;
+        final String qualifiedTypeName = quotedQualifiedTypeName.replace("$", "");
+        // can contain nulls
+        if(languageDeclarationsByName.containsKey(qualifiedTypeName))
+            return languageDeclarationsByName.get(qualifiedTypeName);
+        Package pkg = null;
+        Module languageModule = modules.getLanguageModule();
+        for(String pkgName : LANGUAGE_MODULE_PACKAGES){
+            if(qualifiedTypeName.startsWith(pkgName+".")){
+                pkg = languageModule.getPackage(pkgName);
+                break;
+            }
+        }
+        if(pkg == null){
+            languageDeclarationsByName.put(qualifiedTypeName, null);
+            return null;
+        }
+        // eat the package part
+        final String typeName = qualifiedTypeName.substring(pkg.getNameAsString().length()+1);
+        // are we looking for an inner type?
+        int sep = typeName.indexOf('.');
+        Declaration declaration;
+        if(sep != -1){
+            String part = typeName.substring(0, sep);
+            declaration = typeFactory.getLanguageModuleDeclaration(part);
+            if(declaration == null){
+                languageDeclarationsByName.put(qualifiedTypeName, null);
+                return null;
+            }
+            String rest = typeName.substring(sep+1);
+            // now figure out inner types
+            while((sep = rest.indexOf('.')) != -1){
+                part = rest.substring(0, sep);
+                declaration = declaration.getDirectMember(part, null);
+                if(declaration == null){
+                    languageDeclarationsByName.put(qualifiedTypeName, null);
+                    return null;
+                }
+                rest = rest.substring(sep+1);
+            }
+        }else
+            declaration = typeFactory.getLanguageModuleDeclaration(typeName);
+        // let's not do that again
+        languageDeclarationsByName.put(qualifiedTypeName, declaration);
+        return declaration;
     }
 
     protected TypeParameter safeLookupTypeParameter(Scope scope, String name) {
@@ -696,7 +845,7 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
     
     public synchronized LazyPackage findOrCreatePackage(Module module, final String pkgName) {
         String quotedPkgName = Util.quoteJavaKeywords(pkgName);
-        LazyPackage pkg = packagesByName.get(quotedPkgName);
+        Package pkg = packagesByName.get(quotedPkgName);
         if(pkg != null)
             return pkg;
         pkg = new LazyPackage(this);
@@ -725,8 +874,12 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
     }
 
     private void loadPackageDescriptor(Package pkg) {
+        // do not load package descriptor for the language module in case of language dump
+        if(useLanguageDump() && pkg.getModule() == modules.getLanguageModule())
+            return;
         // let's not load package descriptors for Java modules
         if(pkg.getModule() != null 
+                && pkg.getModule() instanceof LazyModule
                 && ((LazyModule)pkg.getModule()).isJava()){
             pkg.setShared(true);
             return;
