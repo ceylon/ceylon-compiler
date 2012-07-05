@@ -19,6 +19,7 @@
  */
 package com.redhat.ceylon.tools;
 
+@SuppressWarnings("serial")
 public class GenerateLanguageDumpException extends RuntimeException {
 
     public GenerateLanguageDumpException(String string) {

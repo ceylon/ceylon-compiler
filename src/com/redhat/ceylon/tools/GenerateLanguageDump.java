@@ -20,17 +20,13 @@
 package com.redhat.ceylon.tools;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
 import com.redhat.ceylon.compiler.java.codegen.BoxingDeclarationVisitor;
 import com.redhat.ceylon.compiler.java.codegen.BoxingVisitor;
-import com.redhat.ceylon.compiler.java.util.Timer;
 import com.redhat.ceylon.compiler.typechecker.TypeChecker;
 import com.redhat.ceylon.compiler.typechecker.TypeCheckerBuilder;
 import com.redhat.ceylon.compiler.typechecker.context.PhasedUnit;
