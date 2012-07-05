@@ -33,8 +33,12 @@ public class Timer {
     private static final Map<String,IgnoredCategory> ignoredCategories = new HashMap<String,IgnoredCategory>();
 
     public static void setup(Options options) {
-        verbose = options.get(OptionName.VERBOSE) != null 
-                || options.get(OptionName.VERBOSE + ":benchmark" ) != null;
+        setup(options.get(OptionName.VERBOSE) != null 
+                || options.get(OptionName.VERBOSE + ":benchmark" ) != null);
+    }
+
+    public static void setup(boolean b) {
+        verbose = b;
         // we delay printing the program start because we don't know if the verbose option is set yet at
         // that time, so we fake it later on with the correct time
         if(verbose)
