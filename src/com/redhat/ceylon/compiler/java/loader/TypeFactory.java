@@ -20,20 +20,26 @@
 
 package com.redhat.ceylon.compiler.java.loader;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import com.redhat.ceylon.compiler.java.tools.LanguageCompiler;
 import com.redhat.ceylon.compiler.typechecker.context.Context;
 import com.redhat.ceylon.compiler.typechecker.model.IntersectionType;
+import com.redhat.ceylon.compiler.typechecker.model.Package;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
+import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.UnionType;
+import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Unit;
 import com.redhat.ceylon.compiler.typechecker.model.UnknownType;
 import com.redhat.ceylon.compiler.typechecker.model.Util;
 
 public class TypeFactory extends Unit {
     private Context context;
+    private Class arraySequence;
 
     public static TypeFactory instance(com.sun.tools.javac.util.Context context) {
         TypeFactory instance = context.get(TypeFactory.class);
@@ -57,7 +63,24 @@ public class TypeFactory extends Unit {
      * @return The declaration
      */
     public TypeDeclaration getDefaultSequenceDeclaration() {
-        return ((TypeDeclaration) getLanguageModuleDeclaration("ArraySequence"));
+        // do this lazily so that we don't have to load it from the .class file. We only use it to
+        // build a Java type so we don't need to load it entirely, and this way it works with the
+        // language module loaded from dump and .car (otherwise it's not in the dump since it doesn't
+        // come from ceylon code)
+        if(arraySequence == null){
+            arraySequence = new Class();
+            arraySequence.setName("ArraySequence");
+            List<TypeParameter> typeParameters = new ArrayList<TypeParameter>(1);
+            TypeParameter typeParameter = new TypeParameter();
+            typeParameter.setName("Element");
+            typeParameters.add(typeParameter);
+            arraySequence.setTypeParameters(typeParameters);
+            arraySequence.getSatisfiedTypes().add(getSequenceType(typeParameter.getType()));
+            Package languagePackage = context.getModules().getLanguageModule().getPackage("ceylon.language");
+            arraySequence.setContainer(languagePackage);
+            languagePackage.getMembers().add(arraySequence);
+        }
+        return arraySequence;
     }
 
     /**
