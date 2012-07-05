@@ -22,7 +22,6 @@ package com.redhat.ceylon.compiler.java.test.misc;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.tools.JavaFileObject;
 
