@@ -41,7 +41,7 @@ class CodegenUtil {
 
     static boolean isUnBoxed(TypedDeclaration decl){
         // null is considered boxed
-        return decl.getUnboxed() == Boolean.TRUE;
+        return decl.getUnboxed() != null && decl.getUnboxed().booleanValue();
     }
 
     static void markUnBoxed(Term node) {
