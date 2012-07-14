@@ -172,6 +172,7 @@ public class CeylonDocToolTest {
         assertDocumentationOfRefinedMember(destDir);
         assertBug659ShowInheritedMembers(destDir);
         assertSequencedParameter(destDir);
+        assertBug691AbbreviatedOptionalType(destDir);
     }
 
     @Test
@@ -203,6 +204,7 @@ public class CeylonDocToolTest {
         assertDocumentationOfRefinedMember(destDir);
         assertBug659ShowInheritedMembers(destDir);
         assertSequencedParameter(destDir);
+        assertBug691AbbreviatedOptionalType(destDir);
     }
 
     @Test
@@ -526,6 +528,13 @@ public class CeylonDocToolTest {
         assertMatchInFile(destDir, "class_StubClass.html", 
                 Pattern.compile("<code>methodWithSequencedParameter\\(Integer... numbers\\)</code>"));
 	}
+    
+    private void assertBug691AbbreviatedOptionalType(File destDir) throws IOException {
+        assertMatchInFile(destDir, "class_StubClass.html",
+                Pattern.compile("id='bug691AbbreviatedOptionalType1'><code><i class='icon-shared-member'></i><span class='modifiers'>shared</span> String\\?</code>"));
+        assertMatchInFile(destDir, "class_StubClass.html",
+                Pattern.compile("id='bug691AbbreviatedOptionalType2'><code><i class='icon-shared-member'></i><span class='modifiers'>shared</span> <span class='type-parameter'>Element</span>\\?</code>"));
+    }
     
     private File getOutputDir(CeylonDocTool tool, Module module) {
         String outputRepo = tool.getOutputRepository();
