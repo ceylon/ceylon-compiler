@@ -57,6 +57,22 @@ shared class StubClass(
     doc "The stub method with sequenced parameter."
     shared void methodWithSequencedParameter(Integer... numbers) {}
     
+    doc "Test fenced code block with syntax highlighter.
+    
+         ```ceylon
+         shared default Boolean subset(Set set) {
+             for (element in this) {
+                 if (!set.contains(element)) {
+                     return false;
+                 }
+             }
+             return true;
+         }
+         ```
+         
+         <i>Lorem ipsum dolor sit amet, consectetur...</i>"
+    shared void methodWithCodeExamples() {}
+        
     shared actual void formalMethodFromStubInterface() {}
     
     shared actual void defaultDeprecatedMethodFromStubInterface() {}
