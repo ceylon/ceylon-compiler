@@ -461,7 +461,7 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
             d.setUnit(unit);
             unit.addDeclaration(d);
 
-            setContainer(classMirror, d, pkg);
+            setContainer(classMirror, d, lazyPkg);
         }
 
         return decl;
@@ -824,9 +824,9 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         return packagesByName.get(pkgName);
     }
 
-    public synchronized LazyPackage findExistingPackage(Module module, String pkgName){
+    public synchronized Package findExistingPackage(Module module, String pkgName){
         String quotedPkgName = Util.quoteJavaKeywords(pkgName);
-        LazyPackage pkg = packagesByName.get(quotedPkgName);
+        Package pkg = packagesByName.get(quotedPkgName);
         if(pkg != null)
             return pkg;
         // special case for the jdk module
@@ -843,7 +843,7 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         return null;
     }
     
-    public synchronized LazyPackage findOrCreatePackage(Module module, final String pkgName) {
+    public synchronized Package findOrCreatePackage(Module module, final String pkgName) {
         String quotedPkgName = Util.quoteJavaKeywords(pkgName);
         Package pkg = packagesByName.get(quotedPkgName);
         if(pkg != null)

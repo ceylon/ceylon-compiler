@@ -89,6 +89,24 @@ public class GenerateLanguageDump {
                         || declaration == unit.getFloatDeclaration()
                         || declaration == unit.getCharacterDeclaration();
             }
+
+            @Override
+            protected boolean isNothing(ProducedType type) {
+                TypeDeclaration declaration = type.getDeclaration();
+                if(declaration == null)
+                    return false;
+                Unit unit = declaration.getUnit();
+                return declaration == unit.getNothingDeclaration();
+            }
+
+            @Override
+            protected boolean isObject(ProducedType type) {
+                TypeDeclaration declaration = type.getDeclaration();
+                if(declaration == null)
+                    return false;
+                Unit unit = declaration.getUnit();
+                return declaration == unit.getObjectDeclaration();
+            }
         };
         BoxingVisitor boxingVisitor = new BoxingVisitor(){
 
