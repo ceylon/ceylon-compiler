@@ -366,7 +366,8 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         if(!done.add(decl))
             return;
         if(decl instanceof TypedDeclaration){
-            ((TypedDeclaration)decl).getType().rehash();
+            ProducedType type = ((TypedDeclaration)decl).getType();
+            rehashTypes(type);
         }
         if(decl instanceof Method){
             for(ParameterList paramList : ((Method)decl).getParameterLists()){
@@ -381,9 +382,23 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
                 rehashTypes(tp, done);
             typeDecl.getType().rehash();
         }
+        if(decl instanceof Class){
+            for(ParameterList paramList : ((Class)decl).getParameterLists()){
+                for(Parameter param : paramList.getParameters()){
+                    rehashTypes(param, done);
+                }
+            }
+        }
         for(Declaration innerDecl : decl.getMembers()){
             rehashTypes(innerDecl, done);
         }
+    }
+
+    private void rehashTypes(ProducedType type) {
+        type.rehash();
+        // also rehash its type params if any
+        for(ProducedType tp : type.getTypeArguments().values())
+            rehashTypes(tp);
     }
 
     enum ClassType {
