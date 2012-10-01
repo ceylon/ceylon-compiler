@@ -135,7 +135,9 @@ public class MiscTest extends CompilerTest {
         }
         CeyloncFileManager fileManager = (CeyloncFileManager)compiler.getStandardFileManager(null, null, null);
         CeyloncTaskImpl task = (CeyloncTaskImpl) compiler.getTask(null, fileManager, null, 
-                Arrays.asList("-sourcepath", sourcePath.toString(), "-d", "build/classes-sdk"), 
+                Arrays.asList("-sourcepath", sourcePath.toString(), "-d", "build/classes-sdk", 
+//                        "-languagedump", "/tmp/ceylon.language-0.43651153741572331737.dump", 
+                        "-XDcompilePolicy=simple", "-verbose:benchmark"), 
                 moduleNames, null);
         Boolean result = task.call();
         Assert.assertEquals("Compilation failed", Boolean.TRUE, result);
