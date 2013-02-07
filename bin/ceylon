@@ -54,27 +54,14 @@ JAVA_OPTS="$PREPEND_JAVA_OPTS $JAVA_OPTS"
 # We need them here simply to support `cey compile` 
 BOOTSTRAP_CP="$MINIMAL_CP"
 
-if test -z "$LAUNCH_CEYLON_IN_BACKGROUND" ; then
-	java \
-	 -Xbootclasspath/p:"$BOOTSTRAP_CP" \
-	 -cp $JAVA_CP \
-	 "-Dceylon.home=$CEYLON_HOME" \
-	 "-Dceylon.system.repo=$CEYLON_REPO" \
-	 $JAVA_OPTS \
-	 com.redhat.ceylon.tools.CeylonTool \
-	 $ARGS
-else
-	java \
-	 -Xbootclasspath/p:"$BOOTSTRAP_CP" \
-	 -cp $JAVA_CP \
-	 "-Dceylon.home=$CEYLON_HOME" \
-	 "-Dceylon.system.repo=$CEYLON_REPO" \
-	 $JAVA_OPTS \
-	 com.redhat.ceylon.tools.CeylonTool \
-	 $ARGS &
-	CEYLON_PID=$!
+EXEC_CMD="java \
+ -Xbootclasspath/p:${BOOTSTRAP_CP} \
+ -cp $JAVA_CP \
+ -Dceylon.home=${CEYLON_HOME} \
+ -Dceylon.system.repo=${CEYLON_REPO} \
+ ${JAVA_OPTS} \
+ com.redhat.ceylon.tools.CeylonTool \
+ ${ARGS}"
 
-	if test -n $CEYLON_PID_FILE ; then
-		echo $CEYLON_PID > $CEYLON_PID_FILE
-	fi
-fi
+#use exec to preserve java prcess pid
+exec $EXEC_CMD
