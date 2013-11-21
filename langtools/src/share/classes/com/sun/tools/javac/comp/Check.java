@@ -902,6 +902,10 @@ public class Check {
                     implicit |= STATIC;
                 } else {
                     mask = LocalClassFlags;
+                    if (Context.isCeylon()) {
+                        // For Ceylon we allow local classes to be static
+                        mask |= STATIC;
+                    }
                     if (sym.name.isEmpty()) { // Anonymous class
                         // Anonymous classes in static methods are themselves static;
                         // that's why we admit STATIC here.
