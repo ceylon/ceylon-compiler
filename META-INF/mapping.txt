@@ -1,0 +1,11 @@
+#
+#Thu Nov 21 14:15:08 GMT 2013
+Mixin$1LocalInterface.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$1LocalInterfaceCompanion.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$InnerClass$InnerInnerCompanion.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$InnerClass$InnerInner.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$InnerClass.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$InnerClass$InnerInnerInterface.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$1LocalClass.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
+Mixin$InnerClass$1Foo.class=com/redhat/ceylon/compiler/java/test/structure/mixin/Mixin.java
