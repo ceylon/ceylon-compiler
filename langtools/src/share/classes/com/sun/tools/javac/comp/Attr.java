@@ -2348,6 +2348,15 @@ public class Attr extends JCTree.Visitor {
                           "local.var.accessed.from.icls.needs.final",
                           v);
             }
+            
+            if (Context.isCeylon()
+                    && v.owner != env.info.scope.owner
+                    && env.info.scope.owner.isStatic()
+                    && !v.isStatic()) {
+                log.error(tree.pos(),
+                        "local.var.not.captured.by.static.method",
+                        v);
+            }
 
             // If we are expecting a variable (as opposed to a value), check
             // that the variable is assignable in the current environment.
