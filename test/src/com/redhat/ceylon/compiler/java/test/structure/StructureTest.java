@@ -749,9 +749,4 @@ public class StructureTest extends CompilerTest {
         compile("reified/Class.ceylon", "reified/Method.ceylon");
         compareWithJavaSource("reified/ModelLoader");
     }
-    
-    @Test
-    public void testMixin(){
-        compile("mixin/Mixin.java");
-    }
 }
