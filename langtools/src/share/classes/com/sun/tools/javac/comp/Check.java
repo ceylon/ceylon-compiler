@@ -896,19 +896,29 @@ public class Check {
             break;
         case TYP:
             if (sym.isLocal()) {
-                mask = LocalClassFlags;
-                if (sym.name.isEmpty()) { // Anonymous class
-                    // Anonymous classes in static methods are themselves static;
-                    // that's why we admit STATIC here.
-                    mask |= STATIC;
-                    // JLS: Anonymous classes are final.
-                    implicit |= FINAL;
+                if (Context.isCeylon() && (flags & INTERFACE) != 0) {
+                    // For Ceylon we allow a local interface (implictly static)
+                    mask = LocalClassFlags|INTERFACE|STATIC;
+                    implicit |= STATIC;
+                } else {
+                    mask = LocalClassFlags;
+                    if (sym.name.isEmpty()) { // Anonymous class
+                        // Anonymous classes in static methods are themselves static;
+                        // that's why we admit STATIC here.
+                        mask |= STATIC;
+                        // JLS: Anonymous classes are final.
+                        implicit |= FINAL;
+                    }
+                    if ((sym.owner.flags_field & STATIC) == 0 &&
+                        (flags & ENUM) != 0)
+                        log.error(pos, "enums.must.be.static");
                 }
-                if ((sym.owner.flags_field & STATIC) == 0 &&
-                    (flags & ENUM) != 0)
-                    log.error(pos, "enums.must.be.static");
             } else if (sym.owner.kind == TYP) {
                 mask = MemberClassFlags;
+                if (Context.isCeylon()) {
+                    // For Ceylon we allow inner classes & interfaces to be static
+                    mask |= STATIC;
+                }
                 if (sym.owner.owner.kind == PCK ||
                     (sym.owner.flags_field & STATIC) != 0)
                     mask |= STATIC;

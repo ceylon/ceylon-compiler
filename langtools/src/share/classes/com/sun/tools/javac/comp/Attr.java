@@ -3537,9 +3537,10 @@ public class Attr extends JCTree.Visitor {
                 (TreeInfo.flags(l.head) & (STATIC | INTERFACE)) != 0) {
                 Symbol sym = null;
                 if (l.head.getTag() == JCTree.VARDEF) sym = ((JCVariableDecl) l.head).sym;
-                if (sym == null ||
-                    sym.kind != VAR ||
-                    ((VarSymbol) sym).getConstValue() == null)
+                if (!Context.isCeylon() &&
+                        (sym == null ||
+                        sym.kind != VAR ||
+                        ((VarSymbol) sym).getConstValue() == null))
                     log.error(l.head.pos(), "icls.cant.have.static.decl", c);
             }
         }
