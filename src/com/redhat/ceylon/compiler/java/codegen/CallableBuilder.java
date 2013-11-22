@@ -47,6 +47,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
@@ -1307,7 +1308,9 @@ public class CallableBuilder {
         }
         for(Tree.Parameter p : parameterListTree.getParameters()){
             if(Decl.getDefaultArgument(p) != null){
-                MethodDefinitionBuilder methodBuilder = gen.classGen().makeParamDefaultValueMethod(false, null, parameterListTree, p, null);
+                JCExpression expr = gen.expressionGen().transform(p);
+                JCBlock body = gen.at(p).Block(0, List.<JCStatement> of(gen.at(p).Return(expr)));
+                MethodDefinitionBuilder methodBuilder = gen.classGen().makeParamDefaultValueMethod(null, parameterListTree.getModel(), p.getParameterModel(), body, null);
                 this.parameterDefaultValueMethods.append(methodBuilder);
             }
         }
