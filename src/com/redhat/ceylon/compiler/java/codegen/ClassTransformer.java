@@ -2373,9 +2373,11 @@ public class ClassTransformer extends AbstractTransformer {
     }
 
     List<JCStatement> transformSpecifiedMethodBody(Tree.MethodDeclaration  def, SpecifierExpression specifierExpression) {
-        final Method model = def.getDeclarationModel();
+        return transformSpecifiedMethodBody(def.getDeclarationModel(), specifierExpression);
+    }
+    
+    List<JCStatement> transformSpecifiedMethodBody(final Method model, SpecifierExpression specifierExpression) {
         List<JCStatement> body;
-        MethodDeclaration methodDecl = (MethodDeclaration)def;
         boolean isLazy = specifierExpression instanceof Tree.LazySpecifierExpression;
         boolean returnNull = false;
         JCExpression bodyExpr;
@@ -2391,12 +2393,12 @@ public class ClassTransformer extends AbstractTransformer {
             ProducedType resultType = model.getType();
             returnNull = isAnything(resultType) && fa.getExpression().getUnboxed();
             final java.util.List<com.redhat.ceylon.compiler.typechecker.tree.Tree.Parameter> lambdaParams = fa.getParameterLists().get(0).getParameters();
-            final java.util.List<com.redhat.ceylon.compiler.typechecker.tree.Tree.Parameter> defParams = def.getParameterLists().get(0).getParameters();
+            final java.util.List<Parameter> defParams = model.getParameterLists().get(0).getParameters();
             List<Substitution> substitutions = List.nil();
             for (int ii = 0; ii < lambdaParams.size(); ii++) {
                 substitutions = substitutions.append(naming.addVariableSubst(
-                        (TypedDeclaration)lambdaParams.get(ii).getParameterModel().getModel(), 
-                        defParams.get(ii).getParameterModel().getName()));
+                        lambdaParams.get(ii).getParameterModel().getModel(), 
+                        defParams.get(ii).getName()));
             }
             bodyExpr = gen().expressionGen().transformExpression(fa.getExpression(), 
                             returnNull ? BoxingStrategy.INDIFFERENT : CodegenUtil.getBoxingStrategy(model), 
@@ -2406,7 +2408,7 @@ public class ClassTransformer extends AbstractTransformer {
             }
         } else if (!isLazy && typeFact().isCallableType(term.getTypeModel())) {
             returnNull = isAnything(term.getTypeModel()) && term.getUnboxed();
-            Method method = methodDecl.getDeclarationModel();
+            Method method = model;
             boolean lazy = specifierExpression instanceof Tree.LazySpecifierExpression;
             boolean inlined = CodegenUtil.canOptimiseMethodSpecifier(term, method);
             Invocation invocation;
