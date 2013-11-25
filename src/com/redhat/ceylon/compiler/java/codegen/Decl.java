@@ -347,6 +347,24 @@ public class Decl {
     }
     
     /**
+     * Determines whether the given declaration is both
+     * deferred and a function (i.e. a toplevel or local method)
+     */
+    public static boolean isDeferredFunction(Tree.Declaration decl) {
+        return isDeferredFunction(decl.getDeclarationModel());
+    }
+    
+    /**
+     * Determines whether the given declaration is both
+     * deferred and a function (i.e. a toplevel or local method)
+     */
+    public static boolean isDeferredFunction(Declaration decl) {
+        return isDeferred(decl) 
+                && (decl.isToplevel() || Decl.isLocal(decl));
+    }
+    
+    
+    /**
      * Determines whether the declaration is local to a method,
      * getter or setter, but <strong>returns {@code false} for a declaration 
      * local to a Class initializer.</strong>
