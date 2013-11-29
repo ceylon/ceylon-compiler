@@ -2090,8 +2090,8 @@ public class ClassTransformer extends AbstractTransformer {
         } else {// Is within interface
             // Transform the definition to the companion class, how depends
             // on what kind of method it is
-            List<JCTree> companionDefs;
-            if (def instanceof Tree.MethodDeclaration) {
+            List<JCTree> companionDefs = companionMethodTransformation.transform(def);
+            /*if (def instanceof Tree.MethodDeclaration) {
                 final SpecifierExpression specifier = ((Tree.MethodDeclaration) def).getSpecifierExpression();
                 if (specifier == null) {
                     // formal or abstract 
@@ -2122,23 +2122,12 @@ public class ClassTransformer extends AbstractTransformer {
                         false);
             } else {
                 throw new RuntimeException();
-            }
+            }*/
             classBuilder.getCompanionBuilder((TypeDeclaration)model.getContainer())
                 .defs(companionDefs);
             
             // Transform the declaration to the target interface
-            // but only if it's shared
-            if (Decl.isShared(model)) {
-                result = interfaceMethodTransformation.transform(def);
-                /*result = transformMethod(def, 
-                        true,
-                        true,
-                        true,
-                        null,
-                        daoAbstract,
-                        !Strategy.defaultParameterMethodOnSelf(model));
-                        */
-            }
+            result = interfaceMethodTransformation.transform(def);
         }
         return result;
     }
@@ -3978,15 +3967,33 @@ public class ClassTransformer extends AbstractTransformer {
         public List<JCTree> transform(Tree.AnyMethod method) {
             Method m = method.getDeclarationModel();
             Interface iface = (Interface)m.getContainer();
+            // We only transform if there's code
+            ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
+            transformPeripheral(method, lb);
             if (!m.isFormal()) {
-                // We only transform if there's code
-                ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
-                transformPeripheral(method, lb);
                 transformUltimate(method, lb);
-                return lb.toList();
-            } else {
-                return List.<JCTree>nil();
             }
+            return lb.toList();
+            
+        }
+        
+        @Override
+        protected void transformOverloadMethod(
+                Tree.AnyMethod method,
+                Tree.ParameterList parameterList,
+                Tree.Parameter parameter,
+                ListBuffer<JCTree> lb){
+            if (!method.getDeclarationModel().isFormal()) {
+                super.transformOverloadMethod(method, parameterList, parameter, lb);
+            }
+        }
+        @Override
+        protected void transformUltimateModelAnnotations(Method methodOrFunction, MethodDefinitionBuilder builder) {
+            builder.noAnnotations();
+        }
+        @Override
+        protected void transformUltimateUserAnnotations(
+                Tree.AnnotationList annotationList, MethodDefinitionBuilder builder) {
         }
     }
     private CompanionMethodTransformation companionMethodTransformation = new CompanionMethodTransformation();
