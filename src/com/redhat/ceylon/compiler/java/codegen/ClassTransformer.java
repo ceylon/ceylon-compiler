@@ -2014,6 +2014,8 @@ public class ClassTransformer extends AbstractTransformer {
             ClassDefinitionBuilder classBuilder) {
         final Method model = def.getDeclarationModel();
         if (model.isParameter()) {
+            // Functional parameters get transformed in transformClass()
+            // using the classMethodFromFunctionalParameterTransformation
             return List.nil();
         }
         List<JCTree> result;
