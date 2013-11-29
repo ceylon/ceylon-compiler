@@ -2271,6 +2271,7 @@ public class ClassTransformer extends AbstractTransformer {
         // Determine if we need to generate a "canonical" method
         boolean createCanonical = hasOverloads
                 && Decl.withinClassOrInterface(methodModel)
+                && methodModel.isDefault()
                 && body != null;
         
         if (createCanonical) {
@@ -2537,23 +2538,6 @@ public class ClassTransformer extends AbstractTransformer {
         throw new RuntimeException();
     }
 
-    /** 
-     * Generate a body for the overload method which delegates to the 
-     * canonical method using a let to spubstitute defaulted parameters
-     */
-    private static int OL_BODY_DELEGATE_CANONICAL = 1<<0;
-    /** 
-     * Modifies OL_BODY_DELEGATE_CANONICAL so that the method is suitable 
-     * for a companion class.
-     */
-    private static int OL_COMPANION = 1<<1;
-    /** 
-     * Modifies OL_BODY_DELEGATE_CANONICAL so that the canonical method on the 
-     * interface instantce, {@code $this}, is called, rather than the 
-     * canonical method on {@code this}.
-     */ 
-    private static int OL_DELEGATE_INTERFACE_INSTANCE = 1<<2;
-    
     /** 
      * Abstraction over possible transformations for the body of an overloaded
      * declaration which supplies a defaulted argument.
@@ -2886,7 +2870,8 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected final JCExpression makeMethodName() {
             int flags = Naming.NA_MEMBER;
-            if (Decl.withinClassOrInterface(method)) {
+            if (Decl.withinClassOrInterface(method)
+                    && method.isDefault()) {
                 flags |= Naming.NA_CANONICAL_METHOD;
             }
             return naming.makeQualifiedName(daoBody.makeMethodNameQualifier(), method, flags);
