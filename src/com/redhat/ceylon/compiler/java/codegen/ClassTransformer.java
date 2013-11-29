@@ -68,9 +68,7 @@ import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
-import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnnotationList;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyClass;
-import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyMethod;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeGetterDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
@@ -2044,16 +2042,6 @@ public class ClassTransformer extends AbstractTransformer {
         return mdb;
     }
 
-    public List<JCTree> transform(Tree.AnyMethod def, ClassDefinitionBuilder classBuilder) {
-        if (def.getDeclarationModel().isParameter()) {
-            return List.nil();
-        }
-        // Transform the method body of the 'inner-most method'
-        boolean prevSyntheticClassBody = expressionGen().withinSyntheticClassBody(Decl.isMpl(def.getDeclarationModel()) || expressionGen().isWithinSyntheticClassBody());
-        List<JCStatement> body = transformMethodBody(def);
-        expressionGen().withinSyntheticClassBody(prevSyntheticClassBody);
-        return transform(def, classBuilder, body);
-    }
     
     public List<JCTree> transform2(Tree.AnyMethod def, ClassDefinitionBuilder classBuilder) {
         // FunctionalParameters are transformed when we transform the class parameters
@@ -2072,9 +2060,12 @@ public class ClassTransformer extends AbstractTransformer {
             return functionTransformation.transform(def);
         }
     }
-
-    List<JCTree> transform(Tree.AnyMethod def,
-            ClassDefinitionBuilder classBuilder, List<JCStatement> body) {
+    
+    public List<JCTree> transform(Tree.AnyMethod def,
+            ClassDefinitionBuilder classBuilder) {
+        if (def.getDeclarationModel().isParameter()) {
+            return List.nil();
+        }
         final Method model = def.getDeclarationModel();
         
         List<JCTree> result = List.<JCTree>nil();
@@ -2090,82 +2081,12 @@ public class ClassTransformer extends AbstractTransformer {
         } else {// Is within interface
             // Transform the definition to the companion class, how depends
             // on what kind of method it is
-            List<JCTree> companionDefs = companionMethodTransformation.transform(def);
-            /*if (def instanceof Tree.MethodDeclaration) {
-                final SpecifierExpression specifier = ((Tree.MethodDeclaration) def).getSpecifierExpression();
-                if (specifier == null) {
-                    // formal or abstract 
-                    // (still need overloads and DPMs on the companion)
-                    companionDefs = transformMethod(def,  
-                            false,
-                            true,
-                            true,
-                            null,
-                            daoCompanion,
-                            false);   
-                } else {
-                    companionDefs = transformMethod(def,
-                            true,
-                            false,
-                            !model.isShared(),
-                            transformMplBody(def.getParameterLists(), model, body),
-                            daoCompanion,
-                            false);
-                }
-            } else if (def instanceof Tree.MethodDefinition) {
-                companionDefs = transformMethod(def,  
-                        true,
-                        false,
-                        !model.isShared(),
-                        transformMethodBlock((Tree.MethodDefinition)def),
-                        daoCompanion,
-                        false);
-            } else {
-                throw new RuntimeException();
-            }*/
             classBuilder.getCompanionBuilder((TypeDeclaration)model.getContainer())
-                .defs(companionDefs);
-            
+                .defs(companionMethodTransformation.transform(def));
             // Transform the declaration to the target interface
             result = interfaceMethodTransformation.transform(def);
         }
         return result;
-    }
-
-    
-    /**
-     * Transforms a method, generating default argument overloads and 
-     * default value methods
-     * @param def The method
-     * @param model The method model
-     * @param methodName The method name
-     * @param transformMethod Whether the method itself should be transformed.
-     * @param actualAndAnnotations Whether the method itself is actual and has 
-     * model annotations
-     * @param body The body of the method (or null for an abstract method)
-     * @param daoTransformation The default argument overload transformation
-     * @param transformDefaultValues Whether to generate default value methods
-     * @param defaultValuesBody Whether the default value methods should have a body
-     */
-    private List<JCTree> transformMethod(Tree.AnyMethod def,
-            boolean transformMethod, 
-            boolean actual, 
-            boolean includeAnnotations, 
-            List<JCStatement> body, 
-            DaoBody daoTransformation, 
-            boolean defaultValuesBody) {
-        List<MethodDefinitionBuilder> result = transformMethod(def.getDeclarationModel(), 
-                def.getTypeParameterList(),
-                def.getParameterLists(),
-                def.getAnnotationList(),
-                transformMethod, actual, includeAnnotations, body,
-                daoTransformation,
-                defaultValuesBody);
-        ListBuffer<JCTree> r = ListBuffer.<JCTree>lb();
-        for (MethodDefinitionBuilder mdb : result) {
-            r.add(mdb.build());
-        }
-        return r.toList();
     }
     
     private List<MethodDefinitionBuilder> transformMethod(
@@ -2351,26 +2272,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         return body;
     }
-
-    private List<JCStatement> transformMethodBody(Tree.AnyMethod def) {
-        List<JCStatement> body = null;
-        final Method model = def.getDeclarationModel();
-        
-        if (model.isDeferred()) {
-            return transformDeferredMethodBody(def);
-        } else if (def instanceof Tree.MethodDefinition) {
-            Scope container = model.getContainer();
-            boolean isInterface = container instanceof com.redhat.ceylon.compiler.typechecker.model.Interface;
-            if(!isInterface){
-                body = transformMethodBlock((Tree.MethodDefinition)def);
-            } 
-        } else if (def instanceof MethodDeclaration
-                && ((MethodDeclaration) def).getSpecifierExpression() != null) {
-            body = transformSpecifiedMethodBody((MethodDeclaration)def, ((MethodDeclaration) def).getSpecifierExpression());
-        }
-        return body;
-    }
-
+    
     private List<JCStatement> transformDeferredMethodBody(Tree.AnyMethod def) {
         final Method model = def.getDeclarationModel();
         // Uninitialized or deferred initialized method => Make a Callable field
