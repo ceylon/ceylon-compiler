@@ -3609,21 +3609,6 @@ public class ClassTransformer extends AbstractTransformer {
     
     /////////////////////////////////////////////////////////////////////
     
-    List<JCTree> selectMethodTransformation(Tree.AnyMethod method) {
-        MethodOrFunctionTransformation transformation;
-        if (method.getDeclarationModel().isToplevel()) {
-            transformation = functionTransformation;
-        } else if (Decl.withinClass(method) && !Decl.isLocalToInitializer(method)) {
-            transformation = classMethodTransformation;
-        } else if (Decl.withinInterface(method)) {
-            // Use the companion class transformation!
-            companionMethodTransformation.transform(method);
-            transformation = interfaceMethodTransformation;
-        } else {// must be local
-            transformation = functionTransformation;
-        }
-        return transformation.transform(method);
-    }
     
     /** 
      * <p>Baseclass for transformations of things with a {@link Functional}
@@ -3966,7 +3951,6 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         public List<JCTree> transform(Tree.AnyMethod method) {
             Method m = method.getDeclarationModel();
-            Interface iface = (Interface)m.getContainer();
             // We only transform if there's code
             ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
             transformPeripheral(method, lb);
@@ -3974,7 +3958,6 @@ public class ClassTransformer extends AbstractTransformer {
                 transformUltimate(method, lb);
             }
             return lb.toList();
-            
         }
         
         @Override
@@ -3989,7 +3972,9 @@ public class ClassTransformer extends AbstractTransformer {
         }
         @Override
         protected void transformUltimateModelAnnotations(Method methodOrFunction, MethodDefinitionBuilder builder) {
-            builder.noAnnotations();
+            if (methodOrFunction.isShared()) {
+                builder.noAnnotations();
+            }
         }
         @Override
         protected void transformUltimateUserAnnotations(
