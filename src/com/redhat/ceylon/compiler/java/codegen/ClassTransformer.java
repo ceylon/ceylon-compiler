@@ -2083,16 +2083,6 @@ public class ClassTransformer extends AbstractTransformer {
             if (model.isToplevel()) {
                 result = functionTransformation.transform(def);
             } else if (model.isClassMember()) {
-                /*boolean refinedResultType = !model.getType().isExactly(
-                        ((TypedDeclaration)model.getRefinedDeclaration()).getType());
-                result = transformMethod(def, 
-                        true,
-                        true,
-                        true,
-                        transformMplBody(def.getParameterLists(), model, body),
-                        refinedResultType 
-                        && !Decl.withinInterface(model.getRefinedDeclaration())? daoSuper : daoThis,
-                        !Strategy.defaultParameterMethodOnSelf(model));*/
                 result = classMethodTransformation.transform(def);
             } else {// must be local
                 result = functionTransformation.transform(def);
@@ -2139,13 +2129,15 @@ public class ClassTransformer extends AbstractTransformer {
             // Transform the declaration to the target interface
             // but only if it's shared
             if (Decl.isShared(model)) {
-                result = transformMethod(def, 
+                result = interfaceMethodTransformation.transform(def);
+                /*result = transformMethod(def, 
                         true,
                         true,
                         true,
                         null,
                         daoAbstract,
                         !Strategy.defaultParameterMethodOnSelf(model));
+                        */
             }
         }
         return result;
@@ -3847,12 +3839,16 @@ public class ClassTransformer extends AbstractTransformer {
                 Tree.ParameterList parameterList,
                 Tree.Parameter parameter,
                 ListBuffer<JCTree> lb){
-            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(daoThis, methodOrFunction.getDeclarationModel())
+            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(getDefaultArgumentOverload(methodOrFunction.getDeclarationModel()), methodOrFunction.getDeclarationModel())
                 .makeOverload(
                     parameterList.getModel(),
                     parameter.getParameterModel(),
                     methodOrFunction.getDeclarationModel().getTypeParameters());
             lb.append(overloadedMethod.build());
+        }
+
+        protected DaoBody getDefaultArgumentOverload(Method model) {
+            return daoThis;
         }
         
         @Override
@@ -3911,7 +3907,7 @@ public class ClassTransformer extends AbstractTransformer {
         /**
          * Determine whether we need to generate a canonical method.
          */
-        protected final boolean generateCanonical(Tree.AnyMethod method) {
+        protected boolean generateCanonical(Tree.AnyMethod method) {
             return overloadsUltimate(method) && method.getDeclarationModel().isDefault();
         }
         /**
@@ -3939,19 +3935,8 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void transformOverloadMethod(
-                Tree.AnyMethod methodOrFunction,
-                Tree.ParameterList parameterList,
-                Tree.Parameter parameter,
-                ListBuffer<JCTree> lb){
-            // Have to use daoAbstract if the method is formal We could probably push this up
-            Method model = methodOrFunction.getDeclarationModel();
-            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(model.isFormal() ? daoAbstract : daoThis, model)
-                .makeOverload(
-                    parameterList.getModel(),
-                    parameter.getParameterModel(),
-                    model.getTypeParameters());
-            lb.append(overloadedMethod.build());
+        protected DaoBody getDefaultArgumentOverload(Method model) {
+            return model.isFormal() ? daoAbstract : daoThis;
         }
         
         /** 
@@ -3963,8 +3948,8 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformUltimateBody(Tree.AnyMethod method,
                 MethodDefinitionBuilder builder) {
-            Method model = method.getDeclarationModel();
             if (generateCanonical(method)) {
+                Method model = method.getDeclarationModel();
                 // ultimate body will just delegate to the canonical method
                 CanonicalMethod canonical = new CanonicalMethod(daoThis, model);
                 daoThis.makeBody(canonical, builder, getParameterLists(method).get(0).getModel(),
@@ -4008,26 +3993,57 @@ public class ClassTransformer extends AbstractTransformer {
     
     /** Transformation of a method that's a member of an interface */
     class InterfaceMethodTransformation extends MethodTransformation {
-        /** A Ceylon interface method only gets transformed to the Java interface if it's {@code shared} */
+        /** 
+         * canonical methods never appear on interfaces, since they're 
+         * public and by definition are not abstract
+         */
+        protected boolean generateCanonical(Tree.AnyMethod method) {
+            return false;
+        }
+        
+        /** 
+         * A Ceylon interface method only gets transformed to the Java interface 
+         * if it's {@code shared} 
+         */
         @Override
         public List<JCTree> transform(Tree.AnyMethod method) {
-            Method m = method.getDeclarationModel();
-            Interface iface = (Interface)m.getContainer();
-            if (m.isShared()) {
-                // We need to transform a declaration to the interface
-                ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
-                transformPeripheral(method, lb);
-                transformUltimate(method, lb);
-                return lb.toList();
+            if (method.getDeclarationModel().isShared()) {
+                return super.transform(method);
             } else {
                 return List.<JCTree>nil();
             }
         }
-        /** For class methods we need add {@code @Override} iff it's {@code actual}. */
+        /** 
+         * For interface methods we need add {@code @Override} iff it's {@code actual}. 
+         */
         @Override
         protected void transformUltimateModifiers(Method method, MethodDefinitionBuilder builder) {
             super.transformUltimateModifiers(method, builder);
             builder.isOverride(method.isActual());
+        }
+        /** The defaulted parameter value method will always be abstract */
+        @Override
+        protected void transformDefaultedParameterValueMethod(
+                Tree.AnyMethod methodOrFunction,
+                Tree.ParameterList parameterList,
+                Tree.Parameter parameter,
+                ListBuffer<JCTree> lb){
+            lb.append(makeParamDefaultValueMethod(methodOrFunction.getDeclarationModel(),
+                    parameterList.getModel(),
+                    parameter.getParameterModel(),
+                    null, // body is null, because we're transforming to an interface 
+                    methodOrFunction.getDeclarationModel().getTypeParameters()).build());
+        }
+        /** The ultimate method will always be abstract */
+        @Override
+        protected void transformUltimateBody(Tree.AnyMethod method,
+                MethodDefinitionBuilder builder) {
+            builder.noBody();
+        }
+        /** The overload will always be abstract */
+        @Override
+        protected DaoBody getDefaultArgumentOverload(Method model) {
+            return daoAbstract;
         }
     }
     private InterfaceMethodTransformation interfaceMethodTransformation = new InterfaceMethodTransformation();
