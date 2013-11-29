@@ -846,35 +846,11 @@ public class ClassTransformer extends AbstractTransformer {
     private void makeMethodForFunctionalParameter(
             ClassDefinitionBuilder classBuilder, AnyClass klass, Tree.Parameter paramTree, List<JCAnnotation> annotations) {
         Parameter paramModel = paramTree.getParameterModel();
-
+        
         if (Strategy.createMethod(paramModel)) {
-            Tree.MethodDeclaration methodDecl = (Tree.MethodDeclaration)Decl.getMemberDeclaration(klass, paramTree);
             makeFieldForParameter(classBuilder, paramModel);
-            Method method = (Method)paramModel.getModel();
-
-            java.util.List<Parameter> parameters = method.getParameterLists().get(0).getParameters();
-            CallBuilder callBuilder = CallBuilder.instance(this).invoke(
-                    naming.makeQualIdent(naming.makeName(method, Naming.NA_IDENT), 
-                            Naming.getCallableMethodName(method)));
-            for (Parameter parameter : parameters) {
-                JCExpression parameterExpr = naming.makeName(parameter.getModel(), Naming.NA_IDENT);
-                parameterExpr = expressionGen().applyErasureAndBoxing(parameterExpr, parameter.getType(), 
-                        !CodegenUtil.isUnBoxed(parameter.getModel()), BoxingStrategy.BOXED, 
-                        parameter.getType());
-                callBuilder.argument(parameterExpr);
-            }
-            JCExpression expr = callBuilder.build();
-            JCStatement body;
-            if (isVoid(methodDecl) && Decl.isUnboxedVoid(method) && !Strategy.useBoxedVoid(method)) {
-                body = make().Exec(expr);
-            } else {
-                expr = expressionGen().applyErasureAndBoxing(expr, paramModel.getType(), true, CodegenUtil.getBoxingStrategy(method), paramModel.getType());
-                body = make().Return(expr);
-            }
-            classBuilder.methods(transformMethod(method, null, methodDecl.getParameterLists(),
-                    methodDecl.getAnnotationList(),
-                    true, method.isActual(), true, 
-                    List.of(body), daoThis, false));
+            Tree.MethodDeclaration methodDecl = (Tree.MethodDeclaration)Decl.getMemberDeclaration(klass, paramTree);
+            classBuilder.defs(classMethodFromFunctionalParameterTransformation.transform(methodDecl));
         }
     }
     
@@ -3847,6 +3823,36 @@ public class ClassTransformer extends AbstractTransformer {
     }
     /** The instance of {@link ClassMethodTransformation} */
     private ClassMethodTransformation classMethodTransformation = new ClassMethodTransformation();
+    
+    class ClassMethodFromFunctionalParameterTransformation extends ClassMethodTransformation {
+        @Override
+        protected void transformUltimateBody(Tree.AnyMethod method,
+                MethodDefinitionBuilder builder) {
+            Method model = method.getDeclarationModel();
+            java.util.List<Parameter> parameters = model.getParameterLists().get(0).getParameters();
+            CallBuilder callBuilder = CallBuilder.instance(ClassTransformer.this).invoke(
+                    naming.makeQualIdent(naming.makeName(model, Naming.NA_IDENT), 
+                            Naming.getCallableMethodName(model)));
+            for (Parameter parameter : parameters) {
+                JCExpression parameterExpr = naming.makeName(parameter.getModel(), Naming.NA_IDENT);
+                parameterExpr = expressionGen().applyErasureAndBoxing(parameterExpr, parameter.getType(), 
+                        !CodegenUtil.isUnBoxed(parameter.getModel()), BoxingStrategy.BOXED, 
+                        parameter.getType());
+                callBuilder.argument(parameterExpr);
+            }
+            JCExpression expr = callBuilder.build();
+            JCStatement body;
+            if (isVoid(method) && Decl.isUnboxedVoid(model) && !Strategy.useBoxedVoid(model)) {
+                body = make().Exec(expr);
+            } else {
+                expr = expressionGen().applyErasureAndBoxing(expr, model.getInitializerParameter().getType()/*paramModel.getType()*/, true, CodegenUtil.getBoxingStrategy(model), model.getInitializerParameter().getType());
+                body = make().Return(expr);
+            }
+            builder.body(body);
+        }
+    }
+    /** The instance of {@link ClassMethodTransformation} */
+    private ClassMethodFromFunctionalParameterTransformation classMethodFromFunctionalParameterTransformation = new ClassMethodFromFunctionalParameterTransformation();
     
     /** Transformation of a <em>concrete</em> method that's a member of an interface */
     class CompanionMethodTransformation extends MethodTransformation {
