@@ -529,16 +529,7 @@ public class ClassDefinitionBuilder
     }
 
     public ClassDefinitionBuilder method(Tree.AnyMethod method) {
-        if (Decl.isToplevel(method)) {
-            defs(gen.classGen().transform2(method, this));
-        } else if (Decl.withinInterface(method)) {
-            defs(gen.classGen().transform(method, this));
-        } else if (Decl.withinClass(method)
-                && !Decl.isLocalToInitializer(method)) {
-            defs(gen.classGen().transform2(method, this));
-        } else {
-            defs(gen.classGen().transform2(method, this));
-        }
+        defs(gen.classGen().transform(method, this));
         return this;
     }
     

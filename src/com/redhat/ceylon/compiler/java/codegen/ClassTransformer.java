@@ -2009,50 +2009,26 @@ public class ClassTransformer extends AbstractTransformer {
         mdb.noBody();
         return mdb;
     }
-
-    
-    public List<JCTree> transform2(Tree.AnyMethod def, ClassDefinitionBuilder classBuilder) {
-        // FunctionalParameters are transformed when we transform the class parameters
-        if (def.getDeclarationModel().isParameter()) {
-            return List.nil();
-        }
-        final Method model = def.getDeclarationModel();
-        if (model.isToplevel()) {
-            return functionTransformation.transform(def);
-        } else if (Decl.withinClass(model)
-                && !Decl.isLocalToInitializer(model)) {
-            return classMethodTransformation.transform(def);
-        } else if (model.isInterfaceMember()) {
-            throw new RuntimeException();
-        } else {// local function
-            return functionTransformation.transform(def);
-        }
-    }
     
     public List<JCTree> transform(Tree.AnyMethod def,
             ClassDefinitionBuilder classBuilder) {
-        if (def.getDeclarationModel().isParameter()) {
+        final Method model = def.getDeclarationModel();
+        if (model.isParameter()) {
             return List.nil();
         }
-        final Method model = def.getDeclarationModel();
-        
-        List<JCTree> result = List.<JCTree>nil();
-        if (!Decl.withinInterface(model)) {
-            // Transform to the class
-            if (model.isToplevel()) {
-                result = functionTransformation.transform(def);
-            } else if (model.isClassMember()) {
-                result = classMethodTransformation.transform(def);
-            } else {// must be local
-                result = functionTransformation.transform(def);
-            }
-        } else {// Is within interface
-            // Transform the definition to the companion class, how depends
-            // on what kind of method it is
+        List<JCTree> result;
+        if (model.isToplevel()) {
+            result = functionTransformation.transform(def);
+        } else if (Decl.withinClass(model)
+                && !Decl.isLocalToInitializer(model)) {
+            result = classMethodTransformation.transform(def);
+        } else if (Decl.withinInterface(model)) {
             classBuilder.getCompanionBuilder((TypeDeclaration)model.getContainer())
                 .defs(companionMethodTransformation.transform(def));
-            // Transform the declaration to the target interface
             result = interfaceMethodTransformation.transform(def);
+        } else {
+            // It must be a local function
+            result = functionTransformation.transform(def);
         }
         return result;
     }
