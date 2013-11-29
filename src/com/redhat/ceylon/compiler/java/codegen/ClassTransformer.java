@@ -68,7 +68,9 @@ import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnnotationList;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyClass;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyMethod;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeGetterDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
@@ -1976,7 +1978,8 @@ public class ClassTransformer extends AbstractTransformer {
             builder.annotations(makeExprAnnotations(def, ai));
         }
         
-        builder.methods(classGen().transform(def, builder));
+        //builder.methods(transform(def, builder));
+        builder.defs(functionTransformation.transform(def));
         
         // Toplevel method
         if (Strategy.generateMain(def)) {
@@ -2343,51 +2346,7 @@ public class ClassTransformer extends AbstractTransformer {
         final Method model = def.getDeclarationModel();
         
         if (model.isDeferred()) {
-            // Uninitialized or deferred initialized method => Make a Callable field
-            String fieldName = naming.selector(model);
-            final Parameter initializingParameter = CodegenUtil.findParamForDecl(def);
-            int mods = PRIVATE;
-            JCExpression initialValue;
-            if (initializingParameter != null) {
-                mods |= FINAL;
-                initialValue = makeUnquotedIdent(Naming.getAliasedParameterName(initializingParameter));
-            } else {
-                // The field isn't initialized by a parameter, but later in the block
-                initialValue = makeNull();
-            }
-            ProducedType callableType = typeFact().getCallableType(model.getType());
-            current().field(mods, fieldName, makeJavaType(callableType), initialValue, false);
-            Invocation invocation = new CallableSpecifierInvocation(
-                    this,
-                    model,
-                    makeUnquotedIdent(fieldName),
-                    // we don't have to give a Term here because it's used for casting the Callable in case of callable erasure, 
-                    // but with deferred methods we can't define them so that they are erased so we're good
-                    null,
-                    def);
-            invocation.handleBoxing(true);
-            JCExpression call = expressionGen().transformInvocation(invocation);
-            JCStatement stmt;
-            if (!isVoid(def) || !Decl.isUnboxedVoid(model) || Strategy.useBoxedVoid((Method)model)) {
-                stmt = make().Return(call);
-            } else {
-                stmt = make().Exec(call);
-            }
-            
-            JCStatement result;
-            if (initializingParameter == null) {
-                // If the field isn't initialized by a parameter we have to 
-                // cope with the possibility that it's never initialized
-                final JCBinary cond = make().Binary(JCTree.EQ, makeUnquotedIdent(fieldName), makeNull());
-                final JCStatement throw_ = make().Throw(make().NewClass(null, null, 
-                        makeIdent(syms().ceylonUninitializedMethodErrorType), 
-                        List.<JCExpression>nil(), 
-                        null));
-                result = make().If(cond, throw_, stmt);
-            } else {
-                result = stmt;
-            }
-            return List.<JCStatement>of(result);
+            return transformDeferredMethodBody(def);
         } else if (def instanceof Tree.MethodDefinition) {
             Scope container = model.getContainer();
             boolean isInterface = container instanceof com.redhat.ceylon.compiler.typechecker.model.Interface;
@@ -2399,6 +2358,55 @@ public class ClassTransformer extends AbstractTransformer {
             body = transformSpecifiedMethodBody((MethodDeclaration)def, ((MethodDeclaration) def).getSpecifierExpression());
         }
         return body;
+    }
+
+    private List<JCStatement> transformDeferredMethodBody(Tree.AnyMethod def) {
+        final Method model = def.getDeclarationModel();
+        // Uninitialized or deferred initialized method => Make a Callable field
+        String fieldName = naming.selector(model);
+        final Parameter initializingParameter = CodegenUtil.findParamForDecl(def);
+        int mods = PRIVATE;
+        JCExpression initialValue;
+        if (initializingParameter != null) {
+            mods |= FINAL;
+            initialValue = makeUnquotedIdent(Naming.getAliasedParameterName(initializingParameter));
+        } else {
+            // The field isn't initialized by a parameter, but later in the block
+            initialValue = makeNull();
+        }
+        ProducedType callableType = typeFact().getCallableType(model.getType());
+        current().field(mods, fieldName, makeJavaType(callableType), initialValue, false);
+        Invocation invocation = new CallableSpecifierInvocation(
+                this,
+                model,
+                makeUnquotedIdent(fieldName),
+                // we don't have to give a Term here because it's used for casting the Callable in case of callable erasure, 
+                // but with deferred methods we can't define them so that they are erased so we're good
+                null,
+                def);
+        invocation.handleBoxing(true);
+        JCExpression call = expressionGen().transformInvocation(invocation);
+        JCStatement stmt;
+        if (!isVoid(def) || !Decl.isUnboxedVoid(model) || Strategy.useBoxedVoid((Method)model)) {
+            stmt = make().Return(call);
+        } else {
+            stmt = make().Exec(call);
+        }
+        
+        JCStatement result;
+        if (initializingParameter == null) {
+            // If the field isn't initialized by a parameter we have to 
+            // cope with the possibility that it's never initialized
+            final JCBinary cond = make().Binary(JCTree.EQ, makeUnquotedIdent(fieldName), makeNull());
+            final JCStatement throw_ = make().Throw(make().NewClass(null, null, 
+                    makeIdent(syms().ceylonUninitializedMethodErrorType), 
+                    List.<JCExpression>nil(), 
+                    null));
+            result = make().If(cond, throw_, stmt);
+        } else {
+            result = stmt;
+        }
+        return List.<JCStatement>of(result);
     }
 
     private List<JCStatement> transformMethodBlock(
@@ -3584,4 +3592,373 @@ public class ClassTransformer extends AbstractTransformer {
             .satisfies(model.getSatisfiedTypes())
             .build();
     }
-}
+    
+    /////////////////////////////////////////////////////////////////////
+    
+    List<JCTree> selectMethodTransformation(Tree.AnyMethod method) {
+        MethodOrFunctionTransformation transformation;
+        if (method.getDeclarationModel().isToplevel()) {
+            transformation = functionTransformation;
+        } else if (Decl.withinClass(method) && !Decl.isLocalToInitializer(method)) {
+            transformation = classMethodTransformation;
+        } else if (Decl.withinInterface(method)) {
+            // Use the companion class transformation!
+            companionMethodTransformation.transform(method);
+            transformation = interfaceMethodTransformation;
+        } else {// must be local
+            transformation = functionTransformation;
+        }
+        return transformation.transform(method);
+    }
+    
+    /** 
+     * Baseclass for transformations of things with a {@link Functional}
+     * model (i.e. classes, functions and methods).
+     */
+    abstract class FunctionalTransformation<T extends Tree.Declaration> {
+        public List<JCTree> transform(T functional) {
+            ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
+            boolean hasOverloads = transformPeripheral(functional, lb);
+            transformUltimate(functional, lb);
+            return lb.toList();
+        }
+        
+        protected abstract java.util.List<Tree.ParameterList> getParameterLists(T functional);
+        
+        /** 
+         * Transforms the given declaration to its ultimate <em>result</em>.
+         * For example, a single Ceylon method with defaulted parameters
+         * has as its ultimate result the Java method with a 
+         * complete parameter list and the implementation code.
+         * @param hasOverloads 
+         */
+        protected abstract void transformUltimate(T functional, ListBuffer<JCTree> lb);
+        
+        /** 
+         * Transforms the given declaration to 0 or more <em>peripheral results</em>.
+         * For example a single Ceylon method with defaulted parameters
+         * has two peripheral methods for each defaulted parameter:
+         * <ol>
+         * <li>a method to evaluate the default parameter value, and</li>
+         * <li>an overload of the ultimate method, which invokes the 
+         *     default parameter value method and invokes the ultimate method</li>
+         * </ol>
+         */
+        protected boolean transformPeripheral(T functional, ListBuffer<JCTree> lb) {
+            java.util.List<Tree.ParameterList> parameterLists = getParameterLists(functional);
+            Declaration functionalDeclaration = functional.getDeclarationModel();
+            Declaration refinedDeclaration = functionalDeclaration.getRefinedDeclaration();
+            boolean hasOverloads = false;
+            Tree.ParameterList parameterList = parameterLists.get(0);
+            for (final Tree.Parameter parameter : parameterList.getParameters()) {
+                Parameter parameterModel = parameter.getParameterModel();
+                if (Strategy.hasDefaultParameterValueMethod(parameterModel)
+                        || Strategy.hasDefaultParameterOverload(parameterModel)) {
+                    if (refinedDeclaration == functionalDeclaration
+                            || (!Decl.withinInterface(functional) /*&& body != null*/)) {
+                        //if (transformMethod && daoTransformation != null && (daoTransformation instanceof DaoCompanion == false || body != null)) {
+                        //    DaoBody daoTrans = (body == null) ? daoAbstract : daoThis;
+                        transformOverloadMethod(functional, parameterList, parameter, lb);
+                        //}
+                        if (refinedDeclaration == functionalDeclaration
+                                && Strategy.hasDefaultParameterValueMethod(parameterModel)) {
+                            transformDefaultedParameterValueMethod(functional, parameterList, parameter, lb);
+                        }
+                    }
+                    hasOverloads = true;
+                }
+            }
+            
+            return hasOverloads;
+        }
+        
+        protected abstract void transformOverloadMethod(
+                T method,
+                Tree.ParameterList parameterList,
+                Tree.Parameter parameter,
+                ListBuffer<JCTree> lb);
+        
+        protected abstract void transformDefaultedParameterValueMethod(
+                T method,
+                Tree.ParameterList parameterList,
+                Tree.Parameter parameter,
+                ListBuffer<JCTree> lb);
+    }
+    
+    /** 
+     * Baseclass for transformations of things with a {@link Method} model, 
+     * that is methods and functions.
+     */
+    abstract class MethodOrFunctionTransformation extends FunctionalTransformation<Tree.AnyMethod> {
+        protected java.util.List<Tree.ParameterList> getParameterLists(Tree.AnyMethod methodOrFunction) {
+            return methodOrFunction.getParameterLists();
+        }
+        
+        @Override
+        protected void transformUltimate(Tree.AnyMethod methodOrFunction, ListBuffer<JCTree> lb) {
+            Method model = methodOrFunction.getDeclarationModel();
+            MethodDefinitionBuilder builder = MethodDefinitionBuilder.method(ClassTransformer.this, model);
+            
+            transformUltimateHeader(methodOrFunction, builder);
+            
+            boolean prevSyntheticClassBody = expressionGen().withinSyntheticClassBody(Decl.isMpl(methodOrFunction.getDeclarationModel()) || expressionGen().isWithinSyntheticClassBody());
+            transformUltimateBody(methodOrFunction, builder);
+            expressionGen().withinSyntheticClassBody(prevSyntheticClassBody);
+            
+            lb.append(builder.build());
+            
+            
+        }
+        
+        private void transformUltimateHeader(Tree.AnyMethod function,
+                MethodDefinitionBuilder builder) {
+            Method f = function.getDeclarationModel();
+            transformUltimateUserAnnotations(function.getAnnotationList(), builder);
+            transformUltimateModelAnnotations(f, builder);
+            transformUltimateModifiers(f, builder);
+            transformUltimateTypeParameterList(f, builder);
+            transformUltimateResultType(f, builder);
+            transformUltimateParameterList(function, builder);// can't this be a parameter list?
+        }
+        private void transformUltimateParameterList(Tree.AnyMethod method, MethodDefinitionBuilder builder) {
+            // Add parameters for the reified types
+            Method methodModel = method.getDeclarationModel();
+            java.util.List<TypeParameter> typeParameterList = methodModel.getTypeParameters();
+            if (typeParameterList != null && gen().supportsReified(methodModel)) {
+                builder.reifiedTypeParameters(typeParameterList);
+            }
+            // Add parameters for the explicit parameters
+            Tree.ParameterList parameterList = getParameterLists(method).get(0);
+            for (final Tree.Parameter parameter : parameterList.getParameters()) {
+                builder.parameter(parameter.getParameterModel(), transformParameterAnnotations(parameter), 0, true);
+            }
+        }
+
+        private List<JCAnnotation> transformParameterAnnotations(
+                final Tree.Parameter parameter) {
+            List<JCAnnotation> annotations = null;
+            if (parameter instanceof Tree.ParameterDeclaration
+                    && ((Tree.ParameterDeclaration)parameter).getTypedDeclaration() != null) {
+                annotations = expressionGen().transform(((Tree.ParameterDeclaration)parameter).getTypedDeclaration().getAnnotationList());
+            }
+            return annotations;
+        }
+
+        private void transformUltimateResultType(Method f, MethodDefinitionBuilder builder) {
+            builder.resultType(f, 0);
+        }
+
+        private void transformUltimateTypeParameterList(Method f, MethodDefinitionBuilder builder) {
+            copyTypeParameters(f, builder);
+        }
+
+        private void transformUltimateModifiers(Method f, MethodDefinitionBuilder builder) {
+            builder.modifiers(transformMethodDeclFlags(f));
+        }
+
+        private void transformUltimateModelAnnotations(Method f, MethodDefinitionBuilder builder) {
+            builder.modelAnnotations(f.getAnnotations());
+        }
+
+        private void transformUltimateUserAnnotations(
+                Tree.AnnotationList annotationList, MethodDefinitionBuilder builder) {
+            builder.userAnnotations(expressionGen().transform(annotationList));
+        }
+
+        private void transformUltimateBody(Tree.AnyMethod function,
+                MethodDefinitionBuilder builder) {
+            builder.body(transformBody(function));
+        }
+        protected final List<JCStatement> transformBody(Tree.AnyMethod method) {
+            List<JCStatement> body;
+            if (method.getDeclarationModel().isDeferred()) {
+                body = transformDeferredMethodBody(method);
+            } else if (method instanceof Tree.MethodDefinition) {
+                body = transformMethodBlock((Tree.MethodDefinition)method);
+            } else if (method instanceof Tree.MethodDeclaration) {
+                body = transformSpecifiedMethodBody((Tree.MethodDeclaration)method, ((Tree.MethodDeclaration) method).getSpecifierExpression());
+            } else {
+                throw new RuntimeException();
+            }
+            return transformMplBody(method.getParameterLists(), method.getDeclarationModel(), body);
+        }
+        @Override
+        protected void transformOverloadMethod(
+                Tree.AnyMethod method,
+                Tree.ParameterList parameterList,
+                Tree.Parameter parameter,
+                ListBuffer<JCTree> lb){
+            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(daoThis, method.getDeclarationModel())
+                .makeOverload(
+                    parameterList.getModel(),
+                    parameter.getParameterModel(),
+                    method.getDeclarationModel().getTypeParameters());
+            lb.append(overloadedMethod.build());
+        }
+        
+        @Override
+        protected void transformDefaultedParameterValueMethod(
+                Tree.AnyMethod method,
+                Tree.ParameterList parameterList,
+                Tree.Parameter parameter,
+                ListBuffer<JCTree> lb){
+            Method methodModel = method.getDeclarationModel();
+            Declaration refinedDeclaration = methodModel.getRefinedDeclaration();
+            JCBlock body = null;
+            Parameter parameterModel = parameter.getParameterModel();
+            if (Strategy.hasDefaultParameterValueMethod(parameterModel)
+                    || Strategy.hasDefaultParameterOverload(parameterModel)) {
+                if (refinedDeclaration == methodModel
+                        || !Decl.withinInterface(methodModel)) {
+                    if (refinedDeclaration == methodModel
+                            && Strategy.hasDefaultParameterValueMethod(parameterModel)) {
+                        JCExpression expr = expressionGen().transform(parameter);
+                        body = at(parameter).Block(0, List.<JCStatement> of(at(parameter).Return(expr)));
+                    }
+                }
+            }
+            
+            lb.append(makeParamDefaultValueMethod(method.getDeclarationModel(),
+                    parameterList.getModel(),
+                    parameter.getParameterModel(),
+                    body, 
+                    method.getDeclarationModel().getTypeParameters()).build());
+        }
+    }
+    /** Transformation of a toplevel or local function */
+    class FunctionTransformation extends MethodOrFunctionTransformation {
+        
+    }
+    private FunctionTransformation functionTransformation = new FunctionTransformation();
+    /** Transformation of a method */
+    abstract class MethodTransformation extends MethodOrFunctionTransformation {
+        
+    }
+    /** Transformation of a method that's a member of a class. */
+    class ClassMethodTransformation extends MethodTransformation {
+    }
+    /** The instance of {@link ClassMethodTransformation} */
+    private ClassMethodTransformation classMethodTransformation = new ClassMethodTransformation();
+    
+    /** Transformation of a <em>concrete</em> method that's a member of an interface */
+    class CompanionMethodTransformation extends MethodTransformation {
+        @Override
+        public List<JCTree> transform(Tree.AnyMethod method) {
+            Method m = method.getDeclarationModel();
+            Interface iface = (Interface)m.getContainer();
+            if (!m.isFormal()) {
+                // We only transform if there's code
+                ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
+                transformPeripheral(method, lb);
+                transformUltimate(method, lb);
+                return lb.toList();
+            } else {
+                return List.<JCTree>nil();
+            }
+        }
+    }
+    private CompanionMethodTransformation companionMethodTransformation = new CompanionMethodTransformation();
+    
+    /** Transformation of a method that's a member of an interface */
+    class InterfaceMethodTransformation extends MethodTransformation {
+        @Override
+        public List<JCTree> transform(Tree.AnyMethod method) {
+            Method m = method.getDeclarationModel();
+            Interface iface = (Interface)m.getContainer();
+            if (m.isShared()) {
+                // We need to transform a declaration to the interface
+                ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
+                transformPeripheral(method, lb);
+                transformUltimate(method, lb);
+                return lb.toList();
+            } else {
+                return List.<JCTree>nil();
+            }
+        }
+    }
+    private InterfaceMethodTransformation interfaceMethodTransformation = new InterfaceMethodTransformation();
+    
+    /*
+    /** Transformation of a class initializer * /
+    abstract class InitializerTransformation extends FunctionalTransformation<Tree.AnyClass> {
+    }
+    
+    /** Transformation of a class initializer to a constructor * /
+    class ConstructorTransformation extends InitializerTransformation {
+        @Override
+        protected java.util.List<Tree.ParameterList> getParameterLists(Tree.AnyClass cls) {
+            return Collections.singletonList(cls.getParameterList());
+        }
+
+        @Override
+        protected void transformOverloadMethod(
+                com.redhat.ceylon.compiler.typechecker.tree.Tree.Parameter parameter,
+                ListBuffer<JCTree> lb) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        protected void transformDefaultedParameterValueMethod(
+                com.redhat.ceylon.compiler.typechecker.tree.Tree.Parameter parameter,
+                ListBuffer<JCTree> lb) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        protected void transformUltimate(AnyClass declaration,
+                ListBuffer<JCTree> lb) {
+            // TODO Auto-generated method stub
+            
+        }
+    }
+    /** Transformation of an instantiator method of a refinable member class * /
+    abstract class InstantiatorTransformation extends FunctionalTransformation<Tree.AnyClass> {
+        @Override
+        protected java.util.List<Tree.ParameterList> getParameterLists(Tree.AnyClass cls) {
+            return Collections.singletonList(cls.getParameterList());
+        }
+
+        @Override
+        protected void transformOverloadMethod(
+                com.redhat.ceylon.compiler.typechecker.tree.Tree.Parameter parameter,
+                ListBuffer<JCTree> lb) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        protected void transformDefaultedParameterValueMethod(
+                com.redhat.ceylon.compiler.typechecker.tree.Tree.Parameter parameter,
+                ListBuffer<JCTree> lb) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        protected void transformUltimate(AnyClass declaration,
+                ListBuffer<JCTree> lb) {
+            // TODO Auto-generated method stub
+            
+        }
+        
+    }
+    
+    /** 
+     * Transformation of an instantiator method of a refinable member class
+     * within a class 
+     * /
+    class ClassInstantiatorTransformation extends InstantiatorTransformation {
+
+    }
+    
+    /** 
+     * Transformation of an instantiator method of a refinable member class 
+     * within an interface
+     * /
+    class InterfaceInstantiatorTransformation extends InstantiatorTransformation {
+        
+    }
+    */
+ }
