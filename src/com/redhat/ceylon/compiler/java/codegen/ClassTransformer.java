@@ -2044,7 +2044,7 @@ public class ClassTransformer extends AbstractTransformer {
         return mdb;
     }
 
-    public List<MethodDefinitionBuilder> transform(Tree.AnyMethod def, ClassDefinitionBuilder classBuilder) {
+    public List<JCTree> transform(Tree.AnyMethod def, ClassDefinitionBuilder classBuilder) {
         if (def.getDeclarationModel().isParameter()) {
             return List.nil();
         }
@@ -2055,11 +2055,11 @@ public class ClassTransformer extends AbstractTransformer {
         return transform(def, classBuilder, body);
     }
 
-    List<MethodDefinitionBuilder> transform(Tree.AnyMethod def,
+    List<JCTree> transform(Tree.AnyMethod def,
             ClassDefinitionBuilder classBuilder, List<JCStatement> body) {
         final Method model = def.getDeclarationModel();
         
-        List<MethodDefinitionBuilder> result = List.<MethodDefinitionBuilder>nil();
+        List<JCTree> result = List.<JCTree>nil();
         if (!Decl.withinInterface(model)) {
             // Transform to the class
             boolean refinedResultType = !model.getType().isExactly(
@@ -2072,10 +2072,11 @@ public class ClassTransformer extends AbstractTransformer {
                     refinedResultType 
                     && !Decl.withinInterface(model.getRefinedDeclaration())? daoSuper : daoThis,
                     !Strategy.defaultParameterMethodOnSelf(model));
+            //result = classMethodTransformation.transform(def);
         } else {// Is within interface
             // Transform the definition to the companion class, how depends
             // on what kind of method it is
-            List<MethodDefinitionBuilder> companionDefs;
+            List<JCTree> companionDefs;
             if (def instanceof Tree.MethodDeclaration) {
                 final SpecifierExpression specifier = ((Tree.MethodDeclaration) def).getSpecifierExpression();
                 if (specifier == null) {
@@ -2109,7 +2110,7 @@ public class ClassTransformer extends AbstractTransformer {
                 throw new RuntimeException();
             }
             classBuilder.getCompanionBuilder((TypeDeclaration)model.getContainer())
-                .methods(companionDefs);
+                .defs(companionDefs);
             
             // Transform the declaration to the target interface
             // but only if it's shared
@@ -2141,20 +2142,25 @@ public class ClassTransformer extends AbstractTransformer {
      * @param transformDefaultValues Whether to generate default value methods
      * @param defaultValuesBody Whether the default value methods should have a body
      */
-    private List<MethodDefinitionBuilder> transformMethod(Tree.AnyMethod def,
+    private List<JCTree> transformMethod(Tree.AnyMethod def,
             boolean transformMethod, 
             boolean actual, 
             boolean includeAnnotations, 
             List<JCStatement> body, 
             DaoBody daoTransformation, 
             boolean defaultValuesBody) {
-        return transformMethod(def.getDeclarationModel(), 
+        List<MethodDefinitionBuilder> result = transformMethod(def.getDeclarationModel(), 
                 def.getTypeParameterList(),
                 def.getParameterLists(),
                 def.getAnnotationList(),
                 transformMethod, actual, includeAnnotations, body,
                 daoTransformation,
                 defaultValuesBody);
+        ListBuffer<JCTree> r = ListBuffer.<JCTree>lb();
+        for (MethodDefinitionBuilder mdb : result) {
+            r.add(mdb.build());
+        }
+        return r.toList();
     }
     
     private List<MethodDefinitionBuilder> transformMethod(

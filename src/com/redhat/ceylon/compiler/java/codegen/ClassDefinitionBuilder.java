@@ -529,7 +529,7 @@ public class ClassDefinitionBuilder
     }
 
     public ClassDefinitionBuilder method(Tree.AnyMethod method) {
-        methods(gen.classGen().transform(method, this));
+        defs(gen.classGen().transform(method, this));
         return this;
     }
 
