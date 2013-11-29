@@ -409,7 +409,7 @@ public class ClassTransformer extends AbstractTransformer {
      * </pre>
      */
     private List<JCTree> transformAnnotationClass(Tree.AnyClass def) {
-        Class klass = (Class)def.getDeclarationModel();
+        Class klass = def.getDeclarationModel();
         String annotationName = Naming.suffixName(Suffix.$annotation$, klass.getName());
         ClassDefinitionBuilder annoBuilder = ClassDefinitionBuilder.klass(this, annotationName, null);
         
@@ -418,7 +418,6 @@ public class ClassTransformer extends AbstractTransformer {
         annoBuilder.annotations(makeAtRetention(RetentionPolicy.RUNTIME));
         
         for (Tree.Parameter p : def.getParameterList().getParameters()) {
-            Parameter parameterModel = p.getParameterModel();
             annoBuilder.method(makeAnnotationMethod(p));
         }
         List<JCTree> result;
@@ -943,7 +942,7 @@ public class ClassTransformer extends AbstractTransformer {
             }
             // make sure we get the right instantiation of the interface
             satisfiedType = model.getType().getSupertype(decl);
-            concreteMembersFromSuperinterfaces((Class)model, classBuilder, satisfiedType, satisfiedInterfaces);
+            concreteMembersFromSuperinterfaces(model, classBuilder, satisfiedType, satisfiedInterfaces);
         }
         // now find the set of interfaces we implemented twice with more refined type parameters
         if(model.getExtendedTypeDeclaration() != null){
@@ -2284,7 +2283,7 @@ public class ClassTransformer extends AbstractTransformer {
                 java.util.List<TypeParameter> typeParameterList) {
             overloadBuilder.noBody();
         }
-    };
+    }
     final DaoAbstract daoAbstract = new DaoAbstract();
     /**
      * a transformation for an overloaded 
@@ -2635,8 +2634,8 @@ public class ClassTransformer extends AbstractTransformer {
         protected void resultType(MethodDefinitionBuilder overloadBuilder) {
             if (!isAnything(getModel().getType())
                     || !Decl.isUnboxedVoid(getModel())
-                    || Strategy.useBoxedVoid((Method)getModel())) {
-                ProducedTypedReference typedRef = (ProducedTypedReference) typedMember;
+                    || Strategy.useBoxedVoid(getModel())) {
+                ProducedTypedReference typedRef = typedMember;
                 overloadBuilder.resultTypeNonWidening(typedMember.getQualifyingType(), typedRef, typedMember.getType(), 0);
             } else {
                 super.resultType(overloadBuilder);
@@ -3692,6 +3691,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformUltimateUserAnnotations(
                 Tree.AnnotationList annotationList, MethodDefinitionBuilder builder) {
+            // no annotations
         }
     }
     private CompanionMethodTransformation companionMethodTransformation = new CompanionMethodTransformation();
