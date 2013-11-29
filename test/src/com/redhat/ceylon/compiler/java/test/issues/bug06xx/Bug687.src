@@ -13,23 +13,13 @@ class Bug687 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTy
             let
             {
                 .ceylon.language.Sequential<? extends T> $ceylontmp$elements$0 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                sort$canonical$($reified$T, $ceylontmp$elements$0);
+                sort($reified$T, $ceylontmp$elements$0);
             }
             returning null;
         );
-    }
-    
-    private <T extends .ceylon.language.Number>void sort$canonical$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .ceylon.language.Sequential<? extends T> elements) {
     }
     
     public final <T extends .ceylon.language.Number>void sort(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .ceylon.language.Sequential<? extends T> elements) {
-        (
-            let
-            {
-                sort$canonical$($reified$T, elements);
-            }
-            returning null;
-        );
     }
     
     public final <T extends .ceylon.language.Number>void sort3(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .ceylon.language.Iterable<? extends T, ? extends .java.lang.Object> elements) {
@@ -40,23 +30,13 @@ class Bug687 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTy
             let
             {
                 .ceylon.language.Sequential $ceylontmp$elements$1 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                sort2$canonical$($ceylontmp$elements$1);
+                sort2($ceylontmp$elements$1);
             }
             returning null;
         );
-    }
-    
-    private void sort2$canonical$(final .ceylon.language.Sequential elements) {
     }
     
     public final void sort2(final .ceylon.language.Sequential elements) {
-        (
-            let
-            {
-                sort2$canonical$(elements);
-            }
-            returning null;
-        );
     }
     
     private final void foo$priv$(final .ceylon.language.Callable<? extends .java.lang.Object> p) {

@@ -10,13 +10,13 @@ class MethodWithVarargs implements .com.redhat.ceylon.compiler.java.runtime.mode
             let
             {
                 .ceylon.language.Sequential<? extends .ceylon.language.Integer> $ceylontmp$ns$7 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                f1$canonical$($ceylontmp$ns$7);
+                f1($ceylontmp$ns$7);
             }
             returning null;
         );
     }
     
-    private void f1$canonical$(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> ns) {
+    public final void f1(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> ns) {
         final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> iterable$2 = ns;
         final boolean isArraySequence$3 = iterable$2 instanceof .ceylon.language.ArraySequence;
         .java.lang.Object elem$0 = null;
@@ -38,28 +38,18 @@ class MethodWithVarargs implements .com.redhat.ceylon.compiler.java.runtime.mode
         }
     }
     
-    public final void f1(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> ns) {
-        (
-            let
-            {
-                f1$canonical$(ns);
-            }
-            returning null;
-        );
-    }
-    
     public final void f2(final long i) {
         (
             let
             {
                 .ceylon.language.Sequential<? extends .ceylon.language.Integer> $ceylontmp$ns$15 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                f2$canonical$(i, $ceylontmp$ns$15);
+                f2(i, $ceylontmp$ns$15);
             }
             returning null;
         );
     }
     
-    private void f2$canonical$(final long i, final .ceylon.language.Sequential<? extends .ceylon.language.Integer> ns) {
+    public final void f2(final long i, final .ceylon.language.Sequential<? extends .ceylon.language.Integer> ns) {
         final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> iterable$10 = ns;
         final boolean isArraySequence$11 = iterable$10 instanceof .ceylon.language.ArraySequence;
         .java.lang.Object elem$8 = null;
@@ -81,28 +71,18 @@ class MethodWithVarargs implements .com.redhat.ceylon.compiler.java.runtime.mode
         }
     }
     
-    public final void f2(final long i, final .ceylon.language.Sequential<? extends .ceylon.language.Integer> ns) {
-        (
-            let
-            {
-                f2$canonical$(i, ns);
-            }
-            returning null;
-        );
-    }
-    
     public final void f3() {
         (
             let
             {
                 .ceylon.language.Sequential<? extends .java.lang.Object> $ceylontmp$os$23 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                f3$canonical$($ceylontmp$os$23);
+                f3($ceylontmp$os$23);
             }
             returning null;
         );
     }
     
-    private void f3$canonical$(final .ceylon.language.Sequential<? extends .java.lang.Object> os) {
+    public final void f3(final .ceylon.language.Sequential<? extends .java.lang.Object> os) {
         final .ceylon.language.Iterable<? extends .java.lang.Object, ? extends .java.lang.Object> iterable$18 = os;
         final boolean isArraySequence$19 = iterable$18 instanceof .ceylon.language.ArraySequence;
         .java.lang.Object elem$16 = null;
@@ -122,16 +102,6 @@ class MethodWithVarargs implements .com.redhat.ceylon.compiler.java.runtime.mode
             if (isArraySequence$19) elem$16 = .com.redhat.ceylon.compiler.java.Util.getObjectArray(array$20, i$21++);
             final .java.lang.Object o = (.java.lang.Object)elem$16;
         }
-    }
-    
-    public final void f3(final .ceylon.language.Sequential<? extends .java.lang.Object> os) {
-        (
-            let
-            {
-                f3$canonical$(os);
-            }
-            returning null;
-        );
     }
     
     private final void m$priv$() {

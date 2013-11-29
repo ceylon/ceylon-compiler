@@ -18,23 +18,13 @@ class NamedArgumentWithEmptySequence implements .com.redhat.ceylon.compiler.java
             let
             {
                 .ceylon.language.Sequential<? extends .ceylon.language.Integer> $ceylontmp$b$0 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                m$priv$$canonical$($ceylontmp$b$0);
+                m$priv$($ceylontmp$b$0);
             }
             returning null;
         );
-    }
-    
-    private void m$priv$$canonical$(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> b) {
     }
     
     private final void m$priv$(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> b) {
-        (
-            let
-            {
-                m$priv$$canonical$(b);
-            }
-            returning null;
-        );
     }
     
     public static void main(.java.lang.String[] args) {

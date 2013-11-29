@@ -60,7 +60,7 @@ class OuterReference extends .com.redhat.ceylon.compiler.java.test.expression.se
                 {
                     boolean $ceylontmp$b$1 = m$b();
                 }
-                returning m$priv$$canonical$($ceylontmp$b$1);
+                returning m$priv$($ceylontmp$b$1);
             );
         }
         
@@ -68,13 +68,9 @@ class OuterReference extends .com.redhat.ceylon.compiler.java.test.expression.se
             return .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.superTest();
         }
         
-        private boolean m$priv$$canonical$(final boolean b) {
+        private final boolean m$priv$(final boolean b) {
             .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.superTest();
             return .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.test();
-        }
-        
-        private final boolean m$priv$(final boolean b) {
-            return m$priv$$canonical$(b);
         }
         
         @.java.lang.Override
@@ -96,7 +92,7 @@ class OuterReference extends .com.redhat.ceylon.compiler.java.test.expression.se
                 {
                     boolean $ceylontmp$b$2 = m$b();
                 }
-                returning m$priv$$canonical$($ceylontmp$b$2);
+                returning m$priv$($ceylontmp$b$2);
             );
         }
         
@@ -104,13 +100,9 @@ class OuterReference extends .com.redhat.ceylon.compiler.java.test.expression.se
             return .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.superTest();
         }
         
-        private boolean m$priv$$canonical$(final boolean b) {
+        private boolean m$priv$(final boolean b) {
             .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.superTest();
             return .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.test();
-        }
-        
-        private boolean m$priv$(final boolean b) {
-            return m$priv$$canonical$(b);
         }
     }
     
@@ -160,7 +152,7 @@ class OuterReference extends .com.redhat.ceylon.compiler.java.test.expression.se
                     let
                     {
                         boolean $ceylontmp$b$5 = m$b();
-                        m$priv$$canonical$($ceylontmp$b$5);
+                        m$priv$($ceylontmp$b$5);
                     }
                     returning null;
                 );
@@ -170,19 +162,9 @@ class OuterReference extends .com.redhat.ceylon.compiler.java.test.expression.se
                 return .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.superTest();
             }
             
-            private void m$priv$$canonical$(final boolean b) {
+            private void m$priv$(final boolean b) {
                 .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.superTest();
                 .com.redhat.ceylon.compiler.java.test.expression.selfref.OuterReference.this.test();
-            }
-            
-            private void m$priv$(final boolean b) {
-                (
-                    let
-                    {
-                        m$priv$$canonical$(b);
-                    }
-                    returning null;
-                );
             }
         }
     }

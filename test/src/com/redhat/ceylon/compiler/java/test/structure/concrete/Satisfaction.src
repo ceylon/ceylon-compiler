@@ -256,17 +256,13 @@ class CI3 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType,
             {
                 long $ceylontmp$n$5 = m2$n();
             }
-            returning m2$canonical$($ceylontmp$n$5);
+            returning m2($ceylontmp$n$5);
         );
-    }
-    
-    private long m2$canonical$(final long n) {
-        return 2L;
     }
     
     @.java.lang.Override
     public final long m2(final long n) {
-        return m2$canonical$(n);
+        return 2L;
     }
     
     public static void main(.java.lang.String[] args) {
@@ -379,17 +375,13 @@ abstract class A7 implements .com.redhat.ceylon.compiler.java.runtime.model.Reif
             {
                 long $ceylontmp$n$8 = m4$n();
             }
-            returning m4$canonical$($ceylontmp$n$8);
+            returning m4($ceylontmp$n$8);
         );
-    }
-    
-    private long m4$canonical$(final long n) {
-        return 5L;
     }
     
     @.java.lang.Override
     public final long m4(final long n) {
-        return m4$canonical$(n);
+        return 5L;
     }
     
     @.java.lang.Override

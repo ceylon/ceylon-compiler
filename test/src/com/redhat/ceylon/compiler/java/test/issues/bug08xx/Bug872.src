@@ -69,23 +69,13 @@ public final class Visitable$impl {
             let
             {
                 .ceylon.language.Sequential $ceylontmp$tags$0 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                visitAroundTags$canonical$(visitor, name, $ceylontmp$tags$0);
+                visitAroundTags(visitor, name, $ceylontmp$tags$0);
             }
             returning null;
         );
-    }
-    
-    private void visitAroundTags$canonical$(final .com.redhat.ceylon.compiler.java.test.issues.bug08xx.Visitor visitor, final .java.lang.String name, final .ceylon.language.Sequential tags) {
     }
     
     public void visitAroundTags(final .com.redhat.ceylon.compiler.java.test.issues.bug08xx.Visitor visitor, final .java.lang.String name, final .ceylon.language.Sequential tags) {
-        (
-            let
-            {
-                visitAroundTags$canonical$(visitor, name, tags);
-            }
-            returning null;
-        );
     }
 }
 public class Html implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType, .com.redhat.ceylon.compiler.java.test.issues.bug08xx.Visitable {
@@ -149,7 +139,7 @@ public class Html implements .com.redhat.ceylon.compiler.java.runtime.model.Reif
             let
             {
                 .ceylon.language.Sequential $ceylontmp$tags$4 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                visitAroundTags$canonical$(visitor, name, $ceylontmp$tags$4);
+                visitAroundTags(visitor, name, $ceylontmp$tags$4);
             }
             returning null;
         );
@@ -234,7 +224,7 @@ public class Head implements .com.redhat.ceylon.compiler.java.runtime.model.Reif
             let
             {
                 .ceylon.language.Sequential $ceylontmp$tags$6 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                visitAroundTags$canonical$(visitor, name, $ceylontmp$tags$6);
+                visitAroundTags(visitor, name, $ceylontmp$tags$6);
             }
             returning null;
         );
@@ -336,7 +326,7 @@ public class Container<TagType extends .com.redhat.ceylon.compiler.java.test.iss
             let
             {
                 .ceylon.language.Sequential $ceylontmp$tags$8 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                visitAroundTags$canonical$(visitor, name, $ceylontmp$tags$8);
+                visitAroundTags(visitor, name, $ceylontmp$tags$8);
             }
             returning null;
         );

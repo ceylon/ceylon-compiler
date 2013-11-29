@@ -13,23 +13,13 @@ class Bug1155_B implements .com.redhat.ceylon.compiler.java.runtime.model.Reifie
             let
             {
                 .ceylon.language.Sequential<? extends .ceylon.language.String> $ceylontmp$seq$0 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                binaryStar$canonical$(s, $ceylontmp$seq$0);
+                binaryStar(s, $ceylontmp$seq$0);
             }
             returning null;
         );
-    }
-    
-    private void binaryStar$canonical$(final .java.lang.String s, final .ceylon.language.Sequential<? extends .ceylon.language.String> seq) {
     }
     
     public final void binaryStar(final .java.lang.String s, final .ceylon.language.Sequential<? extends .ceylon.language.String> seq) {
-        (
-            let
-            {
-                binaryStar$canonical$(s, seq);
-            }
-            returning null;
-        );
     }
     
     public final void unaryPlus(final .ceylon.language.Sequence<? extends .ceylon.language.String> seq) {
@@ -41,7 +31,7 @@ class Bug1155_B implements .com.redhat.ceylon.compiler.java.runtime.model.Reifie
             {
                 .java.lang.String $ceylontmp$s$1 = binaryOptStar$s();
                 .ceylon.language.Sequential<? extends .ceylon.language.String> $ceylontmp$seq$2 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                binaryOptStar$canonical$($ceylontmp$s$1, $ceylontmp$seq$2);
+                binaryOptStar($ceylontmp$s$1, $ceylontmp$seq$2);
             }
             returning null;
         );
@@ -56,23 +46,13 @@ class Bug1155_B implements .com.redhat.ceylon.compiler.java.runtime.model.Reifie
             let
             {
                 .ceylon.language.Sequential<? extends .ceylon.language.String> $ceylontmp$seq$3 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                binaryOptStar$canonical$(s, $ceylontmp$seq$3);
+                binaryOptStar(s, $ceylontmp$seq$3);
             }
             returning null;
         );
-    }
-    
-    private void binaryOptStar$canonical$(final .java.lang.String s, final .ceylon.language.Sequential<? extends .ceylon.language.String> seq) {
     }
     
     public final void binaryOptStar(final .java.lang.String s, final .ceylon.language.Sequential<? extends .ceylon.language.String> seq) {
-        (
-            let
-            {
-                binaryOptStar$canonical$(s, seq);
-            }
-            returning null;
-        );
     }
     
     public final void mva_callsite() {

@@ -10,7 +10,7 @@ class Bug1360 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedT
             let
             {
                 .java.lang.String $ceylontmp$priv$0 = f$priv();
-                f$priv$$canonical$($ceylontmp$priv$0);
+                f$priv$($ceylontmp$priv$0);
             }
             returning null;
         );
@@ -20,17 +20,7 @@ class Bug1360 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedT
         return "";
     }
     
-    private void f$priv$$canonical$(final .java.lang.String priv) {
-    }
-    
     private final void f$priv$(final .java.lang.String priv) {
-        (
-            let
-            {
-                f$priv$$canonical$(priv);
-            }
-            returning null;
-        );
     }
     
     public static void main(.java.lang.String[] args) {
@@ -72,7 +62,7 @@ final class I$impl<T> {
             let
             {
                 T[] $ceylontmp$s$1 = main$s();
-                $main$canonical$($ceylontmp$s$1);
+                $main($ceylontmp$s$1);
             }
             returning null;
         );
@@ -82,17 +72,7 @@ final class I$impl<T> {
         return (T[]).ceylon.language.nothing_.get_();
     }
     
-    private void $main$canonical$(final T[] s) {
-    }
-    
     public void $main(final T[] s) {
-        (
-            let
-            {
-                $main$canonical$(s);
-            }
-            returning null;
-        );
     }
 }
 class C implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType, .com.redhat.ceylon.compiler.java.test.issues.bug13xx.bug1360.I<.java.lang.String> {
@@ -118,7 +98,7 @@ class C implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType, .
             let
             {
                 .java.lang.String[] $ceylontmp$s$2 = main$s();
-                $main$canonical$($ceylontmp$s$2);
+                $main($ceylontmp$s$2);
             }
             returning null;
         );

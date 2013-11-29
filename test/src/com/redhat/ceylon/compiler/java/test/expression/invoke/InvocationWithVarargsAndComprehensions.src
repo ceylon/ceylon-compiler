@@ -10,27 +10,17 @@ class InvocationWithVarargsAndComprehensions implements .com.redhat.ceylon.compi
             let
             {
                 .ceylon.language.Sequential<? extends .ceylon.language.Integer> $ceylontmp$b$0 = (.ceylon.language.Sequential).ceylon.language.empty_.get_();
-                m$priv$$canonical$($ceylontmp$b$0);
+                m$priv$($ceylontmp$b$0);
             }
             returning null;
         );
     }
     
-    private void m$priv$$canonical$(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> b) {
+    private final void m$priv$(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> b) {
         final .ceylon.language.Tuple<.java.lang.Object, ? extends .ceylon.language.Integer, ? extends .ceylon.language.Tuple<.java.lang.Object, ? extends .ceylon.language.String, ? extends .ceylon.language.Tuple<.ceylon.language.Empty, ? extends .ceylon.language.Empty, ? extends .ceylon.language.Sequential<? extends .ceylon.language.Empty>>>> t = new .ceylon.language.Tuple(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.String.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), new .java.lang.Object[]{
                 .ceylon.language.Integer.instance(1L),
                 .ceylon.language.String.instance("a"),
                 .ceylon.language.empty_.get_()});
-    }
-    
-    private final void m$priv$(final .ceylon.language.Sequential<? extends .ceylon.language.Integer> b) {
-        (
-            let
-            {
-                m$priv$$canonical$(b);
-            }
-            returning null;
-        );
     }
     
     public static void main(.java.lang.String[] args) {

@@ -17,7 +17,7 @@ class MethodDefaultedParamCaptureInitParam implements .com.redhat.ceylon.compile
             {
                 .java.lang.String $ceylontmp$t$0 = m$t();
             }
-            returning m$priv$$canonical$($ceylontmp$t$0);
+            returning m$priv$($ceylontmp$t$0);
         );
     }
     
@@ -25,12 +25,8 @@ class MethodDefaultedParamCaptureInitParam implements .com.redhat.ceylon.compile
         return getS$priv$();
     }
     
-    private .java.lang.String m$priv$$canonical$(final .java.lang.String t) {
-        return t;
-    }
-    
     private final .java.lang.String m$priv$(final .java.lang.String t) {
-        return m$priv$$canonical$(t);
+        return t;
     }
     
     @.java.lang.Override

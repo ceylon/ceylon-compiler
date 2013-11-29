@@ -54,7 +54,7 @@ final class ConcreteMethodBySpecification$impl {
             {
                 long $ceylontmp$i$0 = mSharedMem$i();
             }
-            returning mSharedMem$canonical$($ceylontmp$i$0);
+            returning mSharedMem($ceylontmp$i$0);
         );
     }
     
@@ -62,12 +62,8 @@ final class ConcreteMethodBySpecification$impl {
         return 1L;
     }
     
-    private long mSharedMem$canonical$(final long i) {
-        return $this.mFormal(i);
-    }
-    
     public long mSharedMem(final long i) {
-        return mSharedMem$canonical$(i);
+        return $this.mFormal(i);
     }
     
     public long mDefaultFn() {
@@ -126,7 +122,7 @@ final class ConcreteMethodBySpecificationSub$impl {
             {
                 long $ceylontmp$i$2 = mSharedSup$i();
             }
-            returning mSharedSup$canonical$($ceylontmp$i$2);
+            returning mSharedSup($ceylontmp$i$2);
         );
     }
     
@@ -134,12 +130,8 @@ final class ConcreteMethodBySpecificationSub$impl {
         return 1L;
     }
     
-    private long mSharedSup$canonical$(final long i) {
-        return $this.mFormal(i);
-    }
-    
     public long mSharedSup(final long i) {
-        return mSharedSup$canonical$(i);
+        return $this.mFormal(i);
     }
     
     public long mDefaultSup() {
@@ -189,7 +181,7 @@ class ConcreteMethodBySpecificationImpl implements .com.redhat.ceylon.compiler.j
             {
                 long $ceylontmp$i$4 = mSharedSup$i();
             }
-            returning mSharedSup$canonical$($ceylontmp$i$4);
+            returning mSharedSup($ceylontmp$i$4);
         );
     }
     
@@ -250,7 +242,7 @@ class ConcreteMethodBySpecificationImpl implements .com.redhat.ceylon.compiler.j
             {
                 long $ceylontmp$i$6 = mSharedMem$i();
             }
-            returning mSharedMem$canonical$($ceylontmp$i$6);
+            returning mSharedMem($ceylontmp$i$6);
         );
     }
     
