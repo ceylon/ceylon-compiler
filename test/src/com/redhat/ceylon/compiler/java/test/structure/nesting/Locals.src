@@ -47,8 +47,8 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
         (
             let
             {
-                long $ceylontmp$i$4 = local$i();
-                local$priv$($ceylontmp$i$4);
+                long $ceylontmp$i$0 = local$i();
+                local$priv$($ceylontmp$i$0);
             }
             returning null;
         );
@@ -73,9 +73,9 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
                 (
                     let
                     {
-                        LC$impl $ceylontmp$impl$0 = new LC$impl();
-                        long $ceylontmp$j$1 = $ceylontmp$impl$0.$default$j();
-                        this($ceylontmp$j$1);
+                        LC$impl $ceylontmp$impl$1 = new LC$impl();
+                        long $ceylontmp$j$2 = $ceylontmp$impl$1.$default$j();
+                        this($ceylontmp$j$2);
                     }
                     returning null;
                 );
@@ -112,8 +112,8 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
                     (
                         let
                         {
-                            long $ceylontmp$k$2 = $default$LCC$k();
-                            this($ceylontmp$k$2);
+                            long $ceylontmp$k$3 = $default$LCC$k();
+                            this($ceylontmp$k$3);
                         }
                         returning null;
                     );
@@ -181,8 +181,8 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
                     (
                         let
                         {
-                            long $ceylontmp$j$3 = $default$LIC$j();
-                            this($ceylontmp$j$3);
+                            long $ceylontmp$j$4 = $default$LIC$j();
+                            this($ceylontmp$j$4);
                         }
                         returning null;
                     );
@@ -247,8 +247,8 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
             (
                 let
                 {
-                    long $ceylontmp$j$9 = local2$j();
-                    local2$priv$($ceylontmp$j$9);
+                    long $ceylontmp$j$6 = local2$j();
+                    local2$priv$($ceylontmp$j$6);
                 }
                 returning null;
             );
@@ -273,9 +273,9 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
                     (
                         let
                         {
-                            CL$impl $ceylontmp$impl$6 = new CL$impl();
-                            long $ceylontmp$k$7 = $ceylontmp$impl$6.$default$k();
-                            this($ceylontmp$k$7);
+                            CL$impl $ceylontmp$impl$7 = new CL$impl();
+                            long $ceylontmp$k$8 = $ceylontmp$impl$7.$default$k();
+                            this($ceylontmp$k$8);
                         }
                         returning null;
                     );
@@ -312,8 +312,8 @@ class Local implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedTyp
                         (
                             let
                             {
-                                long $ceylontmp$l$8 = $default$CLC$l();
-                                this($ceylontmp$l$8);
+                                long $ceylontmp$l$9 = $default$CLC$l();
+                                this($ceylontmp$l$9);
                             }
                             returning null;
                         );

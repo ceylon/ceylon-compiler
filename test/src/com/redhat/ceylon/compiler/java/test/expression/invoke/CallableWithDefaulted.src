@@ -835,8 +835,8 @@ class CallableWithDefaulted implements .com.redhat.ceylon.compiler.java.runtime.
         (
             let
             {
-                .ceylon.language.Callable<? extends .ceylon.language.Integer> $ceylontmp$bar$10 = methodWithDefaultCallableParam$bar();
-                methodWithDefaultCallableParam$priv$($ceylontmp$bar$10);
+                .ceylon.language.Callable<? extends .ceylon.language.Integer> $ceylontmp$bar$9 = methodWithDefaultCallableParam$bar();
+                methodWithDefaultCallableParam$priv$($ceylontmp$bar$9);
             }
             returning null;
         );
@@ -858,7 +858,7 @@ class CallableWithDefaulted implements .com.redhat.ceylon.compiler.java.runtime.
         (
             let
             {
-                .ceylon.language.Callable arg$9$0 = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$)), "Integer(Integer, Integer)", (short)-1){
+                .ceylon.language.Callable arg$10$0 = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$)), "Integer(Integer, Integer)", (short)-1){
                     
                     @.java.lang.Override
                     public .ceylon.language.Integer $call$(final .java.lang.Object $param$0, final .java.lang.Object $param$1) {
@@ -867,7 +867,7 @@ class CallableWithDefaulted implements .com.redhat.ceylon.compiler.java.runtime.
                         return .ceylon.language.Integer.instance(a + b);
                     }
                 };
-                methodWithDefaultCallableParam$priv$(arg$9$0);
+                methodWithDefaultCallableParam$priv$(arg$10$0);
             }
             returning null;
         );
