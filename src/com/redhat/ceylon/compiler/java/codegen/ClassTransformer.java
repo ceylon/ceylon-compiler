@@ -33,7 +33,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +73,6 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeGetterDefinitio
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.BaseMemberExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.LazySpecifierExpression;
-import com.redhat.ceylon.compiler.typechecker.tree.Tree.MethodDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.SequencedArgument;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.SpecifierExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.SpecifierStatement;
@@ -1622,12 +1620,6 @@ public class ClassTransformer extends AbstractTransformer {
         }
         return false;
     }
-
-    private Tree.Identifier makeIdentifier(String name) {
-        Tree.Identifier id = new Tree.Identifier(null);
-        id.setText(name);
-        return id;
-    }
     
     public void transform(AttributeDeclaration decl, ClassDefinitionBuilder classBuilder) {
         final Value model = decl.getDeclarationModel();
@@ -2065,172 +2057,6 @@ public class ClassTransformer extends AbstractTransformer {
         return result;
     }
     
-    private List<MethodDefinitionBuilder> transformMethod(
-            final Method methodModel,
-            Tree.TypeParameterList typeParameterList, 
-            java.util.List<Tree.ParameterList> parameterLists,
-            Tree.AnnotationList annotationList,
-            boolean transformMethod, boolean actual, boolean includeAnnotations, List<JCStatement> body, 
-            DaoBody daoTransformation, 
-            boolean defaultValuesBody) {
-        Map<Parameter, List<JCAnnotation>> parameterAnnotations = includeAnnotations ? makeParameterAnnotations(parameterLists) : null;
-        List<JCAnnotation> methodAnnotations = includeAnnotations ? expressionGen().transform(annotationList) : null;
-        return transformMethod(methodModel, 
-                typeParameterListModel(typeParameterList),
-                methodModel.getParameterLists(),
-                methodAnnotations,
-                parameterAnnotations,
-                makeParameterDefaultBodies(methodModel, parameterLists),
-                transformMethod, actual, body, daoTransformation, defaultValuesBody);
-    }
-    
-    private Map<Parameter, List<JCAnnotation>> makeParameterAnnotations(java.util.List<Tree.ParameterList> parameterLists) {
-        HashMap<Parameter, List<JCAnnotation>> map = new HashMap<Parameter, List<JCAnnotation>>();
-        Tree.ParameterList parameterList = parameterLists.get(0);
-        for (final Tree.Parameter parameter : parameterList.getParameters()) {
-            Parameter parameterModel = parameter.getParameterModel();
-            List<JCAnnotation> annotations = null;
-            if (parameter instanceof Tree.ParameterDeclaration
-                    && ((Tree.ParameterDeclaration)parameter).getTypedDeclaration() != null) {
-                annotations = expressionGen().transform(((Tree.ParameterDeclaration)parameter).getTypedDeclaration().getAnnotationList());
-                map.put(parameterModel, annotations);
-            }
-        }
-        return map;
-    }
-    
-    private Map<Parameter, JCBlock> makeParameterDefaultBodies(Method methodModel, java.util.List<Tree.ParameterList> parameterLists) {
-        Declaration refinedDeclaration = methodModel.getRefinedDeclaration();
-        HashMap<Parameter, JCBlock> map = new HashMap<Parameter, JCBlock>();
-        Tree.ParameterList parameterList = parameterLists.get(0);
-        for (final Tree.Parameter parameter : parameterList.getParameters()) {
-            Parameter parameterModel = parameter.getParameterModel();
-            if (Strategy.hasDefaultParameterValueMethod(parameterModel)
-                    || Strategy.hasDefaultParameterOverload(parameterModel)) {
-                if (refinedDeclaration == methodModel
-                        || !Decl.withinInterface(methodModel)) {
-                    if (refinedDeclaration == methodModel
-                            && Strategy.hasDefaultParameterValueMethod(parameterModel)) {
-                        JCExpression expr = expressionGen().transform(parameter);
-                        JCBlock body = at(parameter).Block(0, List.<JCStatement> of(at(parameter).Return(expr)));
-                        map.put(parameter.getParameterModel(), body);
-                    }
-                }
-            }
-        }
-        return map;
-    }
-    
-    private List<MethodDefinitionBuilder> transformMethod(
-            final Method methodModel,
-            java.util.List<TypeParameter> typeParameterList, 
-            java.util.List<ParameterList> parameterLists,
-            List<JCAnnotation> methodAnnotations,
-            Map<Parameter, List<JCAnnotation>> parameterAnnotations,
-            Map<Parameter, JCBlock> parameterDefaultBodies,
-            boolean transformMethod, boolean actual, List<JCStatement> body, 
-            DaoBody daoTransformation, 
-            boolean defaultValuesBody) {
-        
-        ListBuffer<MethodDefinitionBuilder> lb = ListBuffer.<MethodDefinitionBuilder>lb();
-        Declaration refinedDeclaration = methodModel.getRefinedDeclaration();
-        
-        final MethodDefinitionBuilder methodBuilder = MethodDefinitionBuilder.method(this, methodModel);
-        
-        // do the reified type param arguments
-        if (typeParameterList != null && gen().supportsReified(methodModel)) {
-            methodBuilder.reifiedTypeParameters(typeParameterList);
-        }
-        
-        boolean hasOverloads = false;
-        ParameterList parameterList = parameterLists.get(0);
-        for (final Parameter parameterModel : parameterList.getParameters()) {
-            List<JCAnnotation> annotations = parameterAnnotations != null ? parameterAnnotations.get(parameterModel) : null;
-            
-            methodBuilder.parameter(parameterModel, annotations, 0, true);
-
-            if (Strategy.hasDefaultParameterValueMethod(parameterModel)
-                    || Strategy.hasDefaultParameterOverload(parameterModel)) {
-                if (refinedDeclaration == methodModel
-                        || (!Decl.withinInterface(methodModel) && body != null)) {
-                    
-                    if (transformMethod && daoTransformation != null && (daoTransformation instanceof DaoCompanion == false || body != null)) {
-                        DaoBody daoTrans = (body == null) ? daoAbstract : daoThis;
-                        
-                        MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(daoTrans, methodModel)
-                            .makeOverload(
-                                parameterList,
-                                parameterModel,
-                                typeParameterList);
-                        lb.append(overloadedMethod);
-                    }
-                    
-                    if (refinedDeclaration == methodModel
-                            && Strategy.hasDefaultParameterValueMethod(parameterModel)) {
-                        lb.append(makeParamDefaultValueMethod(methodModel, 
-                                parameterList, 
-                                parameterModel, 
-                                defaultValuesBody || parameterDefaultBodies == null ? null : parameterDefaultBodies.get(parameterModel), 
-                                typeParameterList));
-                    }
-                }
-                
-                hasOverloads = true;
-            }
-        }
-
-        // Determine if we need to generate a "canonical" method
-        boolean createCanonical = hasOverloads
-                && Decl.withinClassOrInterface(methodModel)
-                && methodModel.isDefault()
-                && body != null;
-        
-        if (createCanonical) {
-            // Creates the private "canonical" method containing the actual body
-            MethodDefinitionBuilder canonicalMethod = new CanonicalMethod(daoTransformation, methodModel, body)
-                .makeOverload(
-                    parameterList,
-                    null,
-                    typeParameterList);
-            lb.append(canonicalMethod);
-        }
-        
-        if (transformMethod) {
-            methodBuilder.modifiers(transformMethodDeclFlags(methodModel));
-            if (actual) {
-                methodBuilder.isOverride(methodModel.isActual());
-            }
-            if (methodAnnotations != null) {
-                methodBuilder.userAnnotations(methodAnnotations);
-                methodBuilder.modelAnnotations(methodModel.getAnnotations());
-            } else {
-                methodBuilder.noAnnotations();
-            }
-            methodBuilder.resultType(methodModel, 0);
-            copyTypeParameters(methodModel, methodBuilder);
-            
-            if (createCanonical) {
-                // Creates method that redirects to the "canonical" method containing the actual body
-                MethodDefinitionBuilder overloadedMethod = new CanonicalMethod(daoThis, methodModel)
-                    .makeOverload(
-                        methodBuilder, 
-                        parameterList,
-                        null,
-                        typeParameterList);
-                lb.append(overloadedMethod);
-            } else {
-                if (body != null) {
-                    // Construct the outermost method using the body we've built so far
-                    methodBuilder.body(body);
-                } else {
-                    methodBuilder.noBody();
-                }
-                lb.append(methodBuilder);
-            }
-        }
-        return lb.toList();
-    }
-
     /**
      * Constructs all but the outer-most method of a {@code Method} with 
      * multiple parameter lists 
@@ -2276,7 +2102,7 @@ public class ClassTransformer extends AbstractTransformer {
         invocation.handleBoxing(true);
         JCExpression call = expressionGen().transformInvocation(invocation);
         JCStatement stmt;
-        if (!isVoid(def) || !Decl.isUnboxedVoid(model) || Strategy.useBoxedVoid((Method)model)) {
+        if (!isVoid(def) || !Decl.isUnboxedVoid(model) || Strategy.useBoxedVoid(model)) {
             stmt = make().Return(call);
         } else {
             stmt = make().Exec(call);
@@ -3824,6 +3650,7 @@ public class ClassTransformer extends AbstractTransformer {
     /** The instance of {@link ClassMethodTransformation} */
     private ClassMethodTransformation classMethodTransformation = new ClassMethodTransformation();
     
+    /** Transformation of a method that's a member of a class, but declared as a functional parameter*/
     class ClassMethodFromFunctionalParameterTransformation extends ClassMethodTransformation {
         @Override
         protected void transformUltimateBody(Tree.AnyMethod method,
@@ -3851,7 +3678,7 @@ public class ClassTransformer extends AbstractTransformer {
             builder.body(body);
         }
     }
-    /** The instance of {@link ClassMethodTransformation} */
+    /** The instance of {@link ClassMethodFromFunctionalParameterTransformation} */
     private ClassMethodFromFunctionalParameterTransformation classMethodFromFunctionalParameterTransformation = new ClassMethodFromFunctionalParameterTransformation();
     
     /** Transformation of a <em>concrete</em> method that's a member of an interface */
