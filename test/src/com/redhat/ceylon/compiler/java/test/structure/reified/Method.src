@@ -249,8 +249,7 @@ public final class MethodInterface$impl {
         return 3L;
     }
     
-    public <T>void methodWithOverloads(@.com.redhat.ceylon.compiler.java.metadata.Ignore
-    final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long a, final long b) {
+    public <T>void methodWithOverloads(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long a, final long b) {
     }
 }
 @.com.redhat.ceylon.compiler.java.metadata.Ceylon(major = 6)
