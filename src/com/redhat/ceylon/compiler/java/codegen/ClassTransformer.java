@@ -3353,11 +3353,8 @@ public class ClassTransformer extends AbstractTransformer {
                 if (Strategy.hasDefaultParameterValueMethod(parameterModel)
                         || Strategy.hasDefaultParameterOverload(parameterModel)) {
                     if (refinedDeclaration == functionalDeclaration
-                            || (!Decl.withinInterface(functional) /*&& body != null*/)) {
-                        //if (transformMethod && daoTransformation != null && (daoTransformation instanceof DaoCompanion == false || body != null)) {
-                        //    DaoBody daoTrans = (body == null) ? daoAbstract : daoThis;
+                            || (!Decl.withinInterface(functional))) {
                         transformOverloadMethod(functional, parameterList, parameter, lb);
-                        //}
                         if (refinedDeclaration == functionalDeclaration
                                 && Strategy.hasDefaultParameterValueMethod(parameterModel)) {
                             transformDefaultedParameterValueMethod(functional, parameterList, parameter, lb);
