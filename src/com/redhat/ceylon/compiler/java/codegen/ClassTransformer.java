@@ -3251,7 +3251,6 @@ public class ClassTransformer extends AbstractTransformer {
         return result;
     }
     
-    
     abstract class DefaultParameterValueMethodTransformation<T extends Declaration> {
         public MethodDefinitionBuilder transform(T functional, ParameterList parameterList, Tree.Parameter parameter) {
             Parameter parameterModel = parameter.getParameterModel();
@@ -3267,6 +3266,7 @@ public class ClassTransformer extends AbstractTransformer {
         
         protected MethodDefinitionBuilder makeMethodBuilder(T functional, Parameter parameter) {
             return MethodDefinitionBuilder.systemMethod(ClassTransformer.this, Naming.getDefaultedParamMethodName(functional, parameter));
+
         }
         
         protected void transformModifiers(T functional,

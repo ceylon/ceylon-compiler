@@ -7,14 +7,20 @@ void functionLocalToToplevelMethod<U>(U u) {
         void local(){}
         local();
     }
+    function defaultedParameters(Integer i, Integer j = i, U k = u) {
+        return i+j;
+    }
+    
+    /*
     void tpCapture(U u) {}
     tpCapture(u);
     
     Integer x = 0;
     function localCapture() => x+1;
     localCapture();
-    /*
+    
     // local variable capture
+    
     variable Integer y = 0;
     function localVariableCapture() {
         y=1;
@@ -24,6 +30,7 @@ void functionLocalToToplevelMethod<U>(U u) {
     }
     localVariableCapture();
     */
+    // TODO defaulted parameters
     
     // TODO Transitive capture
     
