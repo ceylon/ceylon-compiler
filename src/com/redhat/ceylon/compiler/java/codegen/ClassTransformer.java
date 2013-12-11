@@ -87,6 +87,7 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
@@ -769,15 +770,13 @@ public class ClassTransformer extends AbstractTransformer {
                 if ((Strategy.hasDefaultParameterValueMethod(paramModel) 
                             || (refinedParam != null && Strategy.hasDefaultParameterValueMethod(refinedParam)))) {
                     if (!generateInstantiator || refinedParam == paramModel) {
-                        JCExpression expr = expressionGen().transform(param);
-                        JCBlock paramDefaultBody = at(param).Block(0, List.<JCStatement> of(at(param).Return(expr)));
-                        cbForDevaultValues.method(makeParamDefaultValueMethod(
+                        cbForDevaultValues.method(classDpvmTransformation.transform(
                                 def.getDeclarationModel(), 
                                 paramList.getModel(), 
-                                param.getParameterModel(), 
-                                paramDefaultBody));
+                                param));
                         if (cbForDevaultValuesDecls != null) {
-                            cbForDevaultValuesDecls.method(makeParamDefaultValueMethod(def.getDeclarationModel(), paramList.getModel(), param.getParameterModel(), null));
+                            cbForDevaultValuesDecls.method(
+                            abstractClassDpvmTransformation.transform(def.getDeclarationModel(), paramList.getModel(), param));
                         }
                     } else if (Strategy.hasDelegatedDpm(cls)) {
                         java.util.List<Parameter> parameters = paramList.getModel().getParameters();
@@ -2999,85 +2998,190 @@ public class ClassTransformer extends AbstractTransformer {
     }
     
     
-    /**
-     * Creates a (possibly abstract) method for retrieving the value for a 
-     * defaulted parameter
-     * @param typeParameterList 
-     */
-    MethodDefinitionBuilder makeParamDefaultValueMethod( 
-            Functional functional, 
-            ParameterList params, 
-            Parameter parameter, 
-            JCBlock body) {
-        Declaration container = (Declaration)functional;
-        Assert.that(Strategy.hasDefaultParameterValueMethod(parameter));
-        MethodDefinitionBuilder methodBuilder = MethodDefinitionBuilder.systemMethod(this, Naming.getDefaultedParamMethodName(container, parameter));
-        methodBuilder.ignoreModelAnnotations();
-        if (container != null && Decl.isAnnotationConstructor(container)) {
-            AnnotationInvocation ac = (AnnotationInvocation)((Method)container).getAnnotationConstructor();
-            for (AnnotationConstructorParameter acp : ac.getConstructorParameters()) {
-                if (acp.getParameter().equals(parameter)
-                        && acp.getDefaultArgument() != null) {
-                    methodBuilder.userAnnotations(acp.getDefaultArgument().makeDpmAnnotations(expressionGen()));
+    abstract class DefaultParameterValueMethodTransformation<T extends Declaration> {
+        public MethodDefinitionBuilder transform(T functional, ParameterList parameterList, Tree.Parameter parameter) {
+            Parameter parameterModel = parameter.getParameterModel();
+            MethodDefinitionBuilder methodBuilder = makeMethodBuilder(functional, parameterModel);
+            transformModifiers(functional, parameterModel, methodBuilder);
+            transformAnnotations(functional, parameterModel, methodBuilder);
+            transformResultType(functional, parameterModel, methodBuilder);
+            transformTypeParameterList(functional, methodBuilder);
+            transformParameterList(functional, parameterList, parameterModel, methodBuilder);
+            transformBody(functional, parameter, methodBuilder);
+            return methodBuilder;
+        }
+        
+        protected MethodDefinitionBuilder makeMethodBuilder(T functional, Parameter parameter) {
+            return MethodDefinitionBuilder.systemMethod(ClassTransformer.this, Naming.getDefaultedParamMethodName(functional, parameter));
+        }
+        
+        protected void transformModifiers(T functional,
+                Parameter parameter, MethodDefinitionBuilder methodBuilder) {
+            methodBuilder.modifiers(getModifiers(functional));
+        }
+        
+        protected int getModifiers(T functional) {
+            int modifiers = 0;
+            if (functional.isShared()) {
+                modifiers |= PUBLIC;
+            } else if (!functional.isToplevel()){
+                modifiers |= PRIVATE;
+            }
+            if (Strategy.defaultParameterMethodStatic(functional)) {
+                // static default parameter methods should be consistently public so that if non-shared class Top and
+                // shared class Bottom which extends Top both have the same default param name, we don't get an error
+                // if the Bottom class tries to "hide" a static public method with a private one
+                modifiers |= STATIC | PUBLIC;
+            }
+            return modifiers;
+        }
+
+        protected void transformAnnotations(T functional,
+                Parameter parameter, MethodDefinitionBuilder methodBuilder) {
+            methodBuilder.ignoreModelAnnotations();
+        }
+        
+        protected void transformResultType(T functional,
+                Parameter parameter, MethodDefinitionBuilder methodBuilder) {
+            methodBuilder.resultType(parameter.getModel(), parameter.getType(), 0);
+        }
+        
+        protected abstract void transformTypeParameterList(T functional,
+                MethodDefinitionBuilder methodBuilder);
+        
+        protected abstract void transformParameterList(T functional,
+                ParameterList parameterList, Parameter parameter, MethodDefinitionBuilder methodBuilder);
+
+        protected void transformBody(T functional,
+                Tree.Parameter parameter, MethodDefinitionBuilder methodBuilder) {
+            at(parameter);
+            JCExpression expr = expressionGen().transform(parameter);
+            at(parameter);
+            JCBlock body = make().Block(0, List.<JCStatement> of(make().Return(expr)));
+            methodBuilder.block(body);
+        }
+    }
+    class MethodDpvmTransformation extends DefaultParameterValueMethodTransformation<Method> {
+        @Override
+        protected void transformAnnotations(Method method, Parameter parameter,
+                    MethodDefinitionBuilder methodBuilder) {
+            super.transformAnnotations(method, parameter, methodBuilder);
+            if (Decl.isAnnotationConstructor(method)) {
+                AnnotationInvocation ac = (AnnotationInvocation)method.getAnnotationConstructor();
+                for (AnnotationConstructorParameter acp : ac.getConstructorParameters()) {
+                    if (acp.getParameter().equals(parameter)
+                            && acp.getDefaultArgument() != null) {
+                        methodBuilder.userAnnotations(acp.getDefaultArgument().makeDpmAnnotations(expressionGen()));
+                    }
                 }
             }
         }
-        int modifiers = 0;
-        if (body == null) {
-            modifiers |= PUBLIC | ABSTRACT;
-        } else if (container == null
-                || !(container instanceof Class 
-                        && Strategy.defaultParameterMethodStatic(container))) {
-            // initializers can override parameter defaults
-            modifiers |= FINAL;
+        @Override
+        protected void transformTypeParameterList(Method method,
+                MethodDefinitionBuilder methodBuilder) {
+            copyTypeParameters(method, methodBuilder);
         }
-        if (container != null && container.isShared()) {
-            modifiers |= PUBLIC;
-        } else if (container == null || (!container.isToplevel()
-                && body != null)){
-            modifiers |= PRIVATE;
-        }
-        if (Strategy.defaultParameterMethodStatic(container)) {
-            // static default parameter methods should be consistently public so that if non-shared class Top and
-            // shared class Bottom which extends Top both have the same default param name, we don't get an error
-            // if the Bottom class tries to "hide" a static public method with a private one
-            modifiers |= STATIC | PUBLIC;
-        }
-        methodBuilder.modifiers(modifiers);
-        
-        if (container instanceof Method) {
-            copyTypeParameters((Method)container, methodBuilder);
-        } else if (container != null
-                && Decl.isToplevel(container)
-                && container instanceof Class) {
-            copyTypeParameters((Class)container, methodBuilder);
-        }
-        
-        // make sure reified type parameters are accepted
-        if(functional.getTypeParameters() != null)
-            methodBuilder.reifiedTypeParameters(functional.getTypeParameters());
-        
-        // Add any of the preceding parameters as parameters to the method
-        for (Parameter p : params.getParameters()) {
-            if (p == parameter) {
-                break;
+        @Override
+        protected void transformParameterList(Method method,
+                ParameterList parameterList, Parameter parameter,
+                MethodDefinitionBuilder methodBuilder)  {
+            // make sure reified type parameters are accepted
+            if(method.getTypeParameters() != null)
+                methodBuilder.reifiedTypeParameters(method.getTypeParameters());
+            
+            // Add any of the preceding parameters as parameters to the method
+            for (Parameter p : parameterList.getParameters()) {
+                if (p == parameter) {
+                    break;
+                }
+                methodBuilder.parameter(p, null, 0, false);
             }
-            methodBuilder.parameter(p, null, 0, container instanceof Class);
         }
-
-        // The method's return type is the same as the parameter's type
-        methodBuilder.resultType(parameter.getModel(), parameter.getType(), 0);
-
-        // The implementation of the method
-        if (body == null) {
-            methodBuilder.noBody();
-        } else {
-            methodBuilder.block(body);
+        @Override
+        protected int getModifiers(Method method) {
+            return FINAL | super.getModifiers(method);
         }
-
-        return methodBuilder;
     }
-
+    MethodDpvmTransformation methodDpvmTransformation = new MethodDpvmTransformation();
+    MethodDpvmTransformation abstractMethodDpvmTransformation = new MethodDpvmTransformation() {
+        @Override
+        protected void transformBody(Method method,
+                    Tree.Parameter parameter, MethodDefinitionBuilder methodBuilder) {
+            methodBuilder.noBody();
+        }
+        @Override
+        protected int getModifiers(Method method) {
+            int modifiers = ABSTRACT | (super.getModifiers(method) & ~FINAL);
+            return modifiers;
+        }
+    };
+    class ClassDpvmTransformation extends DefaultParameterValueMethodTransformation<Class> {
+        @Override
+        protected void transformTypeParameterList(Class cls,
+                    MethodDefinitionBuilder methodBuilder) {
+            if (Decl.isToplevel(cls)) {
+                copyTypeParameters(cls, methodBuilder);
+            }
+        }
+        
+        @Override
+        protected void transformParameterList(Class cls,
+                ParameterList parameterList, Parameter parameter,
+                MethodDefinitionBuilder methodBuilder)  {
+            // make sure reified type parameters are accepted
+            if(cls.getTypeParameters() != null)
+                methodBuilder.reifiedTypeParameters(cls.getTypeParameters());
+            
+            // Add any of the preceding parameters as parameters to the method
+            for (Parameter p : parameterList.getParameters()) {
+                if (p == parameter) {
+                    break;
+                }
+                methodBuilder.parameter(p, null, 0, true);
+            }
+        }
+        @Override
+        protected int getModifiers(Class cls) {
+            int mods =  super.getModifiers(cls);
+            if (!Strategy.defaultParameterMethodStatic(cls)) {
+                mods |= FINAL;
+            }
+            return mods;
+        }
+    }
+    ClassDpvmTransformation classDpvmTransformation = new ClassDpvmTransformation();
+    ClassDpvmTransformation abstractClassDpvmTransformation = new ClassDpvmTransformation(){
+        @Override
+        protected int getModifiers(Class functional) {
+            return PUBLIC | ABSTRACT;
+        }
+    };
+    class CallableDpvmTransformation<Nowt extends Declaration> extends DefaultParameterValueMethodTransformation<Nowt> {
+        @Override
+        protected void transformTypeParameterList(Nowt functional,
+                    MethodDefinitionBuilder methodBuilder) {
+            // There are no type parameters
+        }
+        
+        @Override
+        protected void transformParameterList(Nowt functional,
+                ParameterList parameterList, Parameter parameter,
+                MethodDefinitionBuilder methodBuilder)  {
+            // Add any of the preceding parameters as parameters to the method
+            for (Parameter p : parameterList.getParameters()) {
+                if (p == parameter) {
+                    break;
+                }
+                methodBuilder.parameter(p, null, 0, false);
+            }
+        }
+        @Override
+        protected int getModifiers(Nowt functional) {
+            return PRIVATE | FINAL;
+        }
+    }
+    CallableDpvmTransformation callableDpvmTransformation = new CallableDpvmTransformation();
+    
     public List<JCTree> transformObjectDefinition(Tree.ObjectDefinition def, ClassDefinitionBuilder containingClassBuilder) {
         return transformObject(def, def.getDeclarationModel(), 
                 def.getAnonymousClass(), containingClassBuilder, Decl.isLocalNotInitializer(def));
@@ -3509,24 +3613,22 @@ public class ClassTransformer extends AbstractTransformer {
                 ListBuffer<JCTree> lb){
             Method model = methodOrFunction.getDeclarationModel();
             Declaration refinedDeclaration = model.getRefinedDeclaration();
-            JCBlock body = null;
             Parameter parameterModel = parameter.getParameterModel();
+            DefaultParameterValueMethodTransformation<Method> dpmTransformation = abstractMethodDpvmTransformation;
             if (Strategy.hasDefaultParameterValueMethod(parameterModel)
                     || Strategy.hasDefaultParameterOverload(parameterModel)) {
                 if (refinedDeclaration == model
                         || !Decl.withinInterface(model)) {
                     if (refinedDeclaration == model
                             && Strategy.hasDefaultParameterValueMethod(parameterModel)) {
-                        JCExpression expr = expressionGen().transform(parameter);
-                        body = at(parameter).Block(0, List.<JCStatement> of(at(parameter).Return(expr)));
+                        dpmTransformation = methodDpvmTransformation;
                     }
                 }
             }
             
-            lb.append(makeParamDefaultValueMethod(methodOrFunction.getDeclarationModel(),
+            lb.append(dpmTransformation.transform(methodOrFunction.getDeclarationModel(),
                     parameterList.getModel(),
-                    parameter.getParameterModel(),
-                    body).build());
+                    parameter).build());
         }
     }
     /** Transformation of a toplevel or local function */
@@ -3727,10 +3829,10 @@ public class ClassTransformer extends AbstractTransformer {
                 Tree.ParameterList parameterList,
                 Tree.Parameter parameter,
                 ListBuffer<JCTree> lb){
-            lb.append(makeParamDefaultValueMethod(methodOrFunction.getDeclarationModel(),
+            // use abstract transformation, because we're transforming to an interface
+            lb.append(abstractMethodDpvmTransformation.transform(methodOrFunction.getDeclarationModel(),
                     parameterList.getModel(),
-                    parameter.getParameterModel(),
-                    null).build());// body is null, because we're transforming to an interface
+                    parameter).build());
         }
         /** The ultimate method will always be abstract */
         @Override

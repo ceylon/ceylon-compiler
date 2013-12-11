@@ -1308,9 +1308,7 @@ public class CallableBuilder {
         }
         for(Tree.Parameter p : parameterListTree.getParameters()){
             if(Decl.getDefaultArgument(p) != null){
-                JCExpression expr = gen.expressionGen().transform(p);
-                JCBlock body = gen.at(p).Block(0, List.<JCStatement> of(gen.at(p).Return(expr)));
-                MethodDefinitionBuilder methodBuilder = gen.classGen().makeParamDefaultValueMethod(null, parameterListTree.getModel(), p.getParameterModel(), body);
+                MethodDefinitionBuilder methodBuilder = gen.classGen().callableDpvmTransformation.transform(null, parameterListTree.getModel(), p);
                 this.parameterDefaultValueMethods.append(methodBuilder);
             }
         }
