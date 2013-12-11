@@ -56,6 +56,8 @@ First make sure you have compiled the ceylon projects according to the instructi
     Locate the "Forbidden reference (access rules)" option under
     "Deprecated and restricted API" section in the dialog box.  Set
     this to Warning" or "Ignore".
+    
+    The library jboss-modules-1.1.3.GA.jar is in ceylon-runtime/lib.
 
  8. The project should now be correctly set up.  To test it:
 
