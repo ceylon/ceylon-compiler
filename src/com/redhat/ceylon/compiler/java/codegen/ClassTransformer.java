@@ -775,10 +775,9 @@ public class ClassTransformer extends AbstractTransformer {
                                 def.getDeclarationModel(), 
                                 paramList.getModel(), 
                                 param.getParameterModel(), 
-                                paramDefaultBody,
-                                typeParameterListModel(typeParameterList)));
+                                paramDefaultBody));
                         if (cbForDevaultValuesDecls != null) {
-                            cbForDevaultValuesDecls.method(makeParamDefaultValueMethod(def.getDeclarationModel(), paramList.getModel(), param.getParameterModel(), null, typeParameterListModel(typeParameterList)));
+                            cbForDevaultValuesDecls.method(makeParamDefaultValueMethod(def.getDeclarationModel(), paramList.getModel(), param.getParameterModel(), null));
                         }
                     } else if (Strategy.hasDelegatedDpm(cls)) {
                         java.util.List<Parameter> parameters = paramList.getModel().getParameters();
@@ -3006,12 +3005,11 @@ public class ClassTransformer extends AbstractTransformer {
      * @param typeParameterList 
      */
     MethodDefinitionBuilder makeParamDefaultValueMethod( 
-            Declaration container, 
+            Functional functional, 
             ParameterList params, 
             Parameter parameter, 
-            JCBlock body, 
-            java.util.List<TypeParameter> typeParameterList) {
-        
+            JCBlock body) {
+        Declaration container = (Declaration)functional;
         Assert.that(Strategy.hasDefaultParameterValueMethod(parameter));
         MethodDefinitionBuilder methodBuilder = MethodDefinitionBuilder.systemMethod(this, Naming.getDefaultedParamMethodName(container, parameter));
         methodBuilder.ignoreModelAnnotations();
@@ -3056,8 +3054,8 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         // make sure reified type parameters are accepted
-        if(typeParameterList != null)
-            methodBuilder.reifiedTypeParameters(typeParameterList);
+        if(functional.getTypeParameters() != null)
+            methodBuilder.reifiedTypeParameters(functional.getTypeParameters());
         
         // Add any of the preceding parameters as parameters to the method
         for (Parameter p : params.getParameters()) {
@@ -3528,8 +3526,7 @@ public class ClassTransformer extends AbstractTransformer {
             lb.append(makeParamDefaultValueMethod(methodOrFunction.getDeclarationModel(),
                     parameterList.getModel(),
                     parameter.getParameterModel(),
-                    body, 
-                    methodOrFunction.getDeclarationModel().getTypeParameters()).build());
+                    body).build());
         }
     }
     /** Transformation of a toplevel or local function */
@@ -3733,8 +3730,7 @@ public class ClassTransformer extends AbstractTransformer {
             lb.append(makeParamDefaultValueMethod(methodOrFunction.getDeclarationModel(),
                     parameterList.getModel(),
                     parameter.getParameterModel(),
-                    null, // body is null, because we're transforming to an interface 
-                    methodOrFunction.getDeclarationModel().getTypeParameters()).build());
+                    null).build());// body is null, because we're transforming to an interface
         }
         /** The ultimate method will always be abstract */
         @Override

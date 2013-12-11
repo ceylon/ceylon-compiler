@@ -1310,7 +1310,7 @@ public class CallableBuilder {
             if(Decl.getDefaultArgument(p) != null){
                 JCExpression expr = gen.expressionGen().transform(p);
                 JCBlock body = gen.at(p).Block(0, List.<JCStatement> of(gen.at(p).Return(expr)));
-                MethodDefinitionBuilder methodBuilder = gen.classGen().makeParamDefaultValueMethod(null, parameterListTree.getModel(), p.getParameterModel(), body, null);
+                MethodDefinitionBuilder methodBuilder = gen.classGen().makeParamDefaultValueMethod(null, parameterListTree.getModel(), p.getParameterModel(), body);
                 this.parameterDefaultValueMethods.append(methodBuilder);
             }
         }
