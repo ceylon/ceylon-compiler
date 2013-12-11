@@ -533,6 +533,21 @@ public class Decl {
         }
         return (ClassOrInterface) decl;
     }
+    
+    public static Declaration getDeclarationContainer(Element decl, boolean includingDecl){
+        if (!includingDecl) {
+            decl = (Element) decl.getContainer();
+        }
+        // stop when null or when it's a ClassOrInterface
+        while(decl != null
+                && !(decl instanceof Declaration)){
+            // stop if the container is not an Element
+            if(!(decl.getContainer() instanceof Element))
+                return null;
+            decl = (Element) decl.getContainer();
+        }
+        return (Declaration) decl;
+    }
 
     public static Package getPackage(Declaration decl){
         if (decl instanceof Scope) {

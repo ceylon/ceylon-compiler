@@ -3841,8 +3841,8 @@ public class ExpressionTransformer extends AbstractTransformer {
                     // always qualify it with this
                     flags |= Naming.NA_WRAPPER | Naming.NA_WRAPPER_WITH_THIS;
                 }
-                qualExpr = naming.makeName((Method)decl, flags);
-                selector = null;
+                qualExpr = null;//naming.makeName((Method)decl, flags);
+                selector = naming.selector((Method)decl);
             } else if (decl.isToplevel()) {
                 primaryExpr = null;
                 qualExpr = naming.makeName((Method)decl, Naming.NA_FQ | Naming.NA_WRAPPER | Naming.NA_MEMBER);

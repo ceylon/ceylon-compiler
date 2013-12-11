@@ -1374,6 +1374,8 @@ public class Naming implements LocalId {
                 if(decl instanceof JavaMethod)
                     return ((JavaMethod)decl).getRealName();
                 return getMethodName(decl, namingOptions);
+            } else if (Decl.isLocal(decl)) {
+                return quoteMethodName((Method)decl, namingOptions) + "$" + getLocalId(decl.getContainer());
             }
             return quoteMethodName((Method)decl, namingOptions);
         } else if (decl instanceof MethodOrValue

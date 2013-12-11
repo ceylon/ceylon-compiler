@@ -2246,8 +2246,7 @@ public class ClassTransformer extends AbstractTransformer {
             builder.annotations(makeExprAnnotations(def, ai));
         }
         
-        //builder.methods(transform(def, builder));
-        builder.defs(functionTransformation.transform(def));
+        builder.defs((model.isToplevel() ? toplevelFunctionTransformation : localFunctionTransformation).transform(def));
         
         // Toplevel method
         if (Strategy.generateMain(def)) {
@@ -2322,7 +2321,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         List<JCTree> result;
         if (model.isToplevel()) {
-            result = functionTransformation.transform(def);
+            result = toplevelFunctionTransformation.transform(def);
         } else if (Decl.withinClass(model)
                 && !Decl.isLocalToInitializer(model)) {
             result = classMethodTransformation.transform(def);
@@ -2332,7 +2331,7 @@ public class ClassTransformer extends AbstractTransformer {
             result = interfaceMethodTransformation.transform(def);
         } else {
             // It must be a local function
-            result = functionTransformation.transform(def);
+            result = localFunctionTransformation.transform(def);
         }
         return result;
     }
@@ -3904,10 +3903,39 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     /** Transformation of a toplevel or local function */
-    class FunctionTransformation extends MethodOrFunctionTransformation {
+    class ToplevelFunctionTransformation extends MethodOrFunctionTransformation {
         
     }
-    private FunctionTransformation functionTransformation = new FunctionTransformation();
+    private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
+    
+    /** Transformation of a toplevel or local function */
+    class LocalFunctionTransformation extends MethodOrFunctionTransformation {
+    
+        protected void transformUltimateTypeParameterList(Method methodOrFunction, MethodDefinitionBuilder builder) {
+            Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
+            if (container instanceof Functional) {
+                copyTypeParameters((Functional)container, builder);
+            }
+            copyTypeParameters(methodOrFunction, builder);
+        }
+    
+        protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
+            Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
+            int mods = transformMethodDeclFlags(methodOrFunction);
+            if (container instanceof Method) {
+                if ((transformMethodDeclFlags((Method)container) & STATIC) != 0) {
+                    mods |= STATIC;
+                }
+            } else if (container instanceof Class) {
+            if ((transformClassDeclFlags((Class)container) & STATIC) != 0) {
+                    mods |= STATIC;
+                }
+            }
+            // TODO when container is getter, setter, interface
+            builder.modifiers(mods);
+        }
+    }
+    LocalFunctionTransformation localFunctionTransformation = new LocalFunctionTransformation();
     
     /** 
      * <p>Transformation of a method. We need to worry about:</p>
