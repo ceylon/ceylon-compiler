@@ -57,6 +57,7 @@ import com.redhat.ceylon.compiler.java.test.statement.TryCatchTest;
 import com.redhat.ceylon.compiler.java.test.structure.StructureTest;
 import com.redhat.ceylon.compiler.java.test.structure.StructureTest2;
 import com.redhat.ceylon.compiler.java.test.structure.StructureTest3;
+import com.redhat.ceylon.compiler.java.test.structure.local.LocalTest;
 import com.redhat.ceylon.tools.test.CompilerToolsTests;
 
 @RunWith(ConcurrentSuite.class) 
@@ -67,6 +68,7 @@ import com.redhat.ceylon.tools.test.CompilerToolsTests;
     StructureTest.class,
     StructureTest2.class,
     StructureTest3.class,
+    LocalTest.class,
     CMRTestHTTP.class,
     IssuesTest_0000_0499.class,
     IssuesTest_0500_0999.class,
