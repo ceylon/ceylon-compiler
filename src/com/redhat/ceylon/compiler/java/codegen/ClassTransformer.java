@@ -637,7 +637,7 @@ public class ClassTransformer extends AbstractTransformer {
         classBuilder.constructorModifiers(PROTECTED);
         
         if (Decl.withinInterface(cls)) {
-            DefaultedArgumentOverload overloaded = new DefaultedArgumentInstantiator(daoAbstract, model);
+            DefaultedArgumentOverload overloaded = new DefaultedArgumentInstantiator(model);
             instantiatorDeclCb.method(overloaded.makeOverload(
                     paramList.getModel(),
                     null,
@@ -646,7 +646,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         if (!Decl.withinInterface(cls)
                 || !model.isFormal()) {
-            DefaultedArgumentOverload overloaded = new DefaultedArgumentInstantiator(!cls.isFormal() ? daoThis : daoAbstract, model);
+            DefaultedArgumentOverload overloaded = new DefaultedArgumentInstantiator(model);
             instantiatorImplCb.method(overloaded.makeOverload(
                     paramList.getModel(),
                     null,
@@ -799,7 +799,7 @@ public class ClassTransformer extends AbstractTransformer {
                 boolean addOverloadedConstructor = false;
                 if (generateInstantiator) {
                     if (Decl.withinInterface(cls)) {
-                        MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator(daoAbstract, model).makeOverload(
+                        MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator(model).makeOverload(
                                 paramList.getModel(),
                                 param.getParameterModel(),
                                 typeParameterListModel(typeParameterList),
@@ -807,7 +807,7 @@ public class ClassTransformer extends AbstractTransformer {
                         instantiatorDeclCb.method(instBuilder);
                     }
                     if (!Decl.withinInterface(cls) || !cls.isFormal()) {
-                        MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator(daoThis, model).makeOverload(
+                        MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator(model).makeOverload(
                                 paramList.getModel(),
                                 param.getParameterModel(),
                                 typeParameterListModel(typeParameterList),
@@ -821,7 +821,7 @@ public class ClassTransformer extends AbstractTransformer {
                 }
                 if (addOverloadedConstructor) {
                     // Add overloaded constructors for defaulted parameter
-                    new DefaultedArgumentConstructor(daoThis, model, classBuilder).makeOverload(
+                    new DefaultedArgumentConstructor(model, classBuilder).makeOverload(
                             paramList.getModel(),
                             param.getParameterModel(),
                             typeParameterListModel(typeParameterList),
@@ -1060,7 +1060,7 @@ public class ClassTransformer extends AbstractTransformer {
                         if (Strategy.hasDefaultParameterOverload(param)) {
                             if ((method.isDefault() || method.isShared() && !method.isFormal())
                                     && (method == subMethod)) {
-                                MethodDefinitionBuilder overload = new DefaultedArgumentMethodTyped(daoThis, typedMember)
+                                MethodDefinitionBuilder overload = new DefaultedArgumentMethodTyped(typedMember)
                                     .makeOverload( 
                                         subMethod.getParameterLists().get(0),
                                         param,
@@ -2434,7 +2434,7 @@ public class ClassTransformer extends AbstractTransformer {
      */
     abstract class DefaultedArgumentOverload {
         
-        protected DefaultedArgumentOverload(DaoBody daoBody){
+        protected DefaultedArgumentOverload(){
         }
         
         protected abstract long getModifiers(DaoBody daoBody);
@@ -2543,8 +2543,8 @@ public class ClassTransformer extends AbstractTransformer {
     class DefaultedArgumentMethod extends DefaultedArgumentOverload {
         protected final Method method;
 
-        DefaultedArgumentMethod(DaoBody daoBody, Method method) {
-            super(daoBody);
+        DefaultedArgumentMethod(Method method) {
+            super();
             this.method = method;
         }
 
@@ -2620,8 +2620,8 @@ public class ClassTransformer extends AbstractTransformer {
     class DefaultedArgumentMethodTyped extends DefaultedArgumentMethod {
         private ProducedTypedReference typedMember;
 
-        DefaultedArgumentMethodTyped(DaoBody daoBody, ProducedTypedReference typedMember) {
-            super(daoBody, (Method)typedMember.getDeclaration());
+        DefaultedArgumentMethodTyped(ProducedTypedReference typedMember) {
+            super((Method)typedMember.getDeclaration());
             this.typedMember = typedMember;
         }
 
@@ -2684,13 +2684,13 @@ public class ClassTransformer extends AbstractTransformer {
         private List<JCStatement> body;
         private boolean useBody;
         
-        CanonicalMethod(DaoBody daoBody, Method method) {
-            super(daoBody, method);
+        CanonicalMethod(Method method) {
+            super(method);
             useBody = false;
         }
         
-        CanonicalMethod(DaoBody daoBody, Method method, List<JCStatement> body) {
-            super(daoBody, method);
+        CanonicalMethod(Method method, List<JCStatement> body) {
+            super(method);
             this.body = body;
             useBody = true;
         }
@@ -2758,8 +2758,8 @@ public class ClassTransformer extends AbstractTransformer {
         
         protected Naming.SyntheticName companionInstanceName = null;
 
-        DefaultedArgumentClass(DaoBody daoBody, Class klass) {
-            super(daoBody);
+        DefaultedArgumentClass(Class klass) {
+            super();
             this.klass = klass;
         }
         
@@ -2805,8 +2805,8 @@ public class ClassTransformer extends AbstractTransformer {
 
         private final ClassDefinitionBuilder classBuilder;
 
-        DefaultedArgumentConstructor(DaoBody daoBody, Class klass, ClassDefinitionBuilder classBuilder) {
-            super(daoBody, klass);
+        DefaultedArgumentConstructor(Class klass, ClassDefinitionBuilder classBuilder) {
+            super(klass);
             this.classBuilder = classBuilder;
         }
 
@@ -2853,8 +2853,8 @@ public class ClassTransformer extends AbstractTransformer {
      */
     class DefaultedArgumentInstantiator extends DefaultedArgumentClass {
 
-        DefaultedArgumentInstantiator(DaoBody daoBody, Class klass) {
-            super(daoBody, klass);
+        DefaultedArgumentInstantiator(Class klass) {
+            super(klass);
         }
 
         @Override
@@ -3582,7 +3582,7 @@ public class ClassTransformer extends AbstractTransformer {
                 Tree.ParameterList parameterList,
                 Tree.Parameter parameter,
                 ListBuffer<JCTree> lb){
-            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(getDefaultArgumentOverload(methodOrFunction.getDeclarationModel()), methodOrFunction.getDeclarationModel())
+            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod(methodOrFunction.getDeclarationModel())
                 .makeOverload(
                     parameterList.getModel(),
                     parameter.getParameterModel(),
@@ -3666,7 +3666,7 @@ public class ClassTransformer extends AbstractTransformer {
                         ((TypedDeclaration)model.getRefinedDeclaration()).getType());
                 DaoBody daoTransformation = refinedResultType 
                         && !Decl.withinInterface(model.getRefinedDeclaration())? daoSuper : daoThis;
-                MethodDefinitionBuilder canonicalMethod = new CanonicalMethod(daoTransformation, model, transformBody(method))
+                MethodDefinitionBuilder canonicalMethod = new CanonicalMethod(model, transformBody(method))
                     .makeOverload(
                         getParameterLists(method).get(0).getModel(),
                         null,
@@ -3693,7 +3693,7 @@ public class ClassTransformer extends AbstractTransformer {
             if (generateCanonical(method)) {
                 Method model = method.getDeclarationModel();
                 // ultimate body will just delegate to the canonical method
-                CanonicalMethod canonical = new CanonicalMethod(daoThis, model);
+                CanonicalMethod canonical = new CanonicalMethod(model);
                 daoThis.makeBody(canonical, builder, getParameterLists(method).get(0).getModel(),
                         null, model.getTypeParameters());
             } else {
