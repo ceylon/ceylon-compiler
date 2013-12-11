@@ -414,7 +414,7 @@ class AnnotationInvocationVisitor extends Visitor {
         JCExpression memberName;
         if (parameter != null) {
             memberName = exprGen.naming.makeUnquotedIdent(
-            Naming.selector(parameter.getModel(), Naming.NA_ANNOTATION_MEMBER));
+                    exprGen.naming.selector(parameter.getModel(), Naming.NA_ANNOTATION_MEMBER));
         } else {
             memberName = exprGen.makeErroneous(errorNode, "compiler bug: null parameter in makeArgument");
         }

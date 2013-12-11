@@ -96,7 +96,7 @@ public class MethodDefinitionBuilder
     }
     
     public static MethodDefinitionBuilder method(AbstractTransformer gen, TypedDeclaration decl, int namingOptions) {
-        return new MethodDefinitionBuilder(gen, false, Naming.selector(decl, namingOptions));
+        return new MethodDefinitionBuilder(gen, false, gen.naming.selector(decl, namingOptions));
     }
     
     public static MethodDefinitionBuilder getter(AbstractTransformer gen, TypedDeclaration attr, boolean indirect) {

@@ -1360,7 +1360,7 @@ public class Naming implements LocalId {
     String selector(TypedDeclaration decl) {
         return selector(decl, 0);
     }
-    public static String selector(TypedDeclaration decl, int namingOptions) {
+    public String selector(TypedDeclaration decl, int namingOptions) {
         if ((namingOptions & NA_ANNOTATION_MEMBER) == 0 &&
                 (Decl.isGetter(decl) || Decl.isValueOrSharedOrCapturedParam(decl))) {
             if ((namingOptions & NA_SETTER) != 0) {

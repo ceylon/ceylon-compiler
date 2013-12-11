@@ -1099,7 +1099,7 @@ public class ClassTransformer extends AbstractTransformer {
                             PRIVATE,
                             method.getTypeParameters(), 
                             typedMember.getType(), 
-                            Naming.selector(method, Naming.NA_CANONICAL_METHOD), 
+                            naming.selector(method, Naming.NA_CANONICAL_METHOD), 
                             method.getParameterLists().get(0).getParameters(),
                             ((Method) member).getTypeErased(),
                             naming.selector(method));
