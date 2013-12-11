@@ -1,0 +1,3 @@
+void functionLocalToToplevelMethod<T>() {
+    // HERE
+}
