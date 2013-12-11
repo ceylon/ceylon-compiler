@@ -3918,6 +3918,15 @@ public class ClassTransformer extends AbstractTransformer {
             }
             copyTypeParameters(methodOrFunction, builder);
         }
+        
+        protected void transformUltimateParameterList(Tree.AnyMethod methodOrFunction, MethodDefinitionBuilder builder) {
+            for (Declaration captured : Decl.getCapturedLocals(methodOrFunction.getDeclarationModel())) {
+                if (captured instanceof TypedDeclaration) {
+                    builder.capturedLocalParameter((TypedDeclaration)captured);
+                }
+            }
+            super.transformUltimateParameterList(methodOrFunction, builder);
+        }
     
         protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
             Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);

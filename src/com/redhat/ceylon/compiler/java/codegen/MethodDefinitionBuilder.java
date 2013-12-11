@@ -26,17 +26,22 @@ import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.code.TypeTags.VOID;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
+import com.redhat.ceylon.compiler.java.codegen.Naming.Substitution;
 import com.redhat.ceylon.compiler.typechecker.model.Annotation;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
+import com.redhat.ceylon.compiler.typechecker.model.Scope;
+import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
+import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.TypeParameterDeclaration;
 import com.sun.tools.javac.code.Flags;
@@ -187,7 +192,9 @@ public class MethodDefinitionBuilder
             }
             params.append(pdb.build());
         }
-
+        for (Substitution subs : subsToClose) {
+            subs.close();
+        }
         return gen.make().MethodDef(
                 gen.make().Modifiers(modifiers, getAnnotations().toList()), 
                 makeName(name),
@@ -306,7 +313,59 @@ public class MethodDefinitionBuilder
         params.append(pdb);
         return this;
     }
-
+    
+    private java.util.List<Substitution> subsToClose = new ArrayList<Substitution>();
+    
+    public MethodDefinitionBuilder capturedLocalParameter(TypedDeclaration declaration) {
+        if (declaration instanceof Method 
+                && Strategy.useStaticForFunction((Method)declaration)
+                && !declaration.isParameter()) {
+            return this;
+        }
+        String parameterName;
+        Scope scope = declaration.getScope();
+        /*if (Decl.isGetter(declaration)) {// TODO This is just wrong
+            parameterName = gen.naming.getLocalInstanceName(declaration, 0);
+        } else*/ if (declaration instanceof Setter) {
+            parameterName = Naming.getAttrClassName(declaration, 0);
+        } else {
+            parameterName = gen.naming.aliasName(declaration.getName()).toString();
+            subsToClose.add(gen.naming.addVariableSubst(declaration, parameterName));
+        } /* else {
+            parameterName = gen.naming.substitute(declaration);
+        //}
+        if (Decl.isGetter(declaration)) {// TODO This is just wrong
+            parameterName = gen.naming.getLocalInstanceName(declaration, 0);
+        } else if (declaration instanceof Setter) {
+            parameterName = Naming.getAttrClassName(declaration, 0);
+        }*/
+        
+        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(gen, 
+                parameterName);
+        pdb.ignored();
+        pdb.modifiers(FINAL/*| Flags.SYNTHETIC*/);
+        // TODO This futzing around how we use the getter needs better encapsulation
+        if (Decl.isGetter(declaration)) {
+            pdb.type(gen.makeJavaType(gen.getGetterInterfaceType((TypedDeclaration)declaration)), null);
+        } else if (declaration instanceof Setter) {
+            pdb.type(gen.naming.makeQuotedIdent(Naming.getAttrClassName(declaration, 0)), null);
+        } else if (declaration.isVariable()) {
+            pdb.type(gen.makeVariableBoxType(declaration), null);
+        } else if (declaration instanceof Value
+                && Decl.isLocal(declaration)
+                && ((Value)declaration).isTransient()) {
+            pdb.type(gen.naming.makeName((Value)declaration, Naming.NA_WRAPPER | Naming.NA_GETTER), null);
+        } else if (declaration instanceof Method 
+                && !Strategy.useStaticForFunction((Method)declaration)) {
+            pdb.type(gen.naming.makeName((Method)declaration, Naming.NA_WRAPPER), null);
+        } else if (declaration instanceof Method) {
+            pdb.type(gen.makeJavaType(declaration.getType().getFullType()), null);
+        } else {
+            pdb.type(gen.makeJavaType(declaration.getType()), null);
+        }
+        return parameter(pdb);
+    }
+    
     public MethodDefinitionBuilder parameter(long modifiers, 
             java.util.List<Annotation> annos, 
             String name, 

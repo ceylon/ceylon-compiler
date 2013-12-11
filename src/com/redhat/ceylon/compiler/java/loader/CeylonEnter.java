@@ -44,6 +44,7 @@ import com.redhat.ceylon.compiler.java.codegen.CompilerBoxingDeclarationVisitor;
 import com.redhat.ceylon.compiler.java.codegen.CompilerBoxingVisitor;
 import com.redhat.ceylon.compiler.java.codegen.DeferredVisitor;
 import com.redhat.ceylon.compiler.java.codegen.DefiniteAssignmentVisitor;
+import com.redhat.ceylon.compiler.java.codegen.LocalCaptureVisitor;
 import com.redhat.ceylon.compiler.java.tools.CeylonLog;
 import com.redhat.ceylon.compiler.java.tools.CeylonPhasedUnit;
 import com.redhat.ceylon.compiler.java.tools.CeyloncFileManager;
@@ -328,6 +329,13 @@ public class CeylonEnter extends Enter {
                 gen.setMap(ceylonTree.lineMap);
                 CeylonPhasedUnit phasedUnit = (CeylonPhasedUnit)ceylonTree.phasedUnit;
                 gen.setFileObject(phasedUnit.getFileObject());
+                LocalCaptureVisitor lcv = new LocalCaptureVisitor();
+                phasedUnit.getCompilationUnit().visit(lcv);
+                for (Declaration d : phasedUnit.getUnit().getDeclarations()) {
+                    if (d.getDirectlyCaptured() != null) {
+                        System.err.println(d.getQualifiedNameString() + " captures " + d.getDirectlyCaptured());
+                    }
+                }
                 nested.startTask("Ceylon code generation for " + phasedUnit.getUnitFile().getName());
                 TaskEvent event = new TaskEvent(TaskEvent.Kind.PARSE, tree);
                 if (taskListener != null) {

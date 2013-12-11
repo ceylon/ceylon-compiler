@@ -328,5 +328,9 @@ class Strategy {
         }
         return false;
     }
+
+    public static boolean useStaticForFunction(Method decl) {
+        return true;
+    }
     
 }
