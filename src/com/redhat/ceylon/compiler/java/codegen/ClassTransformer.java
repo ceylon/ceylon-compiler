@@ -3930,7 +3930,7 @@ public class ClassTransformer extends AbstractTransformer {
     
         protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
             Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
-            int mods = transformMethodDeclFlags(methodOrFunction);
+            int mods = FINAL | transformMethodDeclFlags(methodOrFunction);
             if (container instanceof Method) {
                 if ((transformMethodDeclFlags((Method)container) & STATIC) != 0) {
                     mods |= STATIC;
