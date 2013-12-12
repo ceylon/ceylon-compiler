@@ -3939,7 +3939,109 @@ public class ClassTransformer extends AbstractTransformer {
      * that contains the local function. 
      */
     class LocalFunctionTransformation extends MethodOrFunctionTransformation {
-    
+        
+        /**
+         * The overload methods need:
+         * <ul>
+         * <li> to be {@code static}.
+         * <li> to have type parameters from the containing declaration, 
+                in addition to the type parameters of the method.
+         * <li> TODO to have additional parameters depending on what's captured
+         * </ul> 
+         */
+        protected DefaultedArgumentOverload<Method> getDefaultedArgumentMethod(
+                Method method, 
+                Parameter parameter) {
+            return new DefaultedArgumentMethod() {
+                @Override
+                protected long getModifiers(Method method, DaoBody<Method> daoBody) {
+                    return PRIVATE | STATIC | super.getModifiers(method, daoBody);
+                }
+                @Override
+                protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
+                    Declaration container = Decl.getDeclarationContainer(method, false);
+                    if (container instanceof Functional) {
+                        copyTypeParameters((Functional)container, overloadBuilder);
+                    }
+                    super.transformTypeParameterList(method, overloadBuilder);
+                }
+                @Override
+                protected final void transformParameterList(Method method, ParameterList parameterList, Parameter currentParameter, MethodDefinitionBuilder overloadBuilder) {
+                    for (Declaration captured : Decl.getCapturedLocals(method)) {
+                        if (captured instanceof TypedDeclaration) {
+                            overloadBuilder.capturedLocalParameter((TypedDeclaration)captured);
+                        }
+                    }
+                    super.transformParameterList(method, parameterList, currentParameter, overloadBuilder);
+                }
+                @Override
+                protected void appendImplicitArguments(Method method, 
+                        java.util.List<TypeParameter> typeParameterList,
+                        MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
+                    for (Declaration captured : Decl.getCapturedLocals(method)) {
+                        if (captured instanceof TypedDeclaration) {
+                            args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
+                        }
+                    }
+                    super.appendImplicitArguments(method, typeParameterList, overloadBuilder, args);
+                }
+                /** Returns the name of the method that the overload delegates to */
+                @Override
+                protected JCExpression makeMethodName(Method method, DaoBody<Method> daoBody) {
+                    int flags = Naming.NA_IDENT;
+                    /*if (Decl.withinClassOrInterface(method)
+                            && method.isDefault()) {
+                        flags |= Naming.NA_CANONICAL_METHOD;
+                    }*/
+                    return naming.makeUnquotedIdent(naming.selector(method));//makeName(method, flags);
+                }
+            };
+        }
+        
+        /**
+         * The default parameter value methods need:
+         * <ul>
+         * <li> to be {@code static}.
+         * <li> to have type parameters from the containing declaration, 
+                in addition to the type parameters of the method.
+         * <li> TODO to be named according to the (local) name of the local function
+         * <li> TODO to have additional parameters depending on what's captured
+         * </ul> 
+         */
+        @Override
+        protected DefaultParameterValueMethodTransformation<Method> getDefaultParameterValueMethodTransformation(
+                Method model, 
+                Declaration refinedDeclaration,
+                Parameter parameterModel) {
+            
+            return new MethodDpvmTransformation() {
+                @Override
+                protected int getModifiers(Method method) {
+                    return STATIC | super.getModifiers(method);
+                }
+                @Override
+                protected void transformTypeParameterList(Method method,
+                        MethodDefinitionBuilder methodBuilder) {
+                    Declaration container = Decl.getDeclarationContainer(method, false);
+                    if (container instanceof Functional) {
+                        copyTypeParameters((Functional)container, methodBuilder);
+                    }
+                    super.transformTypeParameterList(method, methodBuilder);
+                }
+                @Override
+                protected void transformParameterList(Method method,
+                        ParameterList parameterList, Parameter parameter,
+                        MethodDefinitionBuilder methodBuilder)  {
+                    for (Declaration captured : Decl.getCapturedLocals(method)) {
+                        if (captured instanceof TypedDeclaration) {
+                            methodBuilder.capturedLocalParameter((TypedDeclaration)captured);
+                        }
+                    }
+                    super.transformParameterList(method, parameterList, parameter, methodBuilder);
+                }
+            };
+        }
+        
         protected void transformUltimateTypeParameterList(Method methodOrFunction, MethodDefinitionBuilder builder) {
             Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
             if (container instanceof Functional) {
@@ -3959,7 +4061,7 @@ public class ClassTransformer extends AbstractTransformer {
     
         protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
             Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
-            int mods = FINAL | transformMethodDeclFlags(methodOrFunction);
+            int mods = PRIVATE | FINAL | transformMethodDeclFlags(methodOrFunction);
             if (container instanceof Method) {
                 if ((transformMethodDeclFlags((Method)container) & STATIC) != 0) {
                     mods |= STATIC;
