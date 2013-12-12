@@ -2666,7 +2666,7 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
             Parameter ctorParam, AnnotationConstructorParameter acp) {
         // Find the method mirror for the DPM
         for (MethodMirror mm : method.classMirror.getDirectMethods()) {
-            if (mm.getName().equals(Naming.getDefaultedParamMethodName(method, ctorParam))) {
+            if (Naming.isDefaultParameterMethodName(mm.getName(), method,  ctorParam)) {
                 // Create the appropriate AnnotationTerm
                 if (mm.getAnnotation(CEYLON_ANNOTATION_INSTANTIATION_ANNOTATION) != null) {
                     // If the DPM has a @AnnotationInstantiation 

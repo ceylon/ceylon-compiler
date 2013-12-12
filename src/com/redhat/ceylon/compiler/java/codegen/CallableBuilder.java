@@ -112,15 +112,15 @@ public class CallableBuilder {
             if (forwardCallTo != null) {
                 if (forwardCallTo instanceof Tree.BaseMemberOrTypeExpression) {
                     fn  = gen.makeUnquotedIdent(  
-                            Naming.getDefaultedParamMethodName((Declaration)defaultedParam.getModel().getScope(), defaultedParam));
+                            gen.naming.getDefaultedParamMethodName((Declaration)defaultedParam.getModel().getScope(), defaultedParam));
                 } else if (forwardCallTo instanceof Tree.QualifiedMemberOrTypeExpression) {
                     fn = gen.makeQualIdent(
                             gen.expressionGen().transformTermForInvocation(((Tree.QualifiedMemberOrTypeExpression)forwardCallTo).getPrimary(), null),  
-                            Naming.getDefaultedParamMethodName((Declaration)defaultedParam.getModel().getScope(), defaultedParam));
+                            gen.naming.getDefaultedParamMethodName((Declaration)defaultedParam.getModel().getScope(), defaultedParam));
                 }
             } 
             if (fn == null) {
-                fn = gen.makeUnquotedIdent(Naming.getDefaultedParamMethodName(null, defaultedParam));
+                fn = gen.makeUnquotedIdent(gen.naming.getDefaultedParamMethodName(null, defaultedParam));
             }
             return gen.make().Apply(null, 
                     fn,
@@ -223,7 +223,7 @@ public class CallableBuilder {
                     return gen.makeEmptyAsSequential(true);
                 }
                 JCExpression fn = gen.makeQualIdent(gen.naming.makeUnquotedIdent(Unfix.$instance$), 
-                        Naming.getDefaultedParamMethodName((Declaration)methodOrClass, defaultedParam));
+                        gen.naming.getDefaultedParamMethodName((Declaration)methodOrClass, defaultedParam));
                 return gen.make().Apply(null, 
                         fn,
                         defaultMethodArgs);
@@ -324,7 +324,7 @@ public class CallableBuilder {
                     return gen.makeEmptyAsSequential(true);
                 }
                 JCExpression fn = gen.makeQualIdent(gen.naming.makeUnquotedIdent(Unfix.$instance$), 
-                        Naming.getDefaultedParamMethodName((Declaration)methodOrClass, defaultedParam));
+                        gen.naming.getDefaultedParamMethodName((Declaration)methodOrClass, defaultedParam));
                 return gen.make().Apply(null, 
                         fn,
                         defaultMethodArgs);

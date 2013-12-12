@@ -521,10 +521,10 @@ public class ClassTransformer extends AbstractTransformer {
                             FINAL | transformClassDeclFlags(model), 
                             List.<TypeParameter>nil(), 
                             paramModel.getType(), 
-                            Naming.getDefaultedParamMethodName(model, paramModel),
+                            naming.getDefaultedParamMethodName(model, paramModel),
                             parameters.subList(0, parameters.indexOf(paramModel)), 
                             false, 
-                            Naming.getDefaultedParamMethodName(model, paramModel));
+                            naming.getDefaultedParamMethodName(model, paramModel));
                     cbForDevaultValues.method(mdb);
                 }
             }
@@ -1202,8 +1202,6 @@ public class ClassTransformer extends AbstractTransformer {
         classBuilder.parameter(pdb);
     }
 
-    
-
     /**
      * Generate a method for a shared FunctionalParameter which delegates to the Callable 
      * @param klass 
@@ -1402,7 +1400,7 @@ public class ClassTransformer extends AbstractTransformer {
                                     PUBLIC | FINAL, 
                                     typeParameters, 
                                     typedParameter.getType(), 
-                                    Naming.getDefaultedParamMethodName(method, param), 
+                                    naming.getDefaultedParamMethodName(method, param), 
                                     parameters.subList(0, parameters.indexOf(param)),
                                     param.getModel().getTypeErased(),
                                     null);
@@ -1533,7 +1531,7 @@ public class ClassTransformer extends AbstractTransformer {
                         PUBLIC | FINAL, 
                         typeParameters, 
                         typedParameter.getType(),
-                        Naming.getDefaultedParamMethodName(klass, param), 
+                        naming.getDefaultedParamMethodName(klass, param), 
                         parameters.subList(0, parameters.indexOf(param)),
                         param.getModel().getTypeErased(),
                         null);
@@ -3265,8 +3263,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected MethodDefinitionBuilder makeMethodBuilder(T functional, Parameter parameter) {
-            return MethodDefinitionBuilder.systemMethod(ClassTransformer.this, Naming.getDefaultedParamMethodName(functional, parameter));
-
+            return MethodDefinitionBuilder.systemMethod(ClassTransformer.this, naming.getDefaultedParamMethodName(functional, parameter));
         }
         
         protected void transformModifiers(T functional,

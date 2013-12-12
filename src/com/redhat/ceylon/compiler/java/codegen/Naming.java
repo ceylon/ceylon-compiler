@@ -821,10 +821,24 @@ public class Naming implements LocalId {
             return name(Unfix.set_);
         }
     }
-
-    public static String getDefaultedParamMethodName(Declaration decl, Parameter param) {
+    
+    /**
+     * The AbstractModelLoader doesn't have a Naming instance, so it can't use
+     * {@link #getDefaultedParamMethodName(Declaration, Parameter)}
+     * to test whether a method is the DPM for a particular method, parameter pair
+     * so we have to provide this
+     */ 
+    public static boolean isDefaultParameterMethodName(String name, Method decl, Parameter param) {
+        return name.equals(compoundName(decl.getName(), CodegenUtil.getTopmostRefinedDeclaration(param.getModel()).getName()));
+    }
+    
+    public String getDefaultedParamMethodName(Declaration decl, Parameter param) {
         if (decl instanceof Method) {
-            return compoundName(((Method) decl).getName(), CodegenUtil.getTopmostRefinedDeclaration(param.getModel()).getName());
+            if (Decl.isLocal(decl)) {
+                return compoundName(selector((Method) decl), CodegenUtil.getTopmostRefinedDeclaration(param.getModel()).getName());
+            } else {
+                return compoundName(((Method) decl).getName(), CodegenUtil.getTopmostRefinedDeclaration(param.getModel()).getName());
+            }
         } else if (decl instanceof ClassOrInterface) {
             if (decl.isToplevel() || Decl.isLocalNotInitializer(decl)) {
                 return prefixName(Prefix.$default$, param.getName());
