@@ -4063,7 +4063,8 @@ public class ClassTransformer extends AbstractTransformer {
             Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
             int mods = PRIVATE | FINAL | transformMethodDeclFlags(methodOrFunction);
             if (container instanceof Method) {
-                if ((transformMethodDeclFlags((Method)container) & STATIC) != 0) {
+                if ((transformMethodDeclFlags((Method)container) & STATIC) != 0
+                    || Decl.isLocal(container)) {
                     mods |= STATIC;
                 }
             } else if (container instanceof Class) {
