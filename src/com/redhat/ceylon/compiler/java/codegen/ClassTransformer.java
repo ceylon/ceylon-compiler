@@ -2742,24 +2742,27 @@ public class ClassTransformer extends AbstractTransformer {
                 java.util.List<TypeParameter> typeParameterList,// TODO Do I need this? Can't I get it from the functional
                 DaoBody<D> daoBody) {
             MethodDefinitionBuilder overloadBuilder = makeOverloadBuilder(functional);
-            // Make the declaration
-            // need annotations for BC, but the method isn't really there
-            overloadBuilder.ignoreModelAnnotations();
-            overloadBuilder.modifiers(getModifiers(functional, daoBody));
-            transformResultType(functional, overloadBuilder);
-            transformTypeParameterList(functional, overloadBuilder);
-            
-            appendImplicitParameters(typeParameterList, overloadBuilder);
-            transformParameterList(overloadBuilder, parameterList, currentParameter);
-            
-            // Make the body
-            // TODO MPL
-            // TODO Type args on method call
-            
-            daoBody.makeBody(functional, this, overloadBuilder,
-                    parameterList,
-                    currentParameter,
-                    typeParameterList);
+            try (SavedPosition pos = noPosition()) {
+                
+                // Make the declaration
+                // need annotations for BC, but the method isn't really there
+                overloadBuilder.ignoreModelAnnotations();
+                overloadBuilder.modifiers(getModifiers(functional, daoBody));
+                transformResultType(functional, overloadBuilder);
+                transformTypeParameterList(functional, overloadBuilder);
+                
+                appendImplicitParameters(typeParameterList, overloadBuilder);
+                transformParameterList(functional, parameterList, currentParameter, overloadBuilder);
+                
+                // Make the body
+                // TODO MPL
+                // TODO Type args on method call
+                
+                daoBody.makeBody(functional, this, overloadBuilder,
+                        parameterList,
+                        currentParameter,
+                        typeParameterList);
+            }
             
             return overloadBuilder;
         }
@@ -2768,13 +2771,14 @@ public class ClassTransformer extends AbstractTransformer {
         
         protected abstract long getModifiers(D model, DaoBody<D> daoBody);
 
+        /** Returns the name of the method that the overload delegates to */
         protected abstract JCExpression makeMethodName(D model, DaoBody<D> daoBody);
 
         protected abstract void transformResultType(D model, MethodDefinitionBuilder overloadBuilder);
 
         protected abstract void transformTypeParameterList(D model, MethodDefinitionBuilder overloadBuilder);
 
-        protected final void transformParameterList(MethodDefinitionBuilder overloadBuilder, ParameterList parameterList, Parameter currentParameter) {
+        protected void transformParameterList(D functional, ParameterList parameterList, Parameter currentParameter, MethodDefinitionBuilder overloadBuilder) {
             for (Parameter parameter : parameterList.getParameters()) {
                 if (currentParameter != null && parameter == currentParameter) {
                     break;
@@ -2795,6 +2799,7 @@ public class ClassTransformer extends AbstractTransformer {
             }
         }
         
+        /** Called by the DaoBody: Add any implicit arguments to the given args */
         protected abstract void appendImplicitArguments(D model, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args);
         
@@ -2852,7 +2857,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected final JCExpression makeMethodName(Method method, DaoBody<Method> daoBody) {
+        protected JCExpression makeMethodName(Method method, DaoBody<Method> daoBody) {
             int flags = Naming.NA_MEMBER;
             if (Decl.withinClassOrInterface(method)
                     && method.isDefault()) {
@@ -3008,7 +3013,7 @@ public class ClassTransformer extends AbstractTransformer {
                 transformTypeParameterList(method, canonicalBuilder);
 
                 appendImplicitParameters(typeParameterList, canonicalBuilder);
-                transformParameterList(canonicalBuilder, parameterList, currentParameter);
+                transformParameterList(method, parameterList, currentParameter, canonicalBuilder);
                 
                 if (body != null) {
                     // Construct the outermost method using the body we've built so far
@@ -3860,7 +3865,9 @@ public class ClassTransformer extends AbstractTransformer {
                 Tree.ParameterList parameterList,
                 Tree.Parameter parameter,
                 ListBuffer<JCTree> lb){
-            MethodDefinitionBuilder overloadedMethod = new DefaultedArgumentMethod()
+            MethodDefinitionBuilder overloadedMethod = getDefaultedArgumentMethod(
+                    methodOrFunction.getDeclarationModel(), 
+                    parameter.getParameterModel())
                 .makeOverload(methodOrFunction.getDeclarationModel(),
                     parameterList.getModel(),
                     parameter.getParameterModel(),
@@ -3868,8 +3875,19 @@ public class ClassTransformer extends AbstractTransformer {
                     getDefaultArgumentOverload(methodOrFunction.getDeclarationModel()));
             lb.append(overloadedMethod.build());
         }
-
-        protected DaoBody getDefaultArgumentOverload(Method model) {
+        
+        /**
+         * Gets the transformation to use to construct the defaulted argument overload
+         * @param parameter 
+         * @param method 
+         */
+        protected DefaultedArgumentOverload<Method> getDefaultedArgumentMethod(
+                Method method, 
+                Parameter parameter) {
+            return new DefaultedArgumentMethod();
+        }
+        
+        protected DaoBody<Method> getDefaultArgumentOverload(Method model) {
             return daoThis;
         }
         
@@ -3882,6 +3900,19 @@ public class ClassTransformer extends AbstractTransformer {
             Method model = methodOrFunction.getDeclarationModel();
             Declaration refinedDeclaration = model.getRefinedDeclaration();
             Parameter parameterModel = parameter.getParameterModel();
+            DefaultParameterValueMethodTransformation<Method> dpmTransformation 
+                = getDefaultParameterValueMethodTransformation(model, refinedDeclaration, parameterModel);
+            lb.append(dpmTransformation.transform(methodOrFunction.getDeclarationModel(),
+                    parameterList.getModel(),
+                    parameter).build());
+        }
+        
+        /**
+         * Gets the transformation to use to create the default parameter value method
+         */
+        protected DefaultParameterValueMethodTransformation<Method> getDefaultParameterValueMethodTransformation(
+                Method model, Declaration refinedDeclaration,
+                Parameter parameterModel) {
             DefaultParameterValueMethodTransformation<Method> dpmTransformation = abstractMethodDpvmTransformation;
             if (Strategy.hasDefaultParameterValueMethod(parameterModel)
                     || Strategy.hasDefaultParameterOverload(parameterModel)) {
@@ -3893,19 +3924,20 @@ public class ClassTransformer extends AbstractTransformer {
                     }
                 }
             }
-            
-            lb.append(dpmTransformation.transform(methodOrFunction.getDeclarationModel(),
-                    parameterList.getModel(),
-                    parameter).build());
+            return dpmTransformation;
         }
     }
-    /** Transformation of a toplevel or local function */
+    /** Transformation of a toplevel function */
     class ToplevelFunctionTransformation extends MethodOrFunctionTransformation {
         
     }
     private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
     
-    /** Transformation of a toplevel or local function */
+    /** 
+     * Transformation of a local function: We transform to a static 
+     * method declared on the same class as contains the method/getter
+     * that contains the local function. 
+     */
     class LocalFunctionTransformation extends MethodOrFunctionTransformation {
     
         protected void transformUltimateTypeParameterList(Method methodOrFunction, MethodDefinitionBuilder builder) {
