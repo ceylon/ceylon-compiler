@@ -638,7 +638,7 @@ public class ClassTransformer extends AbstractTransformer {
         if (Decl.withinInterface(cls)) {
             DefaultedArgumentOverload overloaded = new DefaultedArgumentInstantiator();
             instantiatorDeclCb.method(overloaded.makeOverload(model,
-                    paramList.getModel(),
+                    model.getParameterList(),//paramList.getModel(),
                     null,
                     typeParameterListModel(typeParameterList),
                     daoAbstract));
@@ -647,7 +647,7 @@ public class ClassTransformer extends AbstractTransformer {
                 || !model.isFormal()) {
             DefaultedArgumentOverload overloaded = new DefaultedArgumentInstantiator();
             instantiatorImplCb.method(overloaded.makeOverload(model,
-                    paramList.getModel(),
+                    model.getParameterList(),//paramList.getModel(),
                     null,
                     typeParameterListModel(typeParameterList),
                     !cls.isFormal() ? daoThis : daoAbstract));
@@ -799,7 +799,7 @@ public class ClassTransformer extends AbstractTransformer {
                 if (generateInstantiator) {
                     if (Decl.withinInterface(cls)) {
                         MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator().makeOverload(model,
-                                paramList.getModel(),
+                                model.getParameterList(),//paramList.getModel(),
                                 param.getParameterModel(),
                                 typeParameterListModel(typeParameterList),
                                 daoAbstract);
@@ -807,7 +807,7 @@ public class ClassTransformer extends AbstractTransformer {
                     }
                     if (!Decl.withinInterface(cls) || !cls.isFormal()) {
                         MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator().makeOverload(model,
-                                paramList.getModel(),
+                                model.getParameterList(),//paramList.getModel(),
                                 param.getParameterModel(),
                                 typeParameterListModel(typeParameterList),
                                 daoThis);
@@ -821,7 +821,7 @@ public class ClassTransformer extends AbstractTransformer {
                 if (addOverloadedConstructor) {
                     // Add overloaded constructors for defaulted parameter
                     new DefaultedArgumentConstructor(classBuilder).makeOverload(model,
-                            paramList.getModel(),
+                            model.getParameterList(),//paramList.getModel(),
                             param.getParameterModel(),
                             typeParameterListModel(typeParameterList),
                             daoThis);
@@ -2433,21 +2433,60 @@ public class ClassTransformer extends AbstractTransformer {
      */
     abstract class DefaultedArgumentOverload<D extends Declaration&Functional> {
         
+        /**
+         * Generates an overloaded method or constructor.
+         */
+        public MethodDefinitionBuilder makeOverload (
+                D functional,
+                ParameterList parameterList,// TODO Do I need this? Can't I get it from the functional
+                Parameter currentParameter,// TODO Do I need this? Can't I get it from the functional
+                java.util.List<TypeParameter> typeParameterList,// TODO Do I need this? Can't I get it from the functional
+                DaoBody<D> daoBody) {
+            MethodDefinitionBuilder overloadBuilder = makeOverloadBuilder(functional);
+            // Make the declaration
+            // need annotations for BC, but the method isn't really there
+            overloadBuilder.ignoreModelAnnotations();
+            overloadBuilder.modifiers(getModifiers(functional, daoBody));
+            transformResultType(functional, overloadBuilder);
+            transformTypeParameterList(functional, overloadBuilder);
+            
+            appendImplicitParameters(typeParameterList, overloadBuilder);
+            transformParameterList(overloadBuilder, parameterList, currentParameter);
+            
+            // Make the body
+            // TODO MPL
+            // TODO Type args on method call
+            
+            daoBody.makeBody(functional, this, overloadBuilder,
+                    parameterList,
+                    currentParameter,
+                    typeParameterList);
+            
+            return overloadBuilder;
+        }
+        
+        protected abstract MethodDefinitionBuilder makeOverloadBuilder(D model);
+        
         protected abstract long getModifiers(D model, DaoBody<D> daoBody);
 
         protected abstract JCExpression makeMethodName(D model, DaoBody<D> daoBody);
 
-        protected abstract void resultType(D model, MethodDefinitionBuilder overloadBuilder);
+        protected abstract void transformResultType(D model, MethodDefinitionBuilder overloadBuilder);
 
-        protected abstract void typeParameters(D model, MethodDefinitionBuilder overloadBuilder);
+        protected abstract void transformTypeParameterList(D model, MethodDefinitionBuilder overloadBuilder);
 
-        protected void parameters(MethodDefinitionBuilder overloadBuilder, ParameterList parameterList, Parameter currentParameter) {
+        protected final void transformParameterList(MethodDefinitionBuilder overloadBuilder, ParameterList parameterList, Parameter currentParameter) {
             for (Parameter parameter : parameterList.getParameters()) {
                 if (currentParameter != null && parameter == currentParameter) {
                     break;
                 }
-                overloadBuilder.parameter(parameter, null, 0, false);
+                transformParameter(overloadBuilder, parameter);
             }
+        }
+
+        protected void transformParameter(
+                MethodDefinitionBuilder overloadBuilder, Parameter parameter) {
+            overloadBuilder.parameter(parameter, null, 0, false);
         }
         
         protected final void appendImplicitParameters(java.util.List<TypeParameter> typeParameterList,
@@ -2469,66 +2508,30 @@ public class ClassTransformer extends AbstractTransformer {
             }
             return paramType;
         }
-
+        
         protected abstract void initVars(D model, Parameter currentParameter, ListBuffer<JCStatement> vars);
-
+        
         protected final boolean defaultParameterMethodOnSelf(D model) {
             return Strategy.defaultParameterMethodOnSelf(model);
         }
-
+        
         protected final boolean defaultParameterMethodOnOuter(D model) {
             return Strategy.defaultParameterMethodOnOuter(model);
         }
-
+        
         protected final boolean defaultParameterMethodStatic(D model) {
             return Strategy.defaultParameterMethodStatic(model);
         }
-
+        
         protected JCExpression makeInvocation(D model, DaoBody<D> daoBody, ListBuffer<JCExpression> args) {
             final JCExpression methName = makeMethodName(model, daoBody);
             return make().Apply(List.<JCExpression>nil(),
                     methName, args.toList());
         }
-
+        
         /** Returns the qualiifier to use when invoking the default parameter value method */
         protected abstract JCIdent makeDefaultArgumentValueMethodQualifier(D model, DaoBody<D> daoBody);
         
-        
-        /**
-         * Generates an overloaded method or constructor.
-         */
-        public MethodDefinitionBuilder makeOverload (
-                D functional,
-                ParameterList parameterList,
-                Parameter currentParameter,
-                java.util.List<TypeParameter> typeParameterList,
-                DaoBody<D> daoBody) {
-            MethodDefinitionBuilder overloadBuilder = makeOverloadBuilder(functional);
-            // Make the declaration
-            // need annotations for BC, but the method isn't really there
-            overloadBuilder.ignoreModelAnnotations();
-            overloadBuilder.modifiers(getModifiers(functional, daoBody));
-            resultType(functional, overloadBuilder);
-            typeParameters(functional, overloadBuilder);
-
-            appendImplicitParameters(typeParameterList, overloadBuilder);
-            parameters(overloadBuilder, parameterList, currentParameter);
-            
-            // Make the body
-            // TODO MPL
-            // TODO Type args on method call
-            
-            daoBody.makeBody(functional, this, overloadBuilder,
-                    parameterList,
-                    currentParameter,
-                    typeParameterList);
-            
-            return overloadBuilder;
-        }
-        
-        protected abstract MethodDefinitionBuilder makeOverloadBuilder(D model);
-        
-
     }
     
     /**
@@ -2560,12 +2563,12 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void resultType(Method method, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformResultType(Method method, MethodDefinitionBuilder overloadBuilder) {
             overloadBuilder.resultType(method, 0);
         }
         
         @Override
-        protected void typeParameters(Method method, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
             copyTypeParameters(method, overloadBuilder);
         }
         
@@ -2609,26 +2612,22 @@ public class ClassTransformer extends AbstractTransformer {
         }
 
         @Override
-        protected void resultType(Method method, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformResultType(Method method, MethodDefinitionBuilder overloadBuilder) {
             if (!isAnything(method.getType())
                     || !Decl.isUnboxedVoid(method)
                     || Strategy.useBoxedVoid(method)) {
                 ProducedTypedReference typedRef = typedMember;
                 overloadBuilder.resultTypeNonWidening(typedMember.getQualifyingType(), typedRef, typedMember.getType(), 0);
             } else {
-                super.resultType(method, overloadBuilder);
+                super.transformResultType(method, overloadBuilder);
             }
         }
         
         @Override
-        protected void parameters(MethodDefinitionBuilder overloadBuilder, ParameterList parameterList, Parameter currentParameter) {
-            for (Parameter param : parameterList.getParameters()) {
-                if (currentParameter != null && param == currentParameter) {
-                    break;
-                }
-                ProducedType type = paramType(param);
-                overloadBuilder.parameter(param, type, FINAL, 0, true);
-            }
+        protected void transformParameter(
+                MethodDefinitionBuilder overloadBuilder, Parameter param) {
+            ProducedType type = paramType(param);
+            overloadBuilder.parameter(param, type, FINAL, 0, true);
         }
         
         @Override
@@ -2706,11 +2705,11 @@ public class ClassTransformer extends AbstractTransformer {
                 // need annotations for BC, but the method isn't really there
                 canonicalBuilder.ignoreModelAnnotations();
                 canonicalBuilder.modifiers(getModifiers(method, daoBody));
-                resultType(method, canonicalBuilder);
-                typeParameters(method, canonicalBuilder);
+                transformResultType(method, canonicalBuilder);
+                transformTypeParameterList(method, canonicalBuilder);
 
                 appendImplicitParameters(typeParameterList, canonicalBuilder);
-                parameters(canonicalBuilder, parameterList, currentParameter);
+                transformParameterList(canonicalBuilder, parameterList, currentParameter);
                 
                 if (body != null) {
                     // Construct the outermost method using the body we've built so far
@@ -2790,12 +2789,12 @@ public class ClassTransformer extends AbstractTransformer {
         }
 
         @Override
-        protected void resultType(Class klass, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformResultType(Class klass, MethodDefinitionBuilder overloadBuilder) {
             // Constructor has no result type
         }
 
         @Override
-        protected void typeParameters(Class klass, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformTypeParameterList(Class klass, MethodDefinitionBuilder overloadBuilder) {
             // Constructor has type parameters
         }
         
@@ -2835,7 +2834,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void resultType(Class klass, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformResultType(Class klass, MethodDefinitionBuilder overloadBuilder) {
             /* Not actually part of the return type */
             overloadBuilder.ignoreModelAnnotations();
             if (!klass.isAlias() 
@@ -2858,7 +2857,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
 
         @Override
-        protected void typeParameters(Class klass, MethodDefinitionBuilder overloadBuilder) {
+        protected void transformTypeParameterList(Class klass, MethodDefinitionBuilder overloadBuilder) {
             for (TypeParameter tp : typeParametersForInstantiator(klass)) {
                 overloadBuilder.typeParameter(tp);
             }
@@ -3629,7 +3628,7 @@ public class ClassTransformer extends AbstractTransformer {
                 // Generate a canonical method
                 boolean refinedResultType = !model.getType().isExactly(
                         ((TypedDeclaration)model.getRefinedDeclaration()).getType());
-                DaoBody daoTransformation = refinedResultType 
+                DaoBody<Method> daoTransformation = refinedResultType 
                         && !Decl.withinInterface(model.getRefinedDeclaration())? daoSuper : daoThis;
                 MethodDefinitionBuilder canonicalMethod = new CanonicalMethod(transformBody(method))
                     .makeOverload(model,
