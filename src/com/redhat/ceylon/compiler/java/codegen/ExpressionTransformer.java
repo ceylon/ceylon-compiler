@@ -2398,6 +2398,9 @@ public class ExpressionTransformer extends AbstractTransformer {
         // Implicit arguments
         // except for Java array constructors
         Declaration primaryDeclaration = invocation.getPrimaryDeclaration();
+        
+        invocation.addCapturedLocalArguments(result);
+        
         Tree.Term primary = invocation.getPrimary();
         if(primaryDeclaration instanceof Class == false
                 || !isJavaArray(((Class) primaryDeclaration).getType())){

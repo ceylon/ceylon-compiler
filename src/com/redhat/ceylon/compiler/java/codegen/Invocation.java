@@ -45,6 +45,8 @@ import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedReference;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
+import com.redhat.ceylon.compiler.typechecker.model.Setter;
+import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
@@ -155,6 +157,37 @@ abstract class Invocation {
     }
     
     protected abstract void addReifiedArguments(ListBuffer<ExpressionAndType> result);
+    
+    protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result){
+        java.util.List<Declaration> cl = Decl.getCapturedLocals(getPrimaryDeclaration());
+        if (cl != null) {
+            for (Declaration decl : cl) {
+                if (decl instanceof Method 
+                        && Strategy.useStaticForFunction((Method)decl)
+                        && !decl.isParameter()) {
+                    continue;
+                }
+                /*result.append(new ExpressionAndType(
+                        gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
+                        gen.makeJavaType(((TypedDeclaration)decl).getType())));*/
+                if (Decl.isGetter(decl)
+                        && Decl.isLocal(decl)){
+                    result.append(new ExpressionAndType(
+                            ((Value)decl).isTransient() ? gen.naming.makeQuotedIdent(Naming.getAttrClassName((Value)decl, 0)) : gen.naming.makeName((TypedDeclaration)decl, Naming.NA_Q_LOCAL_INSTANCE),
+                            gen.makeJavaType(((TypedDeclaration)decl).getType())));
+                } else if (decl instanceof Setter
+                        && Decl.isLocal(decl)){
+                    result.append(new ExpressionAndType(
+                            gen.naming.makeQuotedIdent(Naming.getAttrClassName((Setter)decl, 0)),
+                            gen.makeJavaType(((TypedDeclaration)decl).getType())));
+                } else {
+                    result.append(new ExpressionAndType(
+                            gen.naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT),
+                            gen.makeJavaType(((TypedDeclaration)decl).getType())));
+                }
+            }
+        }
+    }
     
     public final void setUnboxed(boolean unboxed) {
         this.unboxed = unboxed;
