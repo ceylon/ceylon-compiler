@@ -88,6 +88,10 @@ class Strategy {
             decl = (Declaration) ((MethodOrValue)decl).getContainer();
         }
         
+        if (decl instanceof Method && Decl.getNonLocalDeclarationContainer(decl).isToplevel()) {
+            return DefaultParameterMethodOwner.STATIC;
+        }
+        
         if ((decl instanceof Method || decl instanceof Class) 
                 && decl.isToplevel()) {
             // Only top-level methods have static default value methods
@@ -112,6 +116,15 @@ class Strategy {
         if (decl instanceof MethodOrValue
                 && ((MethodOrValue)decl).isParameter()) {
             decl = (Element) ((MethodOrValue)decl).getContainer();
+        }
+        Declaration nonLocalContainer = null;
+        if (decl instanceof Method) {
+            nonLocalContainer = Decl.getNonLocalDeclarationContainer(decl);
+        }
+        if (decl instanceof Method 
+                && nonLocalContainer != null 
+                && nonLocalContainer.isToplevel()) {
+            return true;
         }
         // Only top-level methods have static default value methods
         return ((decl instanceof Method && !((Method)decl).isParameter())

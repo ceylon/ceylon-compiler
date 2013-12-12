@@ -535,6 +535,10 @@ public class Decl {
         return (ClassOrInterface) decl;
     }
     
+    public static Declaration getDeclarationContainer(Element decl){
+        return getDeclarationContainer(decl, false);
+    }
+    
     public static Declaration getDeclarationContainer(Element decl, boolean includingDecl){
         if (!includingDecl) {
             decl = (Element) decl.getContainer();
@@ -548,6 +552,14 @@ public class Decl {
             decl = (Element) decl.getContainer();
         }
         return (Declaration) decl;
+    }
+    
+    public static Declaration getNonLocalDeclarationContainer(Element decl) {
+        Declaration nonLocalContainer = Decl.getDeclarationContainer(decl);
+        while (Decl.isLocal(nonLocalContainer)) {
+            nonLocalContainer = Decl.getDeclarationContainer(nonLocalContainer);
+        }
+        return nonLocalContainer;
     }
 
     public static Package getPackage(Declaration decl){
