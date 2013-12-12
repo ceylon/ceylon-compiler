@@ -1153,10 +1153,16 @@ class NamedArgumentInvocation extends Invocation {
     // or ($arg$this$, $arg0, $arg1, ... , $argN)
     private List<JCExpression> makeVarRefArgumentList(Parameter param) {
         ListBuffer<JCExpression> names = ListBuffer.<JCExpression> lb();
+        
+        ListBuffer<ExpressionAndType> captured = ListBuffer.<ExpressionAndType>lb();
+        addCapturedLocalArguments(captured);
+        names.appendList(ExpressionAndType.toExpressionList(captured));
+        
         if (!Strategy.defaultParameterMethodStatic(getPrimaryDeclaration())
                 && Strategy.defaultParameterMethodTakesThis(param.getModel())) {
             names.append(varBaseName.suffixedBy(Suffix.$argthis$).makeIdent());
         }
+        
         // put all the required reified type args too
         ProducedReference ref = gen.resolveAliasesForReifiedTypeArguments(producedReference);
         int tpCount = gen.getTypeParameters(ref).size();
