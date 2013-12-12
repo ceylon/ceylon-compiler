@@ -4017,7 +4017,7 @@ public class ClassTransformer extends AbstractTransformer {
             return new MethodDpvmTransformation() {
                 @Override
                 protected int getModifiers(Method method) {
-                    return STATIC | super.getModifiers(method);
+                    return STATIC | PRIVATE | (super.getModifiers(method) & ~(PUBLIC | PROTECTED));
                 }
                 @Override
                 protected void transformTypeParameterList(Method method,
