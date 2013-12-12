@@ -2922,6 +2922,15 @@ public class ExpressionTransformer extends AbstractTransformer {
             Tree.StaticMemberOrTypeExpression mte) {
         java.util.List<TypeParameter> tps = null;
         Declaration declaration = mte.getDeclaration();
+        
+        if (declaration instanceof Method
+                && !declaration.isToplevel()
+                && Strategy.useStaticForFunction((Method)declaration)) {
+            // A (static) local function will have explicit type parameters for each outer generic thing
+            // Let's try to go raw in this case
+            callBuilder.typeArguments(List.<JCExpression>nil());
+            return;
+        }
         if (declaration instanceof Generic) {
             tps = ((Generic)declaration).getTypeParameters();
         }
