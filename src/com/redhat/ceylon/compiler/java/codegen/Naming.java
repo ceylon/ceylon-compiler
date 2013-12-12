@@ -1326,7 +1326,7 @@ public class Naming implements LocalId {
     }
     
     String getVariableBoxName(TypedDeclaration declaration) {
-        return declaration.getName();
+        return substitute(declaration);
     }
     
     JCExpression makeVariableBoxName(TypedDeclaration declaration) {
