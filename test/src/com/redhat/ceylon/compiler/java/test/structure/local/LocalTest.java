@@ -10,8 +10,8 @@ import com.redhat.ceylon.compiler.java.test.CompilerTest;
 public class LocalTest extends CompilerTest {
 
     @Test
-    public void testFunctionLocalToToplevelMethod() {
-        compareWithJavaSource("FunctionLocalToToplevelMethod");
+    public void testFunctionLocalToToplevelFunction() {
+        compareWithJavaSource("FunctionLocalToToplevelFunction");
     }
     
     @Test
@@ -28,12 +28,14 @@ public class LocalTest extends CompilerTest {
     public void testFunctionLocalToToplevelClassMethod() {
         compareWithJavaSource("FunctionLocalToToplevelClassMethod");
         // TODO also ClassGetterSetter
+        // in fact change this test for ...Member
     }
     
     @Test
     public void testFunctionLocalToToplevelInterfaceMethod() {
         compareWithJavaSource("FunctionLocalToToplevelInterfaceMethod");
-        // TODO also ClassGetterSetter
+        // TODO also InterfaceGetterSetter
+        // in fact change this test for ...Member
     }
     
     // TODO functionLocalToClassMemberClassInit

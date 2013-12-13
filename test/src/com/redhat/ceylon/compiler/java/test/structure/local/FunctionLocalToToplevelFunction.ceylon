@@ -1,23 +1,28 @@
 @noanno
-void functionLocalToToplevelMethod<U>(U u) {
+void functionLocalToToplevelFunction<U>(U u) 
+        given U satisfies Object {
+    Integer x = 0;
+    variable Anything ref;
+    
+    // Avoid name collisions
     if (1+1==2) {
         void local(){}
         local();
+        ref = local;
     } else {
         void local(){}
         local();
-    }
-    function defaultedParameters(Integer i, Integer j = i, U k = u) {
-        return i+j;
+        ref = local;
     }
     
-    /*
     void tpCapture(U u) {}
     tpCapture(u);
+    ref = tpCapture;
     
-    Integer x = 0;
     function localCapture() => x+1;
     localCapture();
+    localCapture{};
+    ref = localCapture;
     
     // local variable capture
     
@@ -29,10 +34,59 @@ void functionLocalToToplevelMethod<U>(U u) {
         return y;
     }
     localVariableCapture();
-    */
-    // TODO defaulted parameters
+    ref = localVariableCapture;
     
-    // TODO Transitive capture
+    // transitive capture
+    function transitiveCapture() {
+        return localVariableCapture() + localCapture();
+    }
+    transitiveCapture();
+    ref = transitiveCapture;
     
-    // TODO Transitive capture naming
+    // nesting
+    Integer nesting<V>(V v) 
+            given V satisfies Object {
+        function nested<W>(W w) 
+                given W satisfies Object {
+            return x + u.hash + v.hash + w.hash;
+        }
+        return nested(1);
+    }
+    nesting(1);
+    ref = nesting<String>;
+    
+    // defaulted parameters
+    function defaultedParameters(Integer i, Integer j = i, U k = u) {
+        return i+j;
+    }
+    // invocation with defaulted arguments
+    defaultedParameters(0);
+    defaultedParameters(0, 1);
+    defaultedParameters(0, 1, u);
+    defaultedParameters{
+        i=0;
+    };
+    defaultedParameters{
+        j=1;
+        i=0;
+    };
+    defaultedParameters{
+        k=u;
+        j=1;
+        i=0;
+    };
+    ref = defaultedParameters;
+    
+    function reified() {
+        return x is U;
+    }
+    reified();
+    ref = reified;
+    
+    function mpl(U first=u)(Integer second) {
+        return transitiveCapture() + first.hash + second;
+    }
+    mpl(u)(1);
+    ref = mpl;
+    
 }
