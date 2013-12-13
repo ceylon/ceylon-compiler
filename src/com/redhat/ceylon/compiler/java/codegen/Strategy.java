@@ -32,6 +32,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
+import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Unit;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
@@ -92,6 +93,10 @@ class Strategy {
             return DefaultParameterMethodOwner.STATIC;
         }
         
+        if (decl instanceof Method && Decl.isLocal(decl) && Decl.getNonLocalDeclarationContainer(decl).isClassMember()) {
+            return DefaultParameterMethodOwner.SELF;
+        }
+        
         if ((decl instanceof Method || decl instanceof Class) 
                 && decl.isToplevel()) {
             // Only top-level methods have static default value methods
@@ -119,10 +124,10 @@ class Strategy {
         }
         Declaration nonLocalContainer = null;
         if (decl instanceof Method) {
-            nonLocalContainer = Decl.getNonLocalDeclarationContainer(decl);
+            nonLocalContainer = Decl.getNonLocalDeclarationContainer((Method)decl);
         }
         if (decl instanceof Method 
-                && nonLocalContainer != null 
+                && nonLocalContainer instanceof TypedDeclaration 
                 && nonLocalContainer.isToplevel()) {
             return true;
         }

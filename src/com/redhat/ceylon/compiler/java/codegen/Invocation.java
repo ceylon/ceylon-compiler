@@ -1089,7 +1089,9 @@ class NamedArgumentInvocation extends Invocation {
         
         if (hasDefaulted 
                 && !Strategy.defaultParameterMethodStatic(getPrimaryDeclaration())
-                && !Strategy.defaultParameterMethodOnOuter(getPrimaryDeclaration())) {
+                && !Strategy.defaultParameterMethodOnOuter(getPrimaryDeclaration())
+                && (!Decl.isLocal(getPrimaryDeclaration()) || 
+                        !Decl.getNonLocalDeclarationContainer(getPrimaryDeclaration()).isClassMember())) {
             vars.prepend(makeThis());
         }
         gen.expressionGen().withinInvocation(prev);

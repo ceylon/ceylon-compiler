@@ -535,13 +535,17 @@ public class Decl {
         return (ClassOrInterface) decl;
     }
     
-    public static Declaration getDeclarationContainer(Element decl){
-        return getDeclarationContainer(decl, false);
+    public static Declaration getDeclarationContainer(Declaration declaration){
+        return getDeclarationContainer(declaration, false);
     }
     
-    public static Declaration getDeclarationContainer(Element decl, boolean includingDecl){
+    public static Declaration getDeclarationContainer(Declaration declaration, boolean includingDecl){
+        if (declaration.isToplevel()) {
+            return null;
+        }
+        Scope decl = (Scope)declaration;
         if (!includingDecl) {
-            decl = (Element) decl.getContainer();
+            decl = decl.getContainer();
         }
         // stop when null or when it's a ClassOrInterface
         while(decl != null
@@ -549,14 +553,14 @@ public class Decl {
             // stop if the container is not an Element
             if(!(decl.getContainer() instanceof Element))
                 return null;
-            decl = (Element) decl.getContainer();
+            decl = decl.getContainer();
         }
         return (Declaration) decl;
     }
     
-    public static Declaration getNonLocalDeclarationContainer(Element decl) {
+    public static Declaration getNonLocalDeclarationContainer(Declaration decl) {
         Declaration nonLocalContainer = Decl.getDeclarationContainer(decl);
-        while (Decl.isLocal(nonLocalContainer)) {
+        while (nonLocalContainer != null && Decl.isLocal(nonLocalContainer)) {
             nonLocalContainer = Decl.getDeclarationContainer(nonLocalContainer);
         }
         return nonLocalContainer;

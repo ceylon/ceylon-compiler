@@ -3940,6 +3940,16 @@ public class ClassTransformer extends AbstractTransformer {
      */
     class LocalFunctionTransformation extends MethodOrFunctionTransformation {
         
+        private void outerTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
+            Declaration container = Decl.getDeclarationContainer(function);
+            if (Decl.isLocal(container)) {
+                outerTypeParameters(container, builder);
+            }
+            if (container instanceof Functional) {
+                copyTypeParameters((Functional)container, builder);
+            }
+        }
+        
         /**
          * The overload methods need:
          * <ul>
@@ -3955,14 +3965,12 @@ public class ClassTransformer extends AbstractTransformer {
             return new DefaultedArgumentMethod() {
                 @Override
                 protected long getModifiers(Method method, DaoBody<Method> daoBody) {
-                    return PRIVATE | STATIC | super.getModifiers(method, daoBody);
+                    return PRIVATE | useStatic(method) | (super.getModifiers(method, daoBody) & ~(PUBLIC | PROTECTED));
                 }
                 @Override
                 protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
                     Declaration container = Decl.getDeclarationContainer(method, false);
-                    if (container instanceof Functional) {
-                        copyTypeParameters((Functional)container, overloadBuilder);
-                    }
+                    outerTypeParameters(method, overloadBuilder);
                     super.transformTypeParameterList(method, overloadBuilder);
                 }
                 @Override
@@ -4017,15 +4025,12 @@ public class ClassTransformer extends AbstractTransformer {
             return new MethodDpvmTransformation() {
                 @Override
                 protected int getModifiers(Method method) {
-                    return STATIC | PRIVATE | (super.getModifiers(method) & ~(PUBLIC | PROTECTED));
+                    return PRIVATE | useStatic(method) | (super.getModifiers(method) & ~(PUBLIC | PROTECTED));
                 }
                 @Override
                 protected void transformTypeParameterList(Method method,
                         MethodDefinitionBuilder methodBuilder) {
-                    Declaration container = Decl.getDeclarationContainer(method, false);
-                    if (container instanceof Functional) {
-                        copyTypeParameters((Functional)container, methodBuilder);
-                    }
+                    outerTypeParameters(method, methodBuilder);
                     super.transformTypeParameterList(method, methodBuilder);
                 }
                 @Override
@@ -4043,10 +4048,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected void transformUltimateTypeParameterList(Method methodOrFunction, MethodDefinitionBuilder builder) {
-            Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
-            if (container instanceof Functional) {
-                copyTypeParameters((Functional)container, builder);
-            }
+            outerTypeParameters(methodOrFunction, builder);
             copyTypeParameters(methodOrFunction, builder);
         }
         
@@ -4060,20 +4062,36 @@ public class ClassTransformer extends AbstractTransformer {
         }
     
         protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
-            Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
             int mods = PRIVATE | FINAL | transformMethodDeclFlags(methodOrFunction);
+            mods = mods | useStatic(methodOrFunction);
+            // TODO when container is interface
+            builder.modifiers(mods);
+        }
+
+        private int useStatic(Method methodOrFunction) {
+            Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
+            Declaration nonLocalContainer = Decl.getNonLocalDeclarationContainer(methodOrFunction);
             if (container instanceof Method) {
                 if ((transformMethodDeclFlags((Method)container) & STATIC) != 0
-                    || Decl.isLocal(container)) {
-                    mods |= STATIC;
+                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                    return STATIC;
+                }
+            } else if (container instanceof Value) {
+                if (container.isToplevel()
+                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                    return STATIC;
+                }
+            } else if (container instanceof Setter) {
+                if (container.isToplevel()
+                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                    return STATIC;
                 }
             } else if (container instanceof Class) {
             if ((transformClassDeclFlags((Class)container) & STATIC) != 0) {
-                    mods |= STATIC;
+                    return STATIC;
                 }
             }
-            // TODO when container is getter, setter, interface
-            builder.modifiers(mods);
+            return 0;
         }
     }
     LocalFunctionTransformation localFunctionTransformation = new LocalFunctionTransformation();
