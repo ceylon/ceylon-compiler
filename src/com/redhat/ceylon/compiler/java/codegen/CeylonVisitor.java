@@ -26,6 +26,7 @@ import com.redhat.ceylon.compiler.typechecker.tree.NaturalVisitor;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -175,6 +176,9 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
                     classBuilder.getCompanionBuilder((Interface)Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).getContainer()).defs(gen.classGen().localFunctionTransformation.transform(decl));
                 } else {
                     classBuilder.defs(gen.classGen().localFunctionTransformation.transform(decl));
+                }
+                if (decl.getDeclarationModel().isDeferred()) {
+                    append(gen.makeVar(Flags.FINAL, gen.naming.selector(decl.getDeclarationModel()), gen.makeJavaType(decl.getDeclarationModel().getType().getFullType()), null));
                 }
             } else {
                 appendList(gen.classGen().transformWrappedMethod(decl));

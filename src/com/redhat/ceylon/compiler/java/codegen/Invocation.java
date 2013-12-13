@@ -165,6 +165,12 @@ abstract class Invocation {
         }
     }
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result, Declaration primaryDeclaration){
+        if (primaryDeclaration instanceof Method
+                && ((Method)primaryDeclaration).isDeferred()) {
+            result.append(new ExpressionAndType(
+                    gen.naming.makeUnquotedIdent(gen.naming.selector((Method)primaryDeclaration, Naming.NA_MEMBER)),
+                    gen.makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
+        }
         java.util.List<Declaration> cl = Decl.getCapturedLocals(primaryDeclaration);
         if (cl != null) {
             for (Declaration decl : cl) {

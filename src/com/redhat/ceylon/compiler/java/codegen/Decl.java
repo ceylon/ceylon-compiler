@@ -543,9 +543,11 @@ public class Decl {
         if (declaration.isToplevel()) {
             return null;
         }
-        Scope decl = (Scope)declaration;
-        if (!includingDecl) {
-            decl = decl.getContainer();
+        Scope decl;
+        if (!includingDecl || !(declaration instanceof Scope)) {
+            decl = declaration.getContainer();
+        } else {
+            decl = (Scope)declaration;
         }
         // stop when null or when it's a ClassOrInterface
         while(decl != null

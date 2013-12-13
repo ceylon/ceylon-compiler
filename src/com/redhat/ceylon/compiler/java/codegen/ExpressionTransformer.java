@@ -4362,7 +4362,7 @@ public class ExpressionTransformer extends AbstractTransformer {
             if (Decl.isLocal(decl)) {
                 // Deferred method initialization of a local function
                 // The Callable field has the same name as the method, so use NA_MEMBER
-                result = at(op).Assign(naming.makeQualifiedName(lhs, decl, Naming.NA_WRAPPER_UNQUOTED | Naming.NA_MEMBER), rhs);
+                result = at(op).Assign(naming.makeQualIdent(lhs, naming.selector(decl, Naming.NA_MEMBER)), rhs);
             } else {
                 // Deferred method initialization of a class function
                 result = at(op).Assign(naming.makeQualifiedName(lhs, decl, Naming.NA_MEMBER), rhs);

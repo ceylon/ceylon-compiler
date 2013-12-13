@@ -89,7 +89,7 @@ class Strategy {
             decl = (Declaration) ((MethodOrValue)decl).getContainer();
         }
         
-        if (decl instanceof Method && Decl.getNonLocalDeclarationContainer(decl).isToplevel()) {
+        if (decl instanceof Method && !decl.isToplevel() && !decl.isMember() && Decl.getNonLocalDeclarationContainer(decl).isToplevel()) {
             return DefaultParameterMethodOwner.STATIC;
         }
         
