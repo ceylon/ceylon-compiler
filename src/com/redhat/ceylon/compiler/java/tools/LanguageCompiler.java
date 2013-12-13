@@ -30,18 +30,8 @@
 
 package com.redhat.ceylon.compiler.java.tools;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 import javax.annotation.processing.Processor;
 import javax.tools.FileObject;
@@ -71,11 +61,7 @@ import com.redhat.ceylon.compiler.typechecker.io.VirtualFile;
 import com.redhat.ceylon.compiler.typechecker.model.Module;
 import com.redhat.ceylon.compiler.typechecker.model.Modules;
 import com.redhat.ceylon.compiler.typechecker.model.Package;
-import com.redhat.ceylon.compiler.typechecker.parser.CeylonLexer;
-import com.redhat.ceylon.compiler.typechecker.parser.CeylonParser;
-import com.redhat.ceylon.compiler.typechecker.parser.LexError;
-import com.redhat.ceylon.compiler.typechecker.parser.ParseError;
-import com.redhat.ceylon.compiler.typechecker.parser.RecognitionError;
+import com.redhat.ceylon.compiler.typechecker.parser.*;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.CompilationUnit;
 import com.redhat.ceylon.compiler.typechecker.util.ModuleManagerFactory;
@@ -92,25 +78,19 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.util.Abort;
-import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.Context.SourceLanguage.Language;
-import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Options;
-import com.sun.tools.javac.util.Pair;
-import com.sun.tools.javac.util.Position;
 import com.sun.tools.javac.util.Position.LineMap;
 
 public class LanguageCompiler extends JavaCompiler {
 
     /** The context key for the phasedUnits. */
-    protected static final Context.Key<PhasedUnits> phasedUnitsKey = new Context.Key<PhasedUnits>();
-    public static final Context.Key<CompilerDelegate> compilerDelegateKey = new Context.Key<CompilerDelegate>();
+    protected static final Context.Key<PhasedUnits> phasedUnitsKey = new Context.Key<>();
+    public static final Context.Key<CompilerDelegate> compilerDelegateKey = new Context.Key<>();
 
     /** The context key for the ceylon context. */
-    public static final Context.Key<com.redhat.ceylon.compiler.typechecker.context.Context> ceylonContextKey = new Context.Key<com.redhat.ceylon.compiler.typechecker.context.Context>();
+    public static final Context.Key<com.redhat.ceylon.compiler.typechecker.context.Context> ceylonContextKey = new Context.Key<>();
 
     private final CeylonTransformer gen;
     private final PhasedUnits phasedUnits;
@@ -128,9 +108,9 @@ public class LanguageCompiler extends JavaCompiler {
     private boolean isBootstrap;
     private boolean addedDefaultModuleToClassPath;
     private boolean treatLikelyBugsAsErrors = false;
-    private Set<Module> modulesLoadedFromSource = new HashSet<Module>();
+    private Set<Module> modulesLoadedFromSource = new HashSet<>();
     private List<JavaFileObject> resourceFileObjects;
-    private Map<String,CeylonFileObject> moduleNamesToFileObjects = new HashMap<String,CeylonFileObject>();
+    private Map<String,CeylonFileObject> moduleNamesToFileObjects = new HashMap<>();
 
     /** Get the PhasedUnits instance for this context. */
     public static PhasedUnits getPhasedUnitsInstance(final Context context) {
@@ -284,7 +264,7 @@ public class LanguageCompiler extends JavaCompiler {
     }
 
     private void addResources() throws Abort {
-       HashSet<String> written = new HashSet<String>();
+       HashSet<String> written = new HashSet<>();
         try {
             for (JavaFileObject fo : resourceFileObjects) {
                 CeyloncFileManager dfm = (CeyloncFileManager) fileManager;
@@ -292,18 +272,11 @@ public class LanguageCompiler extends JavaCompiler {
                 if (!written.contains(jarFileName)) {
                     dfm.setModule(modelLoader.findModuleForFile(new File(jarFileName)));
                     FileObject outFile = dfm.getFileForOutput(StandardLocation.CLASS_OUTPUT, "", jarFileName, null);
-                    OutputStream out = outFile.openOutputStream();
-                    try {
-                        InputStream in = new FileInputStream(new File(fo.getName()));
-                        try {
-                            JarUtils.copy(in, out);
-                        } finally {
-                            in.close();
-                        }
-                    } finally {
-                        out.close();
+                    try (OutputStream out = outFile.openOutputStream();
+                         InputStream in = new FileInputStream(new File(fo.getName()))) {
+                        JarUtils.copy(in, out);
+                        written.add(jarFileName);
                     }
-                    written.add(jarFileName);
                 }
             }
         } catch (IOException ex) {
@@ -435,7 +408,7 @@ public class LanguageCompiler extends JavaCompiler {
         modelLoader.fixDefaultPackage();
         List<JCCompilationUnit> trees = super.parseFiles(fileObjects);
         timer.startTask("loadCompiledModules");
-        LinkedList<JCCompilationUnit> moduleTrees = new LinkedList<JCCompilationUnit>();
+        LinkedList<JCCompilationUnit> moduleTrees = new LinkedList<>();
         // now load modules and associate their moduleless packages with the corresponding modules
         loadCompiledModules(trees, moduleTrees);
         for (JCCompilationUnit moduleTree : moduleTrees) {
@@ -677,7 +650,7 @@ public class LanguageCompiler extends JavaCompiler {
             /* does not seem to be a way to determine the max line number so we do an ugly try-catch */
             try {
                 pos = map.getStartPosition(le.getLine()) + le.getCharacterInLine();
-            } catch (Exception e) { }
+            } catch (Exception ignored) { }
         }
         log.error(pos, key, message);
     }
