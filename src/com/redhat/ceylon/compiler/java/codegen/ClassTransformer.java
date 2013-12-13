@@ -3945,10 +3945,36 @@ public class ClassTransformer extends AbstractTransformer {
             if (Decl.isLocal(container)) {
                 outerTypeParameters(container, builder);
             }
-            if (container instanceof Functional) {
+            if (container instanceof Functional
+                    && !(container instanceof Class)) {
                 copyTypeParameters((Functional)container, builder);
             }
         }
+        
+        private void outerReifiedTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
+            Declaration container = Decl.getDeclarationContainer(function);
+            if (Decl.isLocal(container)) {
+                outerReifiedTypeParameters(container, builder);
+            }
+            if (container instanceof Functional
+                    && !(container instanceof Class)) {
+                builder.reifiedTypeParameters(((Functional)container).getTypeParameters());
+            }
+        }
+        private void outerReifiedTypeArguments(Declaration declaration, ListBuffer<JCExpression> result) {
+            Declaration container = Decl.getDeclarationContainer(declaration);
+            if (Decl.isLocal(container)) {
+                outerReifiedTypeArguments(container, result);
+            }
+            if (container instanceof Functional
+                    && !(container instanceof Class)) {
+                for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+                    JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                    result.append(reifiedTypeArg);
+                }
+            }
+        }
+        
         
         /**
          * The overload methods need:
@@ -3979,6 +4005,7 @@ public class ClassTransformer extends AbstractTransformer {
                             overloadBuilder.capturedLocalParameter((TypedDeclaration)captured);
                         }
                     }
+                    outerReifiedTypeParameters(method, overloadBuilder);
                     super.transformParameterList(method, parameterList, currentParameter, overloadBuilder);
                 }
                 @Override
@@ -3990,6 +4017,7 @@ public class ClassTransformer extends AbstractTransformer {
                             args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                         }
                     }
+                    outerReifiedTypeArguments(method, args);
                     super.appendImplicitArguments(method, typeParameterList, overloadBuilder, args);
                 }
                 /** Returns the name of the method that the overload delegates to */
@@ -4041,6 +4069,7 @@ public class ClassTransformer extends AbstractTransformer {
                             methodBuilder.capturedLocalParameter((TypedDeclaration)captured);
                         }
                     }
+                    outerReifiedTypeParameters(method, methodBuilder);
                     super.transformParameterList(method, parameterList, parameter, methodBuilder);
                 }
             };
@@ -4057,6 +4086,7 @@ public class ClassTransformer extends AbstractTransformer {
                     builder.capturedLocalParameter((TypedDeclaration)captured);
                 }
             }
+            outerReifiedTypeParameters(methodOrFunction.getDeclarationModel(), builder);
             super.transformUltimateParameterList(methodOrFunction, builder);
         }
     

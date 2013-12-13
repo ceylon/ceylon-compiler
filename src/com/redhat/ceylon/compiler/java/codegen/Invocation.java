@@ -47,6 +47,7 @@ import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
 import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
+import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
@@ -185,6 +186,21 @@ abstract class Invocation {
                             gen.naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT),
                             gen.makeJavaType(((TypedDeclaration)decl).getType())));
                 }
+            }
+        }
+        addCapturedReifiedTypeParameters(getPrimaryDeclaration(), result);
+    }
+    
+    private void addCapturedReifiedTypeParameters(Declaration declaration, ListBuffer<ExpressionAndType> result) {
+        Declaration container = Decl.getDeclarationContainer(declaration);
+        if (Decl.isLocal(container)) {
+            addCapturedReifiedTypeParameters(container, result);
+        }
+        if (container instanceof Functional
+                && !(container instanceof Class)) {
+            for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+                JCExpression reifiedTypeArg = gen.makeReifiedTypeArgument(tp.getType());
+                result.append(new ExpressionAndType(reifiedTypeArg, gen.makeTypeDescriptorType()));
             }
         }
     }
