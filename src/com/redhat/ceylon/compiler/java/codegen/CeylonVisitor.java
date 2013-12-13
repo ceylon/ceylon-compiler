@@ -171,7 +171,11 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             classBuilder.method(decl);
         } else {
             if (Decl.isLocal(decl)) {
-                classBuilder.defs(gen.classGen().localFunctionTransformation.transform(decl));
+                if (Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).isInterfaceMember()) {
+                    classBuilder.getCompanionBuilder((Interface)Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).getContainer()).defs(gen.classGen().localFunctionTransformation.transform(decl));
+                } else {
+                    classBuilder.defs(gen.classGen().localFunctionTransformation.transform(decl));
+                }
             } else {
                 appendList(gen.classGen().transformWrappedMethod(decl));
             }

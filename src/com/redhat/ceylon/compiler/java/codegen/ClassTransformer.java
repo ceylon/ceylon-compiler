@@ -3965,7 +3965,7 @@ public class ClassTransformer extends AbstractTransformer {
             return new DefaultedArgumentMethod() {
                 @Override
                 protected long getModifiers(Method method, DaoBody<Method> daoBody) {
-                    return PRIVATE | useStatic(method) | (super.getModifiers(method, daoBody) & ~(PUBLIC | PROTECTED));
+                    return PRIVATE | FINAL | useStatic(method) | (super.getModifiers(method, daoBody) & ~(PUBLIC | PROTECTED));
                 }
                 @Override
                 protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {

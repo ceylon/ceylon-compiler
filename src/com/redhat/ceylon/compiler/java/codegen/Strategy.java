@@ -93,7 +93,7 @@ class Strategy {
             return DefaultParameterMethodOwner.STATIC;
         }
         
-        if (decl instanceof Method && Decl.isLocal(decl) && Decl.getNonLocalDeclarationContainer(decl).isClassMember()) {
+        if (decl instanceof Method && Decl.isLocal(decl) && Decl.getNonLocalDeclarationContainer(decl).isMember()) {
             return DefaultParameterMethodOwner.SELF;
         }
         
