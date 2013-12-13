@@ -160,7 +160,10 @@ abstract class Invocation {
     protected abstract void addReifiedArguments(ListBuffer<ExpressionAndType> result);
     
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result){
-        java.util.List<Declaration> cl = Decl.getCapturedLocals(getPrimaryDeclaration());
+        addCapturedLocalArguments(result, getPrimaryDeclaration());
+    }
+    protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result, Declaration primaryDeclaration){
+        java.util.List<Declaration> cl = Decl.getCapturedLocals(primaryDeclaration);
         if (cl != null) {
             for (Declaration decl : cl) {
                 if (decl instanceof Method 
@@ -188,19 +191,21 @@ abstract class Invocation {
                 }
             }
         }
-        addCapturedReifiedTypeParameters(getPrimaryDeclaration(), result);
+        addCapturedReifiedTypeParameters(primaryDeclaration, result);
     }
     
     private void addCapturedReifiedTypeParameters(Declaration declaration, ListBuffer<ExpressionAndType> result) {
         Declaration container = Decl.getDeclarationContainer(declaration);
-        if (Decl.isLocal(container)) {
-            addCapturedReifiedTypeParameters(container, result);
-        }
-        if (container instanceof Functional
-                && !(container instanceof Class)) {
-            for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
-                JCExpression reifiedTypeArg = gen.makeReifiedTypeArgument(tp.getType());
-                result.append(new ExpressionAndType(reifiedTypeArg, gen.makeTypeDescriptorType()));
+        if (container != null) {
+            if (Decl.isLocal(container)) {
+                addCapturedReifiedTypeParameters(container, result);
+            }
+            if (container instanceof Functional
+                    && !(container instanceof Class)) {
+                for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+                    JCExpression reifiedTypeArg = gen.makeReifiedTypeArgument(tp.getType());
+                    result.append(new ExpressionAndType(reifiedTypeArg, gen.makeTypeDescriptorType()));
+                }
             }
         }
     }
@@ -850,6 +855,8 @@ class SuperInvocation extends PositionalInvocation {
  */
 class CallableInvocation extends DirectInvocation {
     
+    private Functional functional;
+    
     private final java.util.List<Parameter> callableParameters;
     
     private final java.util.List<Parameter> functionalParameters;
@@ -863,7 +870,7 @@ class CallableInvocation extends DirectInvocation {
             Declaration primaryDeclaration, ProducedReference producedReference, ProducedType returnType,
             Tree.Term expr, ParameterList parameterList, int parameterCount, boolean tempVars) {
         super(gen, primary, primaryDeclaration, producedReference, returnType, expr);
-        Functional functional = null;
+        functional = null;
         if(primary instanceof Tree.MemberOrTypeExpression)
             functional = (Functional) ((Tree.MemberOrTypeExpression) primary).getDeclaration();
         else if(primary instanceof Tree.FunctionArgument)
@@ -882,6 +889,12 @@ class CallableInvocation extends DirectInvocation {
             setErased(CodegenUtil.hasTypeErased(tdecl)|| CodegenUtil.hasTypeErased(primary));
         }
         this.tempVars = tempVars;
+    }
+    
+    protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result){
+        if (functional instanceof Declaration) {
+            addCapturedLocalArguments(result, (Declaration)functional);
+        }
     }
 
     @Override
