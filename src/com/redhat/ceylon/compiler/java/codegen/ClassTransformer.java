@@ -3969,7 +3969,6 @@ public class ClassTransformer extends AbstractTransformer {
                 }
                 @Override
                 protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
-                    Declaration container = Decl.getDeclarationContainer(method, false);
                     outerTypeParameters(method, overloadBuilder);
                     super.transformTypeParameterList(method, overloadBuilder);
                 }
