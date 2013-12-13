@@ -160,7 +160,9 @@ abstract class Invocation {
     protected abstract void addReifiedArguments(ListBuffer<ExpressionAndType> result);
     
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result){
-        addCapturedLocalArguments(result, getPrimaryDeclaration());
+        if (getPrimaryDeclaration() != null) {
+            addCapturedLocalArguments(result, getPrimaryDeclaration());
+        }
     }
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result, Declaration primaryDeclaration){
         java.util.List<Declaration> cl = Decl.getCapturedLocals(primaryDeclaration);
