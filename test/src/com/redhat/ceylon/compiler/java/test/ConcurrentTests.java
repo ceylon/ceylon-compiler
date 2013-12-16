@@ -57,6 +57,7 @@ import com.redhat.ceylon.compiler.java.test.statement.TryCatchTest;
 import com.redhat.ceylon.compiler.java.test.structure.StructureTest;
 import com.redhat.ceylon.compiler.java.test.structure.StructureTest2;
 import com.redhat.ceylon.compiler.java.test.structure.StructureTest3;
+import com.redhat.ceylon.compiler.java.test.structure.capture.CaptureTest;
 import com.redhat.ceylon.compiler.java.test.structure.local.LocalTest;
 import com.redhat.ceylon.tools.test.CompilerToolsTests;
 
@@ -79,6 +80,7 @@ import com.redhat.ceylon.tools.test.CompilerToolsTests;
 
     // those can run in any order
     NamingTest.class,
+    CaptureTest.class,
     AnnotationsTest.class,
     InteropTest.class,
     ModelLoaderTest.class,
