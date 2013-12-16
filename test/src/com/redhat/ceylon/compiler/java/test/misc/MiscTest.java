@@ -258,6 +258,7 @@ public class MiscTest extends CompilerTest {
                 "collection", 
                 "dbc",
                 "file",
+                "html",
                 "interop.java",
                 "io",
                 "json",
@@ -265,7 +266,8 @@ public class MiscTest extends CompilerTest {
                 "net",
                 "process",
                 "test",
-                "time"
+                "time",
+                "unicode"
         };
 //        System.out.println("Press enter to continue");
 //        System.in.read();
