@@ -123,5 +123,26 @@ interface FunctionLocalToToplevelInterfaceMethod<T>
         }
         mpl(u)(1);
         ref = mpl;
+        
+        Anything deferred(U i=u);
+        if (1+1==2) {
+            deferred = function(U i){ return i; };
+            class X() {
+                deferred(u);
+                deferred();
+                deferred{
+                    i=u;
+                };
+                //ref = deferred;
+            }
+        } else {
+            deferred = function(U i){ return i; };
+        }
+        deferred(u);
+        deferred();
+        deferred{
+            i=u;
+        };
+        ref = deferred;
     }
 }

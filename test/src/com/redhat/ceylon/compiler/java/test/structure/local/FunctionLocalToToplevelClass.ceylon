@@ -100,4 +100,29 @@ class FunctionLocalToToplevelClass<U>(U u)
     }
     mpl(u)(1);
     ref = mpl;
+    
+    Anything deferred(U i=u);
+    Anything deferredCaptured(U i=u);
+    
+    if (1+1==2) {
+        deferred = function(U i){ return i; };
+        deferredCaptured = deferred;
+        class X() {
+            deferredCaptured(u);
+            deferredCaptured();
+            deferredCaptured{
+                i=u;
+            };
+            ref = deferredCaptured;
+        }
+    } else {
+        deferred = function(U i){ return i; };
+        deferredCaptured = deferred;
+    }
+    deferred(u);
+    deferred();
+    deferred{
+        i=u;
+    };
+    ref = deferred;
 }

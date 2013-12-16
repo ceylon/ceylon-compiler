@@ -126,4 +126,25 @@ assign functionLocalToToplevelValue {
         i=0;
     };
     ref = defaultedParameters;
+    
+    Anything deferred(Integer i=x);
+    if (1+1==2) {
+        deferred = function(Integer i){ return i; };
+        class X() {
+            deferred(x);
+            deferred();
+            deferred{
+                i=x;
+            };
+            //ref = deferred;
+        }
+    } else {
+        deferred = function(Integer i){ return i; };
+    }
+    deferred(1);
+    deferred();
+    deferred{
+        i=1;
+    };
+    ref = deferred;
 }

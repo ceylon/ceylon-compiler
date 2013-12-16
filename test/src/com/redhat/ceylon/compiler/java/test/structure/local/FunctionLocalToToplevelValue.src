@@ -127,6 +127,24 @@ final class functionLocalToToplevelValue_ {
         return i + j;
     }
     
+    private static final .java.lang.Object deferred$8(final .ceylon.language.Callable<? extends .java.lang.Object> deferred$8, final long x$26) {
+        return (
+            let
+            {
+                long $ceylontmp$i$27 = .com.redhat.ceylon.compiler.java.test.structure.local.functionLocalToToplevelValue_.deferred$8$i(x$26);
+            }
+            returning deferred$8(deferred$8, x$26, $ceylontmp$i$27);
+        );
+    }
+    
+    private static final long deferred$8$i(final long x$28) {
+        return x$28;
+    }
+    
+    private static final .java.lang.Object deferred$8(final .ceylon.language.Callable<? extends .java.lang.Object> deferred$8, final long x$29, final long i) {
+        if (deferred$8 == null) throw new .com.redhat.ceylon.compiler.java.language.UninitializedMethodError(); else return deferred$8.$call$(.ceylon.language.Integer.instance(i));
+    }
+    
     public static long get_() {
         final long x = 0L;
         .java.lang.Object ref = null;
@@ -330,6 +348,68 @@ final class functionLocalToToplevelValue_ {
                 final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
                 final long $ceylontmp$j = ((.ceylon.language.Integer)$param$1).longValue();
                 return .ceylon.language.Integer.instance(defaultedParameters$8($ceylontmp$i, $ceylontmp$j));
+            }
+        };
+        final .ceylon.language.Callable<? extends .java.lang.Object> deferred$8;
+        if (1L + 1L == 2L) {
+            deferred$8 = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(Integer)", (short)-1){
+                
+                @.java.lang.Override
+                public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
+                    final long i = ((.ceylon.language.Integer)$param$0).longValue();
+                    return .ceylon.language.Integer.instance(i);
+                }
+            };
+            
+            class X implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+                
+                X() {
+                    deferred$8(deferred$8, x, x);
+                    deferred$8(deferred$8, x);
+                    (
+                        let
+                        {
+                            long arg$31$0 = x;
+                        }
+                        returning deferred$8(deferred$8, x, arg$31$0);
+                    );
+                }
+                
+                @.java.lang.Override
+                public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+                    return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(X.class);
+                }
+            }
+        } else {
+            deferred$8 = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(Integer)", (short)-1){
+                
+                @.java.lang.Override
+                public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
+                    final long i = ((.ceylon.language.Integer)$param$0).longValue();
+                    return .ceylon.language.Integer.instance(i);
+                }
+            };
+        }
+        deferred$8(deferred$8, x, 1L);
+        deferred$8(deferred$8, x);
+        (
+            let
+            {
+                long arg$32$0 = 1L;
+            }
+            returning deferred$8(deferred$8, x, arg$32$0);
+        );
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$)), "Anything(Integer=)", (short)-1){
+            
+            @.java.lang.Override
+            public .java.lang.Object $call$() {
+                return deferred$8(deferred$8, x);
+            }
+            
+            @.java.lang.Override
+            public .java.lang.Object $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
+                return deferred$8(deferred$8, x, $ceylontmp$i);
             }
         };
     }
