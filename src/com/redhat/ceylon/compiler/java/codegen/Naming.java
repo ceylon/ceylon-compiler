@@ -1272,6 +1272,8 @@ public class Naming implements LocalId {
             if ((decl.isCaptured() && decl.isVariable())
                     || decl.isSelfCaptured()) {
                 expr = makeQualIdent(expr, getVariableBoxName(decl));
+            } else if (isSubstituted(decl)) {
+                expr = makeQualIdent(expr, substitute(decl));
             } else {
                 expr = makeQualIdent(expr, getAttrClassName(decl, namingOptions & (NA_GETTER | NA_SETTER)));
             }
