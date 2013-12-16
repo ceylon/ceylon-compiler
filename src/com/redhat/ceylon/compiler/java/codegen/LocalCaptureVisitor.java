@@ -3,6 +3,7 @@ package com.redhat.ceylon.compiler.java.codegen;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
@@ -66,7 +67,7 @@ public class LocalCaptureVisitor extends Visitor {
                 if (scope == declScope) {
                     break;
                 }
-                if (isStaticDeclaration(scope)) {
+                if (isStaticDeclaration(scope) && !(scope.getContainer() instanceof Class)) {
                     addCapture((Declaration)scope, that.getDeclaration());
                 }
                 scope = scope.getContainer();

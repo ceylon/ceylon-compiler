@@ -365,7 +365,8 @@ public abstract class CompilerTest {
         task.setTaskListener(listener);
 
         // now compile it all the way
-        assertCompilesOk(collector, task.call2());
+        ExitState r = task.call2();
+        assertCompilesOk(collector, r);
         
         // now look at what we expected
         File expectedSrcFile = new File(getPackagePath(), java);
@@ -379,8 +380,9 @@ public abstract class CompilerTest {
 //            writeFile(expectedSrcFile, compiledSrc);
 //            expectedSrc = compiledSrc;
 //        }
-        
-        Assert.assertEquals("Source code differs", expectedSrc, compiledSrc);
+        if (r.ceylonState == CeylonState.ERROR) {
+            Assert.assertEquals(collector.getAssertionFailureMessage(), expectedSrc, compiledSrc);
+        }
     }
 
     protected void assertCompilesOk(ErrorCollector collector, ExitState exitState)
@@ -401,7 +403,7 @@ public abstract class CompilerTest {
             break;
         case ERROR:
             Assert.fail(collector.getAssertionFailureMessage());
-            break;
+            //break;
         case SYS:
             Assert.fail("System error");
             break;
