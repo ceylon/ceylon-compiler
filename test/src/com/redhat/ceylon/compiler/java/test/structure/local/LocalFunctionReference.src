@@ -1,0 +1,109 @@
+package com.redhat.ceylon.compiler.java.test.expression.invoke;
+
+final class localFunctionReference_ {
+    
+    private localFunctionReference_() {
+    }
+    
+    private static final long withCapture$0(final long i$0, final long x) {
+        return i$0 + x;
+    }
+    
+    private static final long withVariableCapture$0(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong j$1, final long x) {
+        return x + (
+            let
+            {
+                long $ceylontmp$op$2 = j$1.ref;
+                j$1.ref = $ceylontmp$op$2 + 1;
+            }
+            returning $ceylontmp$op$2;
+        );
+    }
+    
+    private static final long withDefaulted$0(final long x) {
+        return (
+            let
+            {
+                long $ceylontmp$y$3 = .com.redhat.ceylon.compiler.java.test.expression.invoke.localFunctionReference_.withDefaulted$0$y(x);
+            }
+            returning withDefaulted$0(x, $ceylontmp$y$3);
+        );
+    }
+    
+    private static final long withDefaulted$0$y(final long x) {
+        return 0L;
+    }
+    
+    private static final long withDefaulted$0(final long x, final long y) {
+        return x + y;
+    }
+    
+    private static final long withDefaultedAndCaptured$0(final long i$4, final long x) {
+        return (
+            let
+            {
+                long $ceylontmp$y$5 = .com.redhat.ceylon.compiler.java.test.expression.invoke.localFunctionReference_.withDefaultedAndCaptured$0$y(i$4, x);
+            }
+            returning withDefaultedAndCaptured$0(i$4, x, $ceylontmp$y$5);
+        );
+    }
+    
+    private static final long withDefaultedAndCaptured$0$y(final long i$6, final long x) {
+        return i$6;
+    }
+    
+    private static final long withDefaultedAndCaptured$0(final long i$7, final long x, final long y) {
+        return x + y;
+    }
+    
+    static void localFunctionReference(final long i) {
+        .ceylon.language.Callable<? extends .ceylon.language.Integer> f = null;
+        f = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(Integer)", (short)-1){
+            
+            @.java.lang.Override
+            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$0).longValue();
+                return .ceylon.language.Integer.instance(withCapture$0(i, $ceylontmp$x));
+            }
+        };
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong j = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(i);
+        f = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(Integer)", (short)-1){
+            
+            @.java.lang.Override
+            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$0).longValue();
+                return .ceylon.language.Integer.instance(withVariableCapture$0(j, $ceylontmp$x));
+            }
+        };
+        f = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$))), "Integer(Integer, Integer=)", (short)-1){
+            
+            @.java.lang.Override
+            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$0).longValue();
+                return .ceylon.language.Integer.instance(withDefaulted$0($ceylontmp$x));
+            }
+            
+            @.java.lang.Override
+            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0, final .java.lang.Object $param$1) {
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$0).longValue();
+                final long $ceylontmp$y = ((.ceylon.language.Integer)$param$1).longValue();
+                return .ceylon.language.Integer.instance(withDefaulted$0($ceylontmp$x, $ceylontmp$y));
+            }
+        };
+        f = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$))), "Integer(Integer, Integer=)", (short)-1){
+            
+            @.java.lang.Override
+            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$0).longValue();
+                return .ceylon.language.Integer.instance(withDefaultedAndCaptured$0(i, $ceylontmp$x));
+            }
+            
+            @.java.lang.Override
+            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0, final .java.lang.Object $param$1) {
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$0).longValue();
+                final long $ceylontmp$y = ((.ceylon.language.Integer)$param$1).longValue();
+                return .ceylon.language.Integer.instance(withDefaultedAndCaptured$0(i, $ceylontmp$x, $ceylontmp$y));
+            }
+        };
+    }
+}

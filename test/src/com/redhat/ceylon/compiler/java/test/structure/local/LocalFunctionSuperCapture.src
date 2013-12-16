@@ -1,0 +1,231 @@
+package com.redhat.ceylon.compiler.java.test.expression.invoke;
+
+class LocalFunctionSuperCaptureClass<X, Y> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+    
+    LocalFunctionSuperCaptureClass(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
+        this.$reified$X = $reified$X;
+        this.$reified$Y = $reified$Y;
+    }
+    private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X;
+    private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y;
+    
+    public X getGetXC() {
+        return (X).ceylon.language.nothing_.get_();
+    }
+    
+    public void setGetXC(final X getXC) {
+    }
+    
+    public Y getGetYC() {
+        return (Y).ceylon.language.nothing_.get_();
+    }
+    
+    public void setGetYC(final Y getYC) {
+    }
+    
+    public .java.lang.Object takesXC(final X x) {
+        return null;
+    }
+    
+    public .java.lang.Object takesYC(final Y y) {
+        return null;
+    }
+    
+    public X returnsXC() {
+        return (X).ceylon.language.nothing_.get_();
+    }
+    
+    public Y returnsYC() {
+        return (Y).ceylon.language.nothing_.get_();
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureClass(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
+    }
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureClass.class, $reified$X, $reified$Y);
+    }
+}
+interface LocalFunctionSuperCaptureInterface<X, Y> {
+    
+    public .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<X, Y> $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$impl();
+    
+    public X getGetXI();
+    
+    public void setGetXI(final X getXI);
+    
+    public Y getGetYI();
+    
+    public void setGetYI(final Y getYI);
+    
+    public .java.lang.Object takesXI(final X x);
+    
+    public .java.lang.Object takesYI(final Y y);
+    
+    public X returnsXI();
+    
+    public Y returnsYI();
+}
+final class LocalFunctionSuperCaptureInterface$impl<X, Y> {
+    
+    LocalFunctionSuperCaptureInterface$impl(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface<X, Y> $this) {
+        this.$reified$X = $reified$X;
+        this.$reified$Y = $reified$Y;
+        this.$this = $this;
+    }
+    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X;
+    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y;
+    private final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface<X, Y> $this;
+    
+    public void $refine$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
+        this.$reified$Y = $reified$Y;
+        this.$reified$X = $reified$X;
+    }
+    
+    public final X getGetXI() {
+        return (X).ceylon.language.nothing_.get_();
+    }
+    
+    public final void setGetXI(final X getXI) {
+    }
+    
+    public final Y getGetYI() {
+        return (Y).ceylon.language.nothing_.get_();
+    }
+    
+    public final void setGetYI(final Y getYI) {
+    }
+    
+    public .java.lang.Object takesXI(final X x) {
+        return null;
+    }
+    
+    public .java.lang.Object takesYI(final Y y) {
+        return null;
+    }
+    
+    public X returnsXI() {
+        return (X).ceylon.language.nothing_.get_();
+    }
+    
+    public Y returnsYI() {
+        return (Y).ceylon.language.nothing_.get_();
+    }
+}
+class LocalFunctionSuperCapture<T> extends .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureClass<.ceylon.language.Integer, T> implements .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface<.ceylon.language.Integer, T> {
+    
+    LocalFunctionSuperCapture(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        super(.ceylon.language.Integer.$TypeDescriptor$, $reified$T);
+        this.$reified$T = $reified$T;
+        this.$com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$this$ = new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T>(.ceylon.language.Integer.$TypeDescriptor$, $reified$T, this);
+    }
+    private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
+    protected final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T> $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$this$;
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T> $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$impl() {
+        return $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$this$;
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Integer getGetXC() {
+        return (.ceylon.language.Integer).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public void setGetXC(final .ceylon.language.Integer getXC) {
+    }
+    
+    @.java.lang.Override
+    public T getGetYC() {
+        return (T).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public void setGetYC(final T getYC) {
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object takesXC(final .ceylon.language.Integer x) {
+        return null;
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object takesYC(final T y) {
+        return null;
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Integer returnsXC() {
+        return (.ceylon.language.Integer).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public T returnsYC() {
+        return (T).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Integer getGetXI() {
+        return (.ceylon.language.Integer).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public void setGetXI(final .ceylon.language.Integer getXI) {
+    }
+    
+    @.java.lang.Override
+    public T getGetYI() {
+        return (T).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public void setGetYI(final T getYI) {
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object takesXI(final .ceylon.language.Integer x) {
+        return null;
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object takesYI(final T y) {
+        return null;
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Integer returnsXI() {
+        return (.ceylon.language.Integer).ceylon.language.nothing_.get_();
+    }
+    
+    @.java.lang.Override
+    public T returnsYI() {
+        return (T).ceylon.language.nothing_.get_();
+    }
+    
+    private final void local$0() {
+        long i = 0L;
+        T t = null;
+        i = super.getGetXC().longValue();
+        t = super.getGetYC();
+        super.takesXC(super.returnsXC());
+        super.takesYC(super.returnsYC());
+    }
+    
+    private final void m$priv$() {
+        local$0();
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCapture(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
+    }
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCapture.class, $reified$T);
+    }
+}

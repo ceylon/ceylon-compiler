@@ -1,0 +1,242 @@
+package com.redhat.ceylon.compiler.java.test.expression.invoke;
+
+class LocalFunctionInvocation implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+    
+    LocalFunctionInvocation() {
+    }
+    
+    class Inner implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        Inner() {
+            this.simple = 0L;
+        }
+        private final long simple;
+        
+        public final long getSimple() {
+            return simple;
+        }
+        
+        public final long getAttribute() {
+            return 0L;
+        }
+        
+        public final void setAttribute(final long attribute) {
+        }
+        
+        public final long method(final long y) {
+            return y;
+        }
+        
+        public final long memberCapture() {
+            long z = 0L;
+            
+            static final class captureSimpleMember_ {
+                
+                private captureSimpleMember_() {
+                }
+                
+                static long captureSimpleMember(final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner Inner$this$, final long x) {
+                    return Inner$this$.getSimple() + x;
+                }
+            }
+            z = captureSimpleMember_.captureSimpleMember(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner.this, z);
+            
+            static final class captureGetterMember_ {
+                
+                private captureGetterMember_() {
+                }
+                
+                static long captureGetterMember(final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner Inner$this$, final long x) {
+                    return Inner$this$.getAttribute() + x;
+                }
+            }
+            z = captureGetterMember_.captureGetterMember(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner.this, z);
+            
+            static final class captureSetterMember_ {
+                
+                private captureSetterMember_() {
+                }
+                
+                static long captureSetterMember(final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner Inner$this$, final long x) {
+                    Inner$this$.setAttribute(x);
+                    (
+                        let
+                        {
+                            long $ceylontmp$op$0 = Inner$this$.getAttribute();
+                            Inner$this$.setAttribute($ceylontmp$op$0 + 1);
+                        }
+                        returning $ceylontmp$op$0;
+                    );
+                    (
+                        let
+                        {
+                            long $ceylontmp$op$1 = Inner$this$.getAttribute() + x;
+                            Inner$this$.setAttribute($ceylontmp$op$1);
+                        }
+                        returning $ceylontmp$op$1;
+                    );
+                    return x;
+                }
+            }
+            z = captureSetterMember_.captureSetterMember(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner.this, z);
+            
+            static final class captureMethod_ {
+                
+                private captureMethod_() {
+                }
+                
+                static long captureMethod(final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner Inner$this$, final long x) {
+                    return Inner$this$.method(x);
+                }
+            }
+            z = captureMethod_.captureMethod(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner.this, z);
+            return z;
+        }
+        
+        public final long selfRefCapture() {
+            long z = 0L;
+            
+            static final class captureThis_ {
+                
+                private captureThis_() {
+                }
+                
+                static .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner captureThis(final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner Inner$this$) {
+                    return Inner$this$;
+                }
+            }
+            z = captureThis_.captureThis(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner.this).hashCode();
+            
+            static final class captureOuter_ {
+                
+                private captureOuter_() {
+                }
+                
+                static .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation captureOuter(final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation LocalFunctionInvocation$this$) {
+                    return LocalFunctionInvocation$this$;
+                }
+            }
+            z = captureOuter_.captureOuter(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.this).hashCode();
+            return z;
+        }
+        
+        public final long localCapture() {
+            long z = 0L;
+            final long localValue = 0L;
+            
+            static final class captureLocalValue_ {
+                
+                private captureLocalValue_() {
+                }
+                
+                static long captureLocalValue(final long localValue, final long y) {
+                    return y + localValue;
+                }
+            }
+            z = captureLocalValue_.captureLocalValue(localValue, z);
+            final long localValueDeferred;
+            localValueDeferred = 0L;
+            
+            static final class captureLocalValueDeferred_ {
+                
+                private captureLocalValueDeferred_() {
+                }
+                
+                static long captureLocalValueDeferred(final long localValueDeferred, final long y) {
+                    return y + localValueDeferred;
+                }
+            }
+            z = captureLocalValueDeferred_.captureLocalValueDeferred(localValueDeferred, z);
+            .com.redhat.ceylon.compiler.java.language.GetterLong localGetterDeferred$getter$_;
+            localGetterDeferred$getter$_ = (
+                let
+                {
+                    
+                    final class localGetterDeferred$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                        
+                        private localGetterDeferred$getter$_() {
+                        }
+                        
+                        public long get_() {
+                            return 0L;
+                        }
+                    }
+                }
+                returning new localGetterDeferred$getter$_();
+            );
+            
+            static final class captureLocalDeferredGetter_ {
+                
+                private captureLocalDeferredGetter_() {
+                }
+                
+                static long captureLocalDeferredGetter(final .com.redhat.ceylon.compiler.java.language.GetterLong localGetterDeferred$getter$_, final long y) {
+                    return y + localGetterDeferred$getter$_.get_();
+                }
+            }
+            z = captureLocalDeferredGetter_.captureLocalDeferredGetter(localGetterDeferred$getter$_, z);
+            
+            final class localGetterSetter$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                
+                private localGetterSetter$getter$_() {
+                }
+                
+                public long get_() {
+                    return 0L;
+                }
+            }
+            final .com.redhat.ceylon.compiler.java.language.GetterLong localGetterSetter$getter$_ = new localGetterSetter$getter$_();
+            
+            final class localGetterSetter$setter$_ {
+                
+                private localGetterSetter$setter$_() {
+                }
+                private long value;
+                
+                public void set_(final long localGetterSetter) {
+                }
+            }
+            final localGetterSetter$setter$_ localGetterSetter$setter$_ = new localGetterSetter$setter$_();
+            
+            static final class captureLocalGetterSetter_ {
+                
+                private captureLocalGetterSetter_() {
+                }
+                
+                static long captureLocalGetterSetter(final .com.redhat.ceylon.compiler.java.language.GetterLong localGetterSetter, final localGetterSetter$setter$_ localGetterSetter$setter$_, final long y) {
+                    localGetterSetter$setter$_.set_(y);
+                    return localGetterSetter.get_();
+                }
+            }
+            z = captureLocalGetterSetter_.captureLocalGetterSetter(localGetterSetter$getter$_, localGetterSetter$setter$_, z);
+            
+            static final class captureLocalFunction_ {
+                
+                private captureLocalFunction_() {
+                }
+                
+                static long captureLocalFunction(final long localValue, final long y) {
+                    return captureLocalValue_.captureLocalValue(localValue, y);
+                }
+            }
+            z = captureLocalFunction_.captureLocalFunction(localValue, z);
+            return z;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.member(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.Inner.class));
+        }
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation();
+    }
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+        return .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.$TypeDescriptor$;
+    }
+    public static final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $TypeDescriptor$ = .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionInvocation.class);
+}

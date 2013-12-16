@@ -10,6 +10,33 @@ import com.redhat.ceylon.compiler.java.test.CompilerTest;
 public class LocalTest extends CompilerTest {
 
     @Test
+    public void testLocalFunctionReference(){
+        compareWithJavaSource("LocalFunctionReference");
+    }
+    
+    @Test
+    public void testLocalFunctionInvocation(){
+        compareWithJavaSource("LocalFunctionInvocation");
+    }
+    
+    @Test
+    public void testLocalFunctionSuperCapture(){
+        compareWithJavaSource("LocalFunctionSuperCapture");
+    }
+    
+    @Test
+    public void testLocalFunctionMultipleTransitiveCapture(){
+        compareWithJavaSource("LocalFunctionMultipleTransitiveCapture");
+    }
+    
+    @Test
+    public void testLocalFunctionTransitiveCaptureNaming(){
+        //compareWithJavaSource("LocalFunctionTransitiveCaptureNaming");
+        compile("LocalFunctionTransitiveCaptureNaming.ceylon");
+        run("com.redhat.ceylon.compiler.java.test.structure.local.localFunctionTransitiveCaptureNaming");
+    }
+    
+    @Test
     public void testFunctionLocalToToplevelFunction() {
         compareWithJavaSource("FunctionLocalToToplevelFunction");
     }
