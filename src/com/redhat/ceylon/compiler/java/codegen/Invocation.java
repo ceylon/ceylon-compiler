@@ -165,8 +165,11 @@ abstract class Invocation {
         }
     }
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result, Declaration primaryDeclaration){
+        // Add implementation argument for a deferred local function
         if (primaryDeclaration instanceof Method
-                && ((Method)primaryDeclaration).isDeferred()) {
+                && ((Method)primaryDeclaration).isDeferred()
+                // If the deferred local function is in a class initializer we don't need the implementation argument
+                && (!(primaryDeclaration.getContainer() instanceof Class) || !primaryDeclaration.isCaptured())) {
             result.append(new ExpressionAndType(
                     gen.naming.makeUnquotedIdent(gen.naming.selector((Method)primaryDeclaration, Naming.NA_MEMBER)),
                     gen.makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
