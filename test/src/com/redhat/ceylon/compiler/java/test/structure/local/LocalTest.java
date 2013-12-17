@@ -36,6 +36,7 @@ public class LocalTest extends CompilerTest {
         run("com.redhat.ceylon.compiler.java.test.structure.local.localFunctionTransitiveCaptureNaming");
     }
     
+    // Local Functions
     @Test
     public void testFunctionLocalToToplevelFunction() {
         compareWithJavaSource("FunctionLocalToToplevelFunction");
@@ -79,12 +80,67 @@ public class LocalTest extends CompilerTest {
     // TODO functionLocalToLocalFunction
     // TODO functionLocalToLocalValue
     
-    // Then the same for local getters and setters
+    // Local Values
+    /*@Test
+    public void testValueLocalToToplevelFunction() {
+        compareWithJavaSource("ValueLocalToToplevelFunction");
+    }*/
     
-    // The the same for local classes
+    @Test
+    public void testValueLocalToToplevelValue() {
+        compareWithJavaSource("ValueLocalToToplevelValue");
+    }
+    /*
+    @Test
+    public void testValueLocalToToplevelClass() {
+        compareWithJavaSource("ValueLocalToToplevelClass");
+    }
     
+    @Test
+    public void testValueLocalToToplevelClassMethod() {
+        compareWithJavaSource("ValueLocalToToplevelClassMethod");
+        // TODO also ClassGetterSetter
+        // in fact change this test for ...Member
+    }
+    
+    @Test
+    public void testValueLocalToToplevelInterfaceMethod() {
+        compareWithJavaSource("ValueLocalToToplevelInterfaceMethod");
+        // TODO also InterfaceGetterSetter
+        // in fact change this test for ...Member
+    }
+    
+    // Local classes
+    @Test
+    public void testClassLocalToToplevelFunction() {
+        compareWithJavaSource("ClassLocalToToplevelFunction");
+    }
+    
+    @Test
+    public void testClassLocalToToplevelValue() {
+        compareWithJavaSource("ClassLocalToToplevelValue");
+    }
+    
+    @Test
+    public void testClassLocalToToplevelClass() {
+        compareWithJavaSource("ClassLocalToToplevelClass");
+    }
+    
+    @Test
+    public void testClassLocalToToplevelClassMethod() {
+        compareWithJavaSource("ClassLocalToToplevelClassMethod");
+        // TODO also ClassGetterSetter
+        // in fact change this test for ...Member
+    }
+    
+    @Test
+    public void testClassLocalToToplevelInterfaceMethod() {
+        compareWithJavaSource("ClassLocalToToplevelInterfaceMethod");
+        // TODO also InterfaceGetterSetter
+        // in fact change this test for ...Member
+    }
     // Then the same for local interfaces
     
     
-    
+    */
 }
