@@ -161,60 +161,10 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
                     appendList(gen.transform((Tree.AttributeGetterDefinition)decl));
                 }
             }
-            gen.resetCompilerAnnotations(annots);
         }
+        gen.resetCompilerAnnotations(annots);
     }
     
-    public void visit(Tree.AttributeDeclaration decl){
-        if(hasErrors(decl))
-            return;
-        int annots = gen.checkCompilerAnnotations(decl, defs);
-        if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
-            // Class attributes
-            gen.classGen().transform(decl, classBuilder);
-        } else if (Decl.withinInterface(decl)) {
-            // Class attributes
-            gen.classGen().transform(decl, classBuilder);
-        }  else if (Decl.isToplevel(decl)) {
-        	if (!Decl.isNative(decl)) {
-        		topattrBuilder.add(decl);
-        	}
-        } else if ((Decl.isLocal(decl)) 
-                && ((Decl.isCaptured(decl) && Decl.isVariable(decl))
-                        || Decl.isTransient(decl)
-                        || Decl.hasSetter(decl))) {
-            // Captured local attributes get turned into an inner getter/setter class
-            appendList(gen.transform(decl));
-        } else {
-            // All other local attributes
-            appendList(gen.statementGen().transform(decl));
-        }
-        gen.resetCompilerAnnotations(annots);
-    }
-
-    public void visit(Tree.AttributeGetterDefinition decl){
-        if(hasErrors(decl))
-            return;
-        int annots = gen.checkCompilerAnnotations(decl, defs);
-        if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
-            classBuilder.attribute(gen.classGen().transform(decl, false));
-        } else if (Decl.withinInterface(decl)) {
-            classBuilder.attribute(gen.classGen().transform(decl, false));
-            AttributeDefinitionBuilder adb = gen.classGen().transform(decl, true);
-            if (decl.getDeclarationModel().isShared()) {
-                adb.noAnnotations();
-            }
-            classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
-        } else if (Decl.isToplevel(decl)) {
-            if (!Decl.isNative(decl)) {
-                topattrBuilder.add(decl);
-            }
-        } else {
-            appendList(gen.transform(decl));
-        }
-        gen.resetCompilerAnnotations(annots);
-    }
-
     public void visit(final Tree.AttributeSetterDefinition decl) {
         if(hasErrors(decl))
             return;
