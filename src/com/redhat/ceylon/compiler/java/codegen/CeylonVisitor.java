@@ -118,14 +118,64 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         gen.resetCompilerAnnotations(annots);
     }
     
+    public void visit(Tree.AnyAttribute decl){
+        if(hasErrors(decl))
+            return;
+        int annots = gen.checkCompilerAnnotations(decl, defs);
+        if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
+            // Class attributes
+            if (decl instanceof Tree.AttributeDeclaration) {
+                gen.classGen().transform((Tree.AttributeDeclaration)decl, classBuilder);
+            } else {
+                classBuilder.attribute(gen.classGen().transform((Tree.AttributeGetterDefinition)decl, false));
+            }
+        } else if (Decl.withinInterface(decl)) {
+            // Class attributes
+            if (decl instanceof Tree.AttributeDeclaration) {
+                gen.classGen().transform((Tree.AttributeDeclaration)decl, classBuilder);
+            } else {
+                classBuilder.attribute(gen.classGen().transform((Tree.AttributeGetterDefinition)decl, false));
+                AttributeDefinitionBuilder adb = gen.classGen().transform((Tree.AttributeGetterDefinition)decl, true);
+                if (decl.getDeclarationModel().isShared()) {
+                    adb.noAnnotations();
+                }
+                classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
+            }
+        } else if (Decl.isToplevel(decl)) {
+            if (!Decl.isNative(decl)) {
+                topattrBuilder.add(decl);
+            }
+        } else {
+            if (decl instanceof Tree.AttributeDeclaration
+                    && (Decl.isLocal(decl)) 
+                    && ((Decl.isCaptured(decl) && Decl.isVariable((Tree.AttributeDeclaration)decl))
+                            || Decl.isTransient((Tree.AttributeDeclaration)decl)
+                            || Decl.hasSetter((Tree.AttributeDeclaration)decl))) {
+                // Captured local attributes get turned into an inner getter/setter class
+                appendList(gen.transform(decl));
+            } else {
+                // All other local attributes
+                if (decl instanceof Tree.AttributeDeclaration) {
+                    appendList(gen.statementGen().transform((Tree.AttributeDeclaration)decl));
+                } else {
+                    appendList(gen.transform((Tree.AttributeGetterDefinition)decl));
+                }
+            }
+            gen.resetCompilerAnnotations(annots);
+        }
+    }
+    
     public void visit(Tree.AttributeDeclaration decl){
         if(hasErrors(decl))
             return;
         int annots = gen.checkCompilerAnnotations(decl, defs);
-        if (Decl.withinClassOrInterface(decl) && !Decl.isLocalToInitializer(decl)) {
+        if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
             // Class attributes
             gen.classGen().transform(decl, classBuilder);
-        } else if (Decl.isToplevel(decl)) {
+        } else if (Decl.withinInterface(decl)) {
+            // Class attributes
+            gen.classGen().transform(decl, classBuilder);
+        }  else if (Decl.isToplevel(decl)) {
         	if (!Decl.isNative(decl)) {
         		topattrBuilder.add(decl);
         	}
@@ -148,7 +198,7 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         int annots = gen.checkCompilerAnnotations(decl, defs);
         if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
             classBuilder.attribute(gen.classGen().transform(decl, false));
-        } else if (Decl.withinInterface(decl) && !Decl.isLocalToInitializer(decl)) {
+        } else if (Decl.withinInterface(decl)) {
             classBuilder.attribute(gen.classGen().transform(decl, false));
             AttributeDefinitionBuilder adb = gen.classGen().transform(decl, true);
             if (decl.getDeclarationModel().isShared()) {

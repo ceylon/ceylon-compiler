@@ -39,11 +39,7 @@ public class ToplevelAttributesDefinitionBuilder {
         setters = new HashMap<String, Tree.AttributeSetterDefinition>();
     }
 
-    public void add(Tree.AttributeDeclaration decl) {
-        attribs.add(decl);
-    }
-    
-    public void add(Tree.AttributeGetterDefinition decl) {
+    public void add(Tree.AnyAttribute decl) {
         attribs.add(decl);
     }
     
