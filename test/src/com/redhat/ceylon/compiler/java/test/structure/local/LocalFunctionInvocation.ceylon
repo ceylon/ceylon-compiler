@@ -95,6 +95,15 @@ class LocalFunctionInvocation() {
                 return captureLocalValue(y);
             }
             z = captureLocalFunction(z);
+            
+            class LocalClass() {
+                
+            }
+            function captureLocalClass() {
+                return LocalClass().hash;
+            }
+            z += captureLocalClass();
+            
             return z;
         }
     }
