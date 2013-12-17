@@ -1612,7 +1612,7 @@ public class ClassTransformer extends AbstractTransformer {
     private boolean needsInnerSubstitution(Scope scope, Declaration declaration) {
         while(scope != null && scope instanceof Package == false){
             if(scope instanceof ControlBlock){
-                Set<Value> specifiedValues = ((ControlBlock) scope).getSpecifiedValues();
+                Set<MethodOrValue> specifiedValues = ((ControlBlock) scope).getSpecifiedValues();
                 if(specifiedValues != null && specifiedValues.contains(declaration))
                     return true;
             }

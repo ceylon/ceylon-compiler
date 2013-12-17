@@ -38,6 +38,7 @@ import com.redhat.ceylon.compiler.java.codegen.Naming.SyntheticName;
 import com.redhat.ceylon.compiler.typechecker.model.ConditionScope;
 import com.redhat.ceylon.compiler.typechecker.model.ControlBlock;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
+import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
@@ -1957,11 +1958,13 @@ public class StatementTransformer extends AbstractTransformer {
             Name tempForFailVariable = currentForFailVariable;
             try {
                 // Install the outer substitutions
-                Iterable<Value> deferredSpecifiedInFor = stmt.getForClause().getControlBlock().getSpecifiedValues();
+                Iterable<MethodOrValue> deferredSpecifiedInFor = stmt.getForClause().getControlBlock().getSpecifiedValues();
                 if (deferredSpecifiedInFor != null) { 
-                    for (Value value : deferredSpecifiedInFor) {
+                    for (MethodOrValue value : deferredSpecifiedInFor) {
                         DeferredSpecification ds  = StatementTransformer.this.deferredSpecifications.get(value);
-                        ds.installOuterSubstitution();
+                        if (ds != null) {
+                            ds.installOuterSubstitution();
+                        }
                     }
                 }
 
@@ -1992,9 +1995,11 @@ public class StatementTransformer extends AbstractTransformer {
                 
                 // Close the outer substitutions
                 if (deferredSpecifiedInFor != null) { 
-                    for (Value value : deferredSpecifiedInFor) {
+                    for (MethodOrValue value : deferredSpecifiedInFor) {
                         DeferredSpecification ds  = StatementTransformer.this.deferredSpecifications.get(value);
-                        outer.append(ds.closeOuterSubstitution());
+                        if (ds != null) {
+                            outer.append(ds.closeOuterSubstitution());
+                        }
                     }
                 }
             
@@ -2506,15 +2511,15 @@ public class StatementTransformer extends AbstractTransformer {
         
         private final ProducedType type;
         private final long modifiers;
-        private final Value value;
+        private final MethodOrValue methodOrValue;
         private final List<JCAnnotation> annots;
         private SyntheticName outerAlias;
         private Naming.Substitution outerSubst = null;
         private SyntheticName innerAlias;
         private Naming.Substitution innerSubst = null;
         
-        public DeferredSpecification(Value value, int modifiers, List<JCAnnotation> annots, ProducedType type) {
-            this.value = value;
+        public DeferredSpecification(MethodOrValue methodOrValue, int modifiers, List<JCAnnotation> annots, ProducedType type) {
+            this.methodOrValue = methodOrValue;
             this.modifiers = modifiers;
             this.annots = annots;
             this.type = type;
@@ -2537,7 +2542,8 @@ public class StatementTransformer extends AbstractTransformer {
             if (outerSubst != null || outerAlias != null) {
                 throw new IllegalStateException("An Outer substitution (" + outerSubst + ") is already open");
             }
-            this.outerAlias = naming.alias(value.getName());
+            //this.outerAlias = naming.alias(methodOrValue.getName());
+            this.outerAlias = naming.alias(naming.selector(methodOrValue));
             // TODO Annots
             try (SavedPosition pos = noPosition()) {
                 return make().VarDef(
@@ -2554,7 +2560,7 @@ public class StatementTransformer extends AbstractTransformer {
          * we enter the "for" block.
          */
         public void installOuterSubstitution(){
-            this.outerSubst = naming.addVariableSubst(value, outerAlias.getName());
+            this.outerSubst = naming.addVariableSubst(methodOrValue, outerAlias.getName());
         }
         
         /**
@@ -2573,13 +2579,13 @@ public class StatementTransformer extends AbstractTransformer {
                 throw new IllegalStateException("An inner substitution (" + innerSubst + ") is already open");
             }
             try (SavedPosition pos = noPosition()) {
-                innerAlias = naming.alias(value.getName());
+                innerAlias = naming.alias(methodOrValue.getName());
                 JCStatement result = makeVar(
                         modifiers, 
                         innerAlias.getName(), 
                         makeJavaType(type), 
-                        naming.makeName(value, Naming.NA_IDENT));
-                innerSubst = naming.addVariableSubst(value, innerAlias.getName());
+                        naming.makeName(methodOrValue, Naming.NA_IDENT));
+                innerSubst = naming.addVariableSubst(methodOrValue, innerAlias.getName());
                 return result;
             }
         }
@@ -2608,16 +2614,17 @@ public class StatementTransformer extends AbstractTransformer {
                 throw new IllegalStateException("No outer substitution to close");
             }
             try (SavedPosition pos = noPosition()) {
-                JCExpression alias = naming.makeName(value, Naming.NA_IDENT);
+                JCExpression alias = naming.makeName(methodOrValue, Naming.NA_IDENT);
                 outerSubst.close();
                 outerSubst = null;
-                JCExpression var = naming.makeName(value, Naming.NA_IDENT);
+                //JCExpression var = naming.makeUnquotedIdent(naming.selector(methodOrValue, Naming.NA_IDENT));
+                JCExpression var = naming.makeName(methodOrValue, Naming.NA_IDENT);
                 return make().Exec(make().Assign(var, alias));
             }
         }
     }
     
-    private HashMap<Value, DeferredSpecification> deferredSpecifications = new HashMap<Value, DeferredSpecification>();
+    private HashMap<MethodOrValue, DeferredSpecification> deferredSpecifications = new HashMap<MethodOrValue, DeferredSpecification>();
     
     public DeferredSpecification getDeferredSpecification(Declaration value) {
         return deferredSpecifications.get(value);
@@ -2630,9 +2637,9 @@ public class StatementTransformer extends AbstractTransformer {
     private void closeInnerSubstituionsForSpecifiedValues(Tree.ControlClause contolClause) {
         if (contolClause != null) {
             ControlBlock controlBlock = contolClause.getControlBlock();
-            java.util.Set<Value> assigned = controlBlock.getSpecifiedValues();
+            java.util.Set<MethodOrValue> assigned = controlBlock.getSpecifiedValues();
             if (assigned != null) {
-                for (Value value : assigned) {
+                for (MethodOrValue value : assigned) {
                     DeferredSpecification ds = statementGen().getDeferredSpecification(value);
                     if (ds != null) {
                         ds.closeInnerSubstitution();
@@ -2679,8 +2686,8 @@ public class StatementTransformer extends AbstractTransformer {
         return result.toList();
     }
 
-    private JCStatement openOuterSubstitutionIfNeeded(
-            Value value, ProducedType t,
+    JCStatement openOuterSubstitutionIfNeeded(
+            MethodOrValue value, ProducedType t,
             List<JCAnnotation> annots, int modifiers) {
         JCStatement result = null;
         if (value.isSpecifiedInForElse()) {
