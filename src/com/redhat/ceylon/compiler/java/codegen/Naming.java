@@ -1882,6 +1882,9 @@ public class Naming implements LocalId {
             SubstitutionKey key = new SubstitutionKey(decl);
             return map.containsKey(key);
         }
+        public String toString() {
+            return map.toString();
+        }
     }
     
     private VarMapper getVarMapper() {

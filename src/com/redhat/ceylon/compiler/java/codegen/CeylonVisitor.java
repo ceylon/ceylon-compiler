@@ -21,6 +21,7 @@
 package com.redhat.ceylon.compiler.java.codegen;
 
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
+import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.NaturalVisitor;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
@@ -28,6 +29,8 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -172,13 +175,19 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             classBuilder.method(decl);
         } else {
             if (Decl.isLocal(decl)) {
-                if (Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).isInterfaceMember()) {
-                    classBuilder.getCompanionBuilder((Interface)Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).getContainer()).defs(gen.classGen().localFunctionTransformation.transform(decl));
-                } else {
-                    classBuilder.defs(gen.classGen().localFunctionTransformation.transform(decl));
+                Method method = decl.getDeclarationModel();
+                if (method.isDeferred()) {
+                    append(gen.makeVar(Flags.FINAL, gen.naming.selector(method), gen.makeJavaType(method.getType().getFullType()), null));
                 }
-                if (decl.getDeclarationModel().isDeferred()) {
-                    append(gen.makeVar(Flags.FINAL, gen.naming.selector(decl.getDeclarationModel()), gen.makeJavaType(decl.getDeclarationModel().getType().getFullType()), null));
+                JCStatement outerSubs = gen.statementGen().openOuterSubstitutionIfNeeded(
+                        method, method.getType().getFullType(), List.<JCAnnotation>nil(), 0);
+                if (outerSubs != null) {
+                    append(outerSubs);
+                }
+                if (Decl.getNonLocalDeclarationContainer(method).isInterfaceMember()) {
+                    classBuilder.getCompanionBuilder((Interface)Decl.getNonLocalDeclarationContainer(method).getContainer()).defs(gen.classGen().localFunctionTransformation.transform(decl));
+                } else if (!method.isParameter()) {
+                    classBuilder.defs(gen.classGen().localFunctionTransformation.transform(decl));
                 }
             } else {
                 appendList(gen.classGen().transformWrappedMethod(decl));

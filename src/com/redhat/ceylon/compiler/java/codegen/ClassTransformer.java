@@ -4024,7 +4024,7 @@ public class ClassTransformer extends AbstractTransformer {
          * implicit parameter for the specified callable 
          */
         private void deferredSpecificationParameter(Method function, MethodDefinitionBuilder builder) {
-            if (function.isDeferred()) {
+            if (function.isDeferred() && !function.isParameter()) {
                 ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ClassTransformer.this, naming.selector(function, Naming.NA_MEMBER));
                 pdb.modifiers(FINAL);
                 pdb.ignored();
@@ -4034,7 +4034,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         private void deferredSpecificationArgument(Method function, ListBuffer<JCExpression> args) {
-            if (function.isDeferred()) {
+            if (function.isDeferred() && !function.isParameter()) {
                 args.add(naming.makeUnquotedIdent(naming.selector(function, Naming.NA_MEMBER)));
             }
         }
