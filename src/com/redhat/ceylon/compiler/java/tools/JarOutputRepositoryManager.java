@@ -20,6 +20,8 @@
 
 package com.redhat.ceylon.compiler.java.tools;
 
+import static com.redhat.ceylon.compiler.java.tools.JarEntryManifestFileObject.OsgiManifest;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
 import javax.tools.JavaFileObject;
@@ -100,7 +103,8 @@ public class JarOutputRepositoryManager {
         private ArtifactContext carContext;
         private SourceArchiveCreator creator;
         private Module module;
-        
+        private boolean manifestWritten = false;
+
         public ProgressiveJar(RepositoryManager repoManager, Module module, Log log, Options options, CeyloncFileManager ceyloncFileManager) throws IOException{
             this.options = options;
             this.repoManager = repoManager;
@@ -145,6 +149,11 @@ public class JarOutputRepositoryManager {
         public void close() throws IOException {
             Set<String> copiedSourceFiles = creator.copySourceFiles(modifiedSourceFiles);
 
+            if (!manifestWritten) {
+                Manifest manifest = new OsgiManifest(module).build();
+                writeManifestJarEntry(manifest);
+            }
+
             Properties previousMapping = getPreviousMapping();
             writeMappingJarEntry(previousMapping, getJarFilter(previousMapping, copiedSourceFiles));
             
@@ -173,12 +182,32 @@ public class JarOutputRepositoryManager {
                         }
                         return classWasUpdated;
                     } else {
-                        return modifiedResourceFiles.contains(entryFullName) || entryFullName.equals(MAPPING_FILE);
+                        return modifiedResourceFiles.contains(entryFullName)
+                                || entryFullName.equals(MAPPING_FILE)
+                                || OsgiManifest.isManifestFileName(entryFullName);
                     }
                 }
             };
         }
-        
+
+
+        private void writeManifestJarEntry(Manifest manifest) {
+            try {
+                jarOutputStream.putNextEntry(new ZipEntry(OsgiManifest.MANIFEST_FILE_NAME));
+                manifest.write(jarOutputStream);
+            }
+            catch (IOException e) {
+                // TODO : log to the right place
+            }
+            finally {
+                try {
+                    jarOutputStream.closeEntry();
+                }
+                catch (IOException ignore) {
+                }
+            }
+        }
+
         private void writeMappingJarEntry(Properties previousMapping, JarUtils.JarEntryFilter filter) {
             Properties newMapping = new Properties();
             newMapping.putAll(writtenClassesMapping);
@@ -214,6 +243,10 @@ public class JarOutputRepositoryManager {
             	addMappingEntry(fileName, JarUtils.toPlatformIndependentPath(creator.getSourcePaths(), sourceFile.getPath()));
             } else {
                 modifiedResourceFiles.add(fileName);
+                if (OsgiManifest.isManifestFileName(fileName)) {
+                    this.manifestWritten = true;
+                    return new JarEntryManifestFileObject(outputJarFile.getPath(), jarOutputStream, fileName, module);
+                }
             }
             return new JarEntryFileObject(outputJarFile.getPath(), jarOutputStream, fileName);
         }
