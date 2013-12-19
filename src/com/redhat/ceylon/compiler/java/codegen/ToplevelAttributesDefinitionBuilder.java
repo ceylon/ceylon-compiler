@@ -54,7 +54,7 @@ public class ToplevelAttributesDefinitionBuilder {
             int annots = gen.checkCompilerAnnotations(attrib, result);
             String attrName = attrib.getIdentifier().getText();
             Tree.AttributeSetterDefinition setter = setters.get(attrName);
-            result.appendList(gen.transformAttribute(attrib, setter));
+            result.appendList(gen.valueGen().transformToplevel(attrib, setter));
             gen.resetCompilerAnnotations(annots);
         }
         return result;

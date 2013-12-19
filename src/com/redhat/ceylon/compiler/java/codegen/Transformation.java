@@ -50,5 +50,7 @@ public interface Transformation {
     public abstract StatementTransformer statementGen();
 
     public abstract ClassTransformer classGen();
+    
+    public abstract ValueTransformer valueGen();
 
 }

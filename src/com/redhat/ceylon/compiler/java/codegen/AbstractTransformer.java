@@ -261,6 +261,11 @@ public abstract class AbstractTransformer implements Transformation {
         return ClassTransformer.getInstance(context);
     }
     
+    @Override
+    public ValueTransformer valueGen() {
+        return ValueTransformer.getInstance(context);
+    }
+    
     /** 
      * Makes an <strong>unquoted</strong> simple identifier
      * @param ident The identifier
