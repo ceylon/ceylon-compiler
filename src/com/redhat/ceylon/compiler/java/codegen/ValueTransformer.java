@@ -253,16 +253,16 @@ public class ValueTransformer extends AbstractTransformer {
                     ValueTransformer.this.makeJavaTypeAnnotations(value));
             builder.parameter(pdb);
         }
-
+        
         protected void transformResultType(Value value, MethodDefinitionBuilder builder) {
             // void
         }
-
+        
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
         }
-
+        
         protected abstract void transformModifiers(Value value, MethodDefinitionBuilder builder);
-
+        
         protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
             // only actual if the superclass is also variable
             builder.isOverride(value.isActual() && ((TypedDeclaration)value.getRefinedDeclaration()).isVariable());
@@ -270,7 +270,7 @@ public class ValueTransformer extends AbstractTransformer {
                 builder.userAnnotations(expressionGen().transform(setter.getAnnotationList()));
             }
         }
-
+        
         protected MethodDefinitionBuilder makeBuilder(
                 Value value) {
             return MethodDefinitionBuilder
@@ -279,8 +279,7 @@ public class ValueTransformer extends AbstractTransformer {
     }
     
     /** 
-     * Transformation for toplevel setters. 
-     * {@link ToplevelSimpleValueSetter} does the transformation for toplevel simple values.
+     * Transformation for toplevel simple values or setters.
      */
     class ToplevelSetter extends SetterTransformation{
         @Override
@@ -293,6 +292,37 @@ public class ValueTransformer extends AbstractTransformer {
                 MethodDefinitionBuilder builder) {
             builder.modifiers(STATIC | PUBLIC);
         }
+        @Override
+        protected void transformBody(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
+            if (setter!= null ) {
+                super.transformBody(value, setter, builder);
+            } else if (value.isVariable() 
+                    || value.isLate()) {
+                ListBuffer<JCStatement> body = ListBuffer.<JCStatement>lb();
+                JCStatement init = make().Exec(make().Assign(makeUnquotedIdent("value"),
+                        make().NewArray(makeJavaType(value.getType(), JT_RAW), List.<JCExpression>of(make().Literal(1)), null)));
+                if (value.isLate()) {
+                    if (value.isVariable()) {
+                        body.add(make().If(
+                                make().Binary(JCTree.EQ, makeUnquotedIdent("value"), makeNull()), 
+                                init, 
+                                null));
+                    } else {
+                        body.add(make().If(
+                                make().Binary(JCTree.NE, makeUnquotedIdent("value"), makeNull()), 
+                                make().Throw(make().NewClass(null, 
+                                        List.<JCExpression>nil(), 
+                                        make().Type(syms().ceylonInitializationExceptionType), List.<JCExpression>of(make().Literal("Re-initialization of \'late\' attribute")), 
+                                        null)), 
+                                null));
+                        body.add(init);
+                    }
+                }
+                body.add(make().Exec(make().Assign(make().Indexed(makeUnquotedIdent("value"), make().Literal(0)), 
+                        makeUnquotedIdent(value.getName()))));
+                builder.body(body.toList());
+            }
+        }
     }
     private ToplevelSetter toplevelSetter = null;
     ToplevelSetter toplevelSetter() {
@@ -302,57 +332,7 @@ public class ValueTransformer extends AbstractTransformer {
         return toplevelSetter;
     }
     
-    /** 
-     * Transformation for toplevel variable or late simple setters. 
-     * {@link ToplevelSetter} does the transformation for toplevel setters.
-     * Assumes the {@link ToplevelField} transformation generates the field 
-     */
-    class ToplevelSimpleValueSetter extends SetterTransformation{
-        @Override
-        protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
-            builder.modelAnnotations(makeAtIgnore());
-            super.transformAnnotations(value, setter, builder);
-        }
-        @Override
-        protected void transformModifiers(Value value,
-                MethodDefinitionBuilder builder) {
-            builder.modifiers(STATIC | PUBLIC);
-        }
-        @Override
-        protected void transformBody(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
-            
-            ListBuffer<JCStatement> body = ListBuffer.<JCStatement>lb();
-            JCStatement init = make().Exec(make().Assign(makeUnquotedIdent("value"),
-                    make().NewArray(makeJavaType(value.getType(), JT_RAW), List.<JCExpression>of(make().Literal(1)), null)));
-            if (value.isLate()) {
-                if (value.isVariable()) {
-                    body.add(make().If(
-                            make().Binary(JCTree.EQ, makeUnquotedIdent("value"), makeNull()), 
-                            init, 
-                            null));
-                } else {
-                    body.add(make().If(
-                            make().Binary(JCTree.NE, makeUnquotedIdent("value"), makeNull()), 
-                            make().Throw(make().NewClass(null, 
-                                    List.<JCExpression>nil(), 
-                                    make().Type(syms().ceylonInitializationExceptionType), List.<JCExpression>of(make().Literal("Re-initialization of \'late\' attribute")), 
-                                    null)), 
-                            null));
-                    body.add(init);
-                }
-            }
-            body.add(make().Exec(make().Assign(make().Indexed(makeUnquotedIdent("value"), make().Literal(0)), 
-                    makeUnquotedIdent(value.getName()))));
-            builder.body(body.toList());
-        }
-    }
-    private ToplevelSimpleValueSetter toplevelLateSetter = null;
-    ToplevelSimpleValueSetter toplevelLateSetter() {
-        if (toplevelLateSetter == null) {
-            toplevelLateSetter = new ToplevelSimpleValueSetter();
-        }
-        return toplevelLateSetter;
-    }
+    
     
     /*
     class ClassSetter extends SetterTransformation{
@@ -485,8 +465,7 @@ public class ValueTransformer extends AbstractTransformer {
     /**
      * Transformation for a toplevel value. Generates a wrapper class around
      * a getter method (generated by {@link ToplevelGetter}) a 
-     * setter method (generated by {@link ToplevelSetter} or 
-     * {@link ToplevelSimpleValueSetter}) and a field
+     * setter method (generated by {@link ToplevelSetter}) and a field
      * (generated by {@link ToplevelField}) as required.
      */
     public List<JCTree> transformToplevel(Tree.AnyAttribute getter, Tree.AttributeSetterDefinition setter) {
@@ -503,10 +482,9 @@ public class ValueTransformer extends AbstractTransformer {
             classBuilder.defs((List)toplevelField().transformInit(getter));
         }
         classBuilder.defs(toplevelGetter().transform(getter));
-        if (setter != null) {
+        if (setter != null
+                || getterModel.isVariable() || getterModel.isLate()) {
             classBuilder.defs(toplevelSetter().transform(getterModel, setter));
-        } else if (getterModel.isVariable() || getterModel.isLate()) {
-            classBuilder.defs(toplevelLateSetter().transform(getterModel, setter));
         }
         return classBuilder.build();
     }
