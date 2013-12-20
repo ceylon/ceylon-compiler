@@ -45,9 +45,9 @@ final class Bug630$impl {
         return (int)(
             let
             {
-                long $ceylontmp$hash$2 = 42L;
+                long $ceylontmp$hash$0 = 42L;
             }
-            returning $ceylontmp$hash$2 ^ $ceylontmp$hash$2 >>> 32;
+            returning $ceylontmp$hash$0 ^ $ceylontmp$hash$0 >>> 32;
         );
     }
     

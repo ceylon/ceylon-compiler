@@ -339,9 +339,9 @@ final class Bug1334_11$impl {
         return (int)(
             let
             {
-                long $ceylontmp$hash$16 = 23L;
+                long $ceylontmp$hash$13 = 23L;
             }
-            returning $ceylontmp$hash$16 ^ $ceylontmp$hash$16 >>> 32;
+            returning $ceylontmp$hash$13 ^ $ceylontmp$hash$13 >>> 32;
         );
     }
 }
