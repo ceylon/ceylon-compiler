@@ -26,9 +26,9 @@ class InitializerParamAccessWithExtends extends .java.lang.Object implements .co
         return (int)(
             let
             {
-                long $ceylontmp$hash$1 = 0L;
+                long $ceylontmp$hash$0 = 0L;
             }
-            returning $ceylontmp$hash$1 ^ $ceylontmp$hash$1 >>> 32;
+            returning $ceylontmp$hash$0 ^ $ceylontmp$hash$0 >>> 32;
         );
     }
     

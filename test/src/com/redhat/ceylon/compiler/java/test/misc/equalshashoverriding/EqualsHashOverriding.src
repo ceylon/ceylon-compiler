@@ -30,9 +30,9 @@ class EqualsHashOverriding implements .com.redhat.ceylon.compiler.java.runtime.m
         return (int)(
             let
             {
-                long $ceylontmp$hash$4 = .ceylon.language.String.hashCode(getS$priv$());
+                long $ceylontmp$hash$3 = .ceylon.language.String.hashCode(getS$priv$());
             }
-            returning $ceylontmp$hash$4 ^ $ceylontmp$hash$4 >>> 32;
+            returning $ceylontmp$hash$3 ^ $ceylontmp$hash$3 >>> 32;
         );
     }
     
@@ -54,9 +54,9 @@ class EqualsHashOverriding2 implements .com.redhat.ceylon.compiler.java.runtime.
         return (int)(
             let
             {
-                long $ceylontmp$hash$5 = hash;
+                long $ceylontmp$hash$4 = hash;
             }
-            returning $ceylontmp$hash$5 ^ $ceylontmp$hash$5 >>> 32;
+            returning $ceylontmp$hash$4 ^ $ceylontmp$hash$4 >>> 32;
         );
     }
     
@@ -78,9 +78,9 @@ class EqualsHashOverriding3 implements .com.redhat.ceylon.compiler.java.runtime.
         return (int)(
             let
             {
-                long $ceylontmp$hash$6 = hash;
+                long $ceylontmp$hash$5 = hash;
             }
-            returning $ceylontmp$hash$6 ^ $ceylontmp$hash$6 >>> 32;
+            returning $ceylontmp$hash$5 ^ $ceylontmp$hash$5 >>> 32;
         );
     }
     
