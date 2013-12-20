@@ -238,7 +238,10 @@ public class MethodDefinitionBuilder
     /*
      * Builder methods - they transform the inner state before doing the final construction
      */
-    
+    public MethodDefinitionBuilder modifiers(long modifiers) {
+        this.modifiers = modifiers;
+        return this;
+    }
     public MethodDefinitionBuilder modifiers(long... modifiers) {
         long mods = 0;
         for (long mod : modifiers) {
