@@ -124,11 +124,12 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         int annots = gen.checkCompilerAnnotations(decl, defs);
         if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
             // Class attributes
-            if (decl instanceof Tree.AttributeDeclaration) {
+            gen.valueGen().transformClassAttribute(classBuilder, decl);
+            /*if (decl instanceof Tree.AttributeDeclaration) {
                 gen.classGen().transform((Tree.AttributeDeclaration)decl, classBuilder);
             } else {
                 classBuilder.attribute(gen.classGen().transform((Tree.AttributeGetterDefinition)decl, false));
-            }
+            }*/
         } else if (Decl.withinInterface(decl)) {
             // Class attributes
             if (decl instanceof Tree.AttributeDeclaration) {
@@ -170,7 +171,8 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             return;
         int annots = gen.checkCompilerAnnotations(decl, defs);
         if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
-            classBuilder.attribute(gen.classGen().transform(decl, false));
+            gen.valueGen().transformClassSetter(classBuilder, decl);
+            //classBuilder.attribute(gen.classGen().transform(decl, false));
         } else if (Decl.withinInterface(decl)) {
             classBuilder.attribute(gen.classGen().transform(decl, false));
             AttributeDefinitionBuilder adb = gen.classGen().transform(decl, true);
