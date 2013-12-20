@@ -125,14 +125,11 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
             // Class attributes
             gen.valueGen().transformClassAttribute(classBuilder, decl);
-            /*if (decl instanceof Tree.AttributeDeclaration) {
-                gen.classGen().transform((Tree.AttributeDeclaration)decl, classBuilder);
-            } else {
-                classBuilder.attribute(gen.classGen().transform((Tree.AttributeGetterDefinition)decl, false));
-            }*/
         } else if (Decl.withinInterface(decl)) {
             // Class attributes
-            if (decl instanceof Tree.AttributeDeclaration) {
+            gen.valueGen().transformInterfaceAttribute(classBuilder, decl);
+            gen.valueGen().transformCompanionAttribute(classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()), decl);
+            /*if (decl instanceof Tree.AttributeDeclaration) {
                 gen.classGen().transform((Tree.AttributeDeclaration)decl, classBuilder);
             } else {
                 classBuilder.attribute(gen.classGen().transform((Tree.AttributeGetterDefinition)decl, false));
@@ -141,7 +138,7 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
                     adb.noAnnotations();
                 }
                 classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
-            }
+            }*/
         } else if (Decl.isToplevel(decl)) {
             if (!Decl.isNative(decl)) {
                 topattrBuilder.add(decl);
@@ -172,14 +169,16 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         int annots = gen.checkCompilerAnnotations(decl, defs);
         if (Decl.withinClass(decl) && !Decl.isLocalToInitializer(decl)) {
             gen.valueGen().transformClassSetter(classBuilder, decl);
-            //classBuilder.attribute(gen.classGen().transform(decl, false));
         } else if (Decl.withinInterface(decl)) {
-            classBuilder.attribute(gen.classGen().transform(decl, false));
+            gen.valueGen().transformInterfaceSetter(classBuilder, decl);
+            gen.valueGen().transformCompanionSetter(classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()), decl);
+            /*classBuilder.attribute(gen.classGen().transform(decl, false));
             AttributeDefinitionBuilder adb = gen.classGen().transform(decl, true);
             if (decl.getDeclarationModel().isShared()) {
                 adb.noAnnotations();
             }
             classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
+            */
         } else if (Decl.isToplevel(decl)) {
         	if (!Decl.isNative(decl)) {
         		topattrBuilder.add(decl);

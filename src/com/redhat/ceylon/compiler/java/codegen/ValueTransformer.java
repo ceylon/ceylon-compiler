@@ -8,6 +8,7 @@ import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyAttribute;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
@@ -150,14 +151,38 @@ public class ValueTransformer extends AbstractTransformer {
             // No type parameters
         }
 
-        protected abstract void transformModifiers(Value value, MethodDefinitionBuilder builder);
+        protected final void transformModifiers(Value value, MethodDefinitionBuilder builder) {
+            long mods = getVisibility(value) & (PUBLIC | PROTECTED | PRIVATE);
+            if (isFinal(value)) {
+                mods |= FINAL;
+            }
+            if (isStatic(value)) {
+                mods |= STATIC;
+            }
+            if (isAbstract(value)) {
+                mods |= ABSTRACT;
+            }
+            builder.modifiers(mods);
+        }
+
+        protected abstract boolean isAbstract(Value value);
+
+        protected abstract boolean isStatic(Value value);
+        
+        protected abstract boolean isFinal(Value value);
+        
+        protected abstract long getVisibility(Value value);
 
         protected void transformAnnotations(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
             Value model = value.getDeclarationModel();
             builder.userAnnotations(expressionGen().transform(value.getAnnotationList()));
-            builder.isOverride(model.isActual())
+            builder.isOverride(isOverride(model))
                 .isTransient(Decl.isTransient(model))
                 .modelAnnotations(model.getAnnotations());
+        }
+
+        protected boolean isOverride(Value model) {
+            return model.isActual();
         }
         
         protected MethodDefinitionBuilder makeBuilder(Value value) {
@@ -187,9 +212,23 @@ public class ValueTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void transformModifiers(Value value,
-                MethodDefinitionBuilder builder) {
-            builder.modifiers(STATIC | PUBLIC);
+        protected boolean isStatic(Value value) {
+            return true;
+        }
+        
+        @Override
+        protected boolean isFinal(Value value) {
+            return false;
+        }
+        
+        @Override
+        protected boolean isAbstract(Value value) {
+            return false;
+        }
+        
+        @Override
+        protected long getVisibility(Value value) {
+            return PUBLIC;
         }
         
         @Override
@@ -220,41 +259,25 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected JCExpression makeType(Value value) {
-            
             ProducedType nonWideningType = getType(value);
-            
-            int typeFlags = 0;
-            if (CodegenUtil.getBoxingStrategy((TypedDeclaration)value.getRefinedDeclaration()) == BoxingStrategy.BOXED) {
-                typeFlags |= AbstractTransformer.JT_NO_PRIMITIVES;
-            }
-            JCExpression attrType;
-            // make sure we generate int getters for hash
-            if(CodegenUtil.isHashAttribute(value)){
-                attrType = make().Type(syms().intType);
-            }else{
-                attrType = makeJavaType(nonWideningType, typeFlags);
-            }
-            return attrType;
+            return makeTypeforMember(value, nonWideningType);
         }
-        
         @Override
-        protected void transformModifiers(Value value,
-                MethodDefinitionBuilder builder) {
-            long flags = 0;
-            if (value.isFormal()) {
-                flags |= ABSTRACT;
-            }
-            if (value.isShared()) {
-                flags |= PUBLIC;
-            } else {
-                flags |= PRIVATE;
-            }
-            if (!value.isDefault() && !value.isFormal()) {
-                flags |= FINAL;
-            }
-            builder.modifiers(flags);
+        public boolean isAbstract(Value value) {
+            return value.isFormal();
         }
-        
+        @Override
+        public long getVisibility(Value value) {
+            return value.isShared() ? PUBLIC : PRIVATE;
+        }
+        @Override
+        public boolean isFinal(Value value) {
+            return !value.isDefault() && !value.isFormal();
+        }
+        @Override
+        public boolean isStatic(Value value) {
+            return false;
+        }
         @Override
         protected void transformBody(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
             if (Decl.isIndirect(value)) {
@@ -288,13 +311,113 @@ public class ValueTransformer extends AbstractTransformer {
         }
         return classGetter;
     }
-    /*
-    class InterfaceGetter extends GetterTransformation{
+    
+    class InterfaceGetter extends GetterTransformation {
+
+        @Override
+        protected JCExpression makeType(Value value) {
+            ProducedType nonWideningType = getType(value);
+            return makeTypeforMember(value, nonWideningType);
+        }
+        
+        @Override
+        public JCMethodDecl transform(Tree.AnyAttribute value) {
+            if (!value.getDeclarationModel().isShared()) {
+                return null;
+            }
+            return super.transform(value);
+        }
+        
+        @Override
+        public VariableTransformation field() {
+            return null;
+        }
+        
+        @Override
+        protected void transformBody(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
+            builder.noBody();
+        }
+
+        @Override
+        protected boolean isAbstract(Value value) {
+            return value.isFormal();
+        }
+
+        @Override
+        protected boolean isStatic(Value value) {
+            return false;
+        }
+
+        @Override
+        protected boolean isFinal(Value value) {
+            return false;
+        }
+
+        @Override
+        protected long getVisibility(Value value) {
+            return PUBLIC;
+        }
         
     }
     
     private final InterfaceGetter interfaceGetter = new InterfaceGetter();
-    class LocalGetter extends GetterTransformation{
+    
+    class CompanionGetter extends GetterTransformation {
+
+        @Override
+        public JCMethodDecl transform(Tree.AnyAttribute value) {
+            if (value.getDeclarationModel().isFormal()) {
+                return null;
+            }
+            return super.transform(value);
+        }
+        
+        @Override
+        protected JCExpression makeType(Value value) {
+            ProducedType nonWideningType = getType(value);
+            return makeTypeforMember(value, nonWideningType);
+        }
+        
+        @Override
+        public VariableTransformation field() {
+            return null;
+        }
+        
+        @Override
+        protected boolean isAbstract(Value value) {
+            return false;
+        }
+        
+        @Override
+        protected boolean isStatic(Value value) {
+            return false;
+        }
+        
+        @Override
+        protected boolean isFinal(Value value) {
+            return true;
+        }
+        
+        @Override
+        protected long getVisibility(Value value) {
+            return value.isShared() ? PUBLIC : PRIVATE;
+        }
+        
+        @Override
+        protected boolean isOverride(Value model) {
+            return false;
+        }
+        
+        @Override
+        protected void transformAnnotations(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
+            builder.noAnnotations();
+            super.transformAnnotations(value, builder);
+        }
+    }
+    
+    private final CompanionGetter companionGetter = new CompanionGetter();
+    
+    /*class LocalGetter extends GetterTransformation{
         
     }
     private final LocalGetter localGetter = new LocalGetter();
@@ -357,14 +480,42 @@ public class ValueTransformer extends AbstractTransformer {
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
         }
         
-        protected abstract void transformModifiers(Value value, MethodDefinitionBuilder builder);
+        protected final void transformModifiers(Value value, MethodDefinitionBuilder builder) {
+            long mods = getVisibility(value) & (PUBLIC | PROTECTED | PRIVATE);
+            if (isFinal(value)) {
+                mods |= FINAL;
+            }
+            if (isStatic(value)) {
+                mods |= STATIC;
+            }
+            if (isAbstract(value)) {
+                mods |= ABSTRACT;
+            }
+            builder.modifiers(mods);
+        }
+        
+        protected boolean isAbstract(Value value) {
+            return getter().isAbstract(value);
+        }
+        protected boolean isStatic(Value value) {
+            return getter().isStatic(value);
+        }
+        protected boolean isFinal(Value value) {
+            return getter().isFinal(value);
+        }
+        protected long getVisibility(Value value) {
+            return getter().getVisibility(value);
+        }
         
         protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
             // only actual if the superclass is also variable
-            builder.isOverride(value.isActual() && ((TypedDeclaration)value.getRefinedDeclaration()).isVariable());
+            builder.isOverride(isOverride(value));
             if (setter != null) {
                 builder.userAnnotations(expressionGen().transform(setter.getAnnotationList()));
             }
+        }
+        protected boolean isOverride(Value value) {
+            return value.isActual() && ((TypedDeclaration)value.getRefinedDeclaration()).isVariable();
         }
         
         protected MethodDefinitionBuilder makeBuilder(
@@ -388,11 +539,6 @@ public class ValueTransformer extends AbstractTransformer {
         protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
             builder.modelAnnotations(makeAtIgnore());
             super.transformAnnotations(value, setter, builder);
-        }
-        @Override
-        protected void transformModifiers(Value value,
-                MethodDefinitionBuilder builder) {
-            builder.modifiers(STATIC | PUBLIC);
         }
         @Override
         protected void transformBody(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
@@ -419,9 +565,20 @@ public class ValueTransformer extends AbstractTransformer {
             return classGetter();
         }
         @Override
-        protected void transformModifiers(Value value,
-                MethodDefinitionBuilder builder) {
-            classGetter().transformModifiers(value, builder);
+        protected boolean isAbstract(Value value) {
+            return getter().isAbstract(value);
+        }
+        @Override
+        protected boolean isStatic(Value value) {
+            return getter().isStatic(value);
+        }
+        @Override
+        protected boolean isFinal(Value value) {
+            return getter().isFinal(value);
+        }
+        @Override
+        protected long getVisibility(Value value) {
+            return getter().getVisibility(value);
         }
         @Override
         protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
@@ -451,12 +608,53 @@ public class ValueTransformer extends AbstractTransformer {
         return classSetter;
     }
     
-    /*
+    
     class InterfaceSetter extends SetterTransformation{
+
+        @Override
+        public GetterTransformation getter() {
+            return interfaceGetter;
+        }
+
+        @Override
+        public JCMethodDecl transform(Value value, Tree.AttributeSetterDefinition setter) {
+            if (!value.isShared()) {
+                return null;
+            }
+            return super.transform(value, setter);
+        }
         
+        protected void transformBody(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
+            builder.noBody();
+        }
     }
     private final InterfaceSetter interfaceSetter = new InterfaceSetter();
     
+    class CompanionSetter extends SetterTransformation{
+
+        @Override
+        public GetterTransformation getter() {
+            return companionGetter;
+        }
+        @Override
+        public JCMethodDecl transform(Value value, Tree.AttributeSetterDefinition setter) {
+            if (value.isFormal()) {
+                return null;
+            }
+            return super.transform(value, setter);
+        }
+        
+        protected boolean isOverride(Value value) {
+            return false;
+        }
+        
+        protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
+            builder.noModelAnnotations();
+            super.transformAnnotations(value, setter, builder);
+        }
+    }
+    private final CompanionSetter companionSetter = new CompanionSetter();
+    /*
     class LocalSetter extends SetterTransformation{
         
     }
@@ -797,5 +995,45 @@ public class ValueTransformer extends AbstractTransformer {
     
     public void transformClassSetter(ClassDefinitionBuilder classBuilder, Tree.AttributeSetterDefinition decl) {
         classBuilder.defs(classSetter().transform(decl.getDeclarationModel().getGetter(), decl));
+    }
+
+    public void transformInterfaceAttribute(
+            ClassDefinitionBuilder classBuilder, AnyAttribute decl) {
+        classBuilder.defs(interfaceGetter.transform(decl));
+        if (decl.getDeclarationModel().isVariable() && !decl.getDeclarationModel().isTransient()) {
+            classBuilder.defs(interfaceSetter.transform(decl.getDeclarationModel(), null));
+        }
+    }
+
+    public void transformCompanionAttribute(
+            ClassDefinitionBuilder classBuilder, AnyAttribute decl) {
+        classBuilder.defs(companionGetter.transform(decl));
+    }
+
+    public void transformInterfaceSetter(ClassDefinitionBuilder classBuilder,
+            AttributeSetterDefinition decl) {
+        classBuilder.defs(interfaceSetter.transform(decl.getDeclarationModel().getGetter(), decl));
+    }
+
+    public void transformCompanionSetter(
+            ClassDefinitionBuilder classBuilder,
+            AttributeSetterDefinition decl) {
+        classBuilder.defs(companionSetter.transform(decl.getDeclarationModel().getGetter(), decl));
+    }
+    
+    private JCExpression makeTypeforMember(Value value, ProducedType nonWideningType) {
+        
+        int typeFlags = 0;
+        if (CodegenUtil.getBoxingStrategy((TypedDeclaration)value.getRefinedDeclaration()) == BoxingStrategy.BOXED) {
+            typeFlags |= AbstractTransformer.JT_NO_PRIMITIVES;
+        }
+        JCExpression attrType;
+        // make sure we generate int getters for hash
+        if(CodegenUtil.isHashAttribute(value)){
+            attrType = make().Type(syms().intType);
+        }else{
+            attrType = makeJavaType(nonWideningType, typeFlags);
+        }
+        return attrType;
     }
 }
