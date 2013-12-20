@@ -318,8 +318,12 @@ public class Decl {
         return model.isLate();
     }
     
-    public static boolean isIndirect(Tree.AttributeDeclaration decl) {
-        return decl.getDeclarationModel().isTransient() && decl.getSpecifierOrInitializerExpression() == null;
+    public static boolean isIndirect(Tree.AnyAttribute decl) {
+        return isIndirect(decl.getDeclarationModel());
+    }
+    
+    public static boolean isIndirect(Value decl) {
+        return decl.isDeferred();
     }
 
     public static boolean isToplevel(Tree.Declaration decl) {

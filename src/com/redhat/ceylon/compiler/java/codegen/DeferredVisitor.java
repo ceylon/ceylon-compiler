@@ -20,11 +20,24 @@
 
 package com.redhat.ceylon.compiler.java.codegen;
 
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.MethodDeclaration;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
 
 public class DeferredVisitor extends Visitor {
+
+    @Override
+    public void visit(AttributeDeclaration that) {
+        super.visit(that);
+        if (isIndirect(that)) {
+            that.getDeclarationModel().setDeferred(true);
+        }
+    }
+    
+    private boolean isIndirect(AttributeDeclaration that) {
+        return that.getDeclarationModel().isTransient() && that.getSpecifierOrInitializerExpression() == null;
+    }
 
     @Override
     public void visit(MethodDeclaration that) {
