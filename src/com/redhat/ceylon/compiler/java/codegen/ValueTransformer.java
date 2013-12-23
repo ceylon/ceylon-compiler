@@ -133,24 +133,24 @@ public class ValueTransformer extends AbstractTransformer {
                     List.of(catcher),
                     null));
         }
-
+        
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
             // No parameters
         }
-
+        
         protected final void transformResultType(Value value, MethodDefinitionBuilder builder) {
             JCExpression attrType = makeType(value);
             builder.resultType(attrType, value);
         }
-
+        
         protected JCExpression makeType(Value value) {
             return makeJavaType(getType(value));
         }
-
+        
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
             // No type parameters
         }
-
+        
         protected final void transformModifiers(Value value, MethodDefinitionBuilder builder) {
             long mods = getVisibility(value) & (PUBLIC | PROTECTED | PRIVATE);
             if (isFinal(value)) {
@@ -417,11 +417,36 @@ public class ValueTransformer extends AbstractTransformer {
     
     private final CompanionGetter companionGetter = new CompanionGetter();
     
-    /*class LocalGetter extends GetterTransformation{
+    class LocalGetter extends GetterTransformation{
+
+        @Override
+        public VariableTransformation field() {
+            throw new RuntimeException();
+        }
+
+        @Override
+        protected boolean isAbstract(Value value) {
+            return false;
+        }
+
+        @Override
+        protected boolean isStatic(Value value) {
+            return false;
+        }
+
+        @Override
+        protected boolean isFinal(Value value) {
+            return false;
+        }
+
+        @Override
+        protected long getVisibility(Value value) {
+            return PUBLIC;
+        }
         
     }
     private final LocalGetter localGetter = new LocalGetter();
-     */
+    
     
     /* Setter transformations */
     
@@ -654,12 +679,21 @@ public class ValueTransformer extends AbstractTransformer {
         }
     }
     private final CompanionSetter companionSetter = new CompanionSetter();
-    /*
+    
     class LocalSetter extends SetterTransformation{
+
+        @Override
+        public GetterTransformation getter() {
+            return localGetter;
+        }
+        @Override
+        public long getVisibility(Value value) {
+            return PUBLIC;
+        }
         
     }
     private final LocalSetter localSetter = new LocalSetter();
-    */
+    
     /* Variable (and field) transformations */
     
     /**
@@ -750,7 +784,7 @@ public class ValueTransformer extends AbstractTransformer {
         /**
          * Returns the visibility flags for the variable declaration
          */
-        protected final long getVisibility(Value value) {
+        protected long getVisibility(Value value) {
             return PRIVATE;
         }
         /**
@@ -771,27 +805,59 @@ public class ValueTransformer extends AbstractTransformer {
         }
     }
 
-    /*
     class LocalVariable extends VariableTransformation {
         @Override
-        protected long getModifiers(Value value) {
-            return STATIC | (value.isVariable() ? 0 : FINAL);
+        public JCVariableDecl transformDeclaration(Tree.AnyAttribute value) {
+            if (value.getDeclarationModel().isParameter()) {
+                return null;
+            }
+            return super.transformDeclaration(value);
         }
         
         @Override
-        protected JCExpression makeInitialValue(Tree.AnyAttribute value) {
-            JCExpression result = null;
-            if (value instanceof Tree.AttributeDeclaration
-                    && ((Tree.AttributeDeclaration)value).getSpecifierOrInitializerExpression() instanceof Tree.InitializerExpression) {
-                Tree.InitializerExpression init = (Tree.InitializerExpression)((Tree.AttributeDeclaration)value).getSpecifierOrInitializerExpression();
-                // TODO Erasure and boxing
-                result = expressionGen().transformExpression(init.getExpression().getTerm());
+        protected JCExpression allocate(Value value) {
+            throw new RuntimeException();
+        }
+
+        @Override
+        protected JCExpression testInit(Value value, boolean initalized) {
+            throw new RuntimeException();
+        }
+
+        @Override
+        protected JCExpression assign(Value value,
+                SetterTransformation setterTransformation) {
+            throw new RuntimeException();
+        }
+
+        @Override
+        protected JCExpression makeDeclarationInitialValue(AnyAttribute setter) {
+            if (setter instanceof Tree.AttributeDeclaration
+                    && ((Tree.AttributeDeclaration)setter).getSpecifierOrInitializerExpression() != null) {
+                return expressionGen().transformExpression(setter.getDeclarationModel(), ((Tree.AttributeDeclaration)setter).getSpecifierOrInitializerExpression().getExpression());
+            } else if (setter.getDeclarationModel().isVariable()) {
+                return statementGen().makeDefaultExprForType(setter.getDeclarationModel().getType());
             }
-            return result;
+            return null;
+        }
+
+        @Override
+        protected JCExpression makeVariableType(AnyAttribute value) {
+            return makeJavaType(value.getDeclarationModel().getType());
+        }
+
+        @Override
+        protected boolean isStatic(Value value) {
+            return false;
+        }
+        
+        @Override
+        protected long getVisibility(Value value) {
+            return 0;
         }
     }
     private final LocalVariable localVariable = new LocalVariable();
-    */
+    
     
     class ClassField extends VariableTransformation {
         // TODO The ctor need to use me to generate the initializing stmt
@@ -1035,5 +1101,63 @@ public class ValueTransformer extends AbstractTransformer {
             attrType = makeJavaType(nonWideningType, typeFlags);
         }
         return attrType;
+    }
+
+    public List<? extends JCTree> transformLocalValue(AnyAttribute decl) {
+        Value model = decl.getDeclarationModel();
+        if (model.isTransient()) {
+            // We local getter: We have to use a class+method
+            ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(model, 0), null);
+            classBuilder
+                .modifiers(FINAL | (model.isShared() ? PUBLIC : 0))
+                .constructorModifiers(PRIVATE)
+                .annotations(makeAtAttribute())
+                .satisfies(List.of(getGetterInterfaceType(decl.getDeclarationModel())));
+            classBuilder.defs(localGetter.transform(decl));
+            List<JCTree> classDef = classBuilder.build();
+            /*JCVariableDecl classInstantiate = at(decl).VarDef(
+                    make().Modifiers(FINAL),
+                    naming.getSyntheticInstanceName(model),
+                    naming.makeSyntheticClassname(model),
+                    makeSyntheticInstance(model));*/
+            JCTree classInstantiate = makeLocalIdentityInstance(
+                    makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
+                    Naming.getAttrClassName(model, 0), 
+                    Naming.getAttrClassName(model, 0), 
+                    decl.getDeclarationModel().isShared(), null);
+            return classDef.append(classInstantiate);
+        } else {
+            // A local value: We can just use a variable
+            if (decl.getDeclarationModel().isParameter()) {
+                return List.nil();
+            }
+            List<JCTree> result = List.<JCTree>of(localVariable.transformDeclaration(decl));
+            JCStatement outerSubs = statementGen().openOuterSubstitutionIfNeeded(
+                    decl.getDeclarationModel(), 
+                    decl.getType().getTypeModel(), 
+                    makeJavaTypeAnnotations(decl.getDeclarationModel()), FINAL);
+            if (outerSubs != null) {
+                result = result.append(outerSubs);
+            }
+            
+            return result;
+        }
+    }
+    
+    public List<? extends JCTree> transformLocalSetter(
+            AttributeSetterDefinition decl) {
+        Value getter = decl.getDeclarationModel().getGetter();
+        ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(getter, Naming.NA_SETTER), null);
+        classBuilder
+            .modifiers(FINAL | (getter.isShared() ? PUBLIC : 0))
+            .constructorModifiers(PRIVATE)
+            .annotations(makeAtAttribute());
+        ClassDefinitionBuilder classDef = classBuilder.defs(localSetter.transform(getter, decl));
+        JCTree classInstantiate = makeLocalIdentityInstance(
+                makeQuotedIdent(Naming.getAttrClassName(decl.getDeclarationModel(), 0)),
+                Naming.getAttrClassName(decl.getDeclarationModel(), 0),
+                Naming.getAttrClassName(decl.getDeclarationModel(), 0),
+                decl.getDeclarationModel().isShared(), null);
+        return classDef.build().append(classInstantiate);
     }
 }

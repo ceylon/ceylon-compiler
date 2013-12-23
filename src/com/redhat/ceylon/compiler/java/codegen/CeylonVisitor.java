@@ -126,24 +126,15 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             // Class attributes
             gen.valueGen().transformClassAttribute(classBuilder, decl);
         } else if (Decl.withinInterface(decl)) {
-            // Class attributes
+            // Interface attributes
             gen.valueGen().transformInterfaceAttribute(classBuilder, decl);
             gen.valueGen().transformCompanionAttribute(classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()), decl);
-            /*if (decl instanceof Tree.AttributeDeclaration) {
-                gen.classGen().transform((Tree.AttributeDeclaration)decl, classBuilder);
-            } else {
-                classBuilder.attribute(gen.classGen().transform((Tree.AttributeGetterDefinition)decl, false));
-                AttributeDefinitionBuilder adb = gen.classGen().transform((Tree.AttributeGetterDefinition)decl, true);
-                if (decl.getDeclarationModel().isShared()) {
-                    adb.noAnnotations();
-                }
-                classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
-            }*/
         } else if (Decl.isToplevel(decl)) {
             if (!Decl.isNative(decl)) {
                 topattrBuilder.add(decl);
             }
         } else {
+            // Local
             if (decl instanceof Tree.AttributeDeclaration
                     && (Decl.isLocal(decl)) 
                     && ((Decl.isCaptured(decl) && Decl.isVariable((Tree.AttributeDeclaration)decl))
@@ -153,11 +144,12 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
                 appendList(gen.transform(decl));
             } else {
                 // All other local attributes
-                if (decl instanceof Tree.AttributeDeclaration) {
+                appendList(gen.valueGen().transformLocalValue(decl));
+                /*if (decl instanceof Tree.AttributeDeclaration) {
                     appendList(gen.statementGen().transform((Tree.AttributeDeclaration)decl));
                 } else {
                     appendList(gen.transform((Tree.AttributeGetterDefinition)decl));
-                }
+                }*/
             }
         }
         gen.resetCompilerAnnotations(annots);
@@ -172,19 +164,14 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         } else if (Decl.withinInterface(decl)) {
             gen.valueGen().transformInterfaceSetter(classBuilder, decl);
             gen.valueGen().transformCompanionSetter(classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()), decl);
-            /*classBuilder.attribute(gen.classGen().transform(decl, false));
-            AttributeDefinitionBuilder adb = gen.classGen().transform(decl, true);
-            if (decl.getDeclarationModel().isShared()) {
-                adb.noAnnotations();
-            }
-            classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
-            */
         } else if (Decl.isToplevel(decl)) {
-        	if (!Decl.isNative(decl)) {
-        		topattrBuilder.add(decl);
-        	}
+            if (!Decl.isNative(decl)) {
+                topattrBuilder.add(decl);
+            }
         } else {
-            appendList(gen.transform(decl));
+            // Local
+            //appendList(gen.transform(decl));
+            appendList(gen.valueGen().transformLocalSetter(decl));
         }
         gen.resetCompilerAnnotations(annots);
     }

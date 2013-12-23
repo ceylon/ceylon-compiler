@@ -3163,7 +3163,7 @@ public class StatementTransformer extends AbstractTransformer {
         return last;
     }
 
-    private JCExpression makeDefaultExprForType(ProducedType type) {
+    JCExpression makeDefaultExprForType(ProducedType type) {
         if (canUnbox(type)) {
             if (isCeylonBoolean(type)) {
                 return makeBoolean(false);

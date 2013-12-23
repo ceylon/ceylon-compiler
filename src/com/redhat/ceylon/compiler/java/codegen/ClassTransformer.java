@@ -87,6 +87,7 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
@@ -1621,6 +1622,30 @@ public class ClassTransformer extends AbstractTransformer {
         return false;
     }
     
+    public AttributeDefinitionBuilder transform(AttributeGetterDefinition decl, boolean forCompanion) {
+        if (Strategy.onlyOnCompanion(decl.getDeclarationModel()) && !forCompanion) {
+            return null;
+        }
+        String name = decl.getIdentifier().getText();
+        //expressionGen().transform(decl.getAnnotationList());
+        final AttributeDefinitionBuilder builder = AttributeDefinitionBuilder
+            .getter(this, name, decl.getDeclarationModel())
+            .modifiers(transformAttributeGetSetDeclFlags(decl.getDeclarationModel(), forCompanion));
+        
+        // companion class members are never actual no matter what the Declaration says
+        if(forCompanion)
+            builder.notActual();
+        
+        if (Decl.withinClass(decl) || forCompanion) {
+            JCBlock body = statementGen().transform(decl.getBlock());
+            builder.getterBlock(body);
+        } else {
+            builder.isFormal(true);
+        }
+        builder.userAnnotations(expressionGen().transform(decl.getAnnotationList()));
+        return builder;    
+    }
+    
     public void transform(AttributeDeclaration decl, ClassDefinitionBuilder classBuilder) {
         final Value model = decl.getDeclarationModel();
         boolean lazy = decl.getSpecifierOrInitializerExpression() instanceof LazySpecifierExpression;
@@ -1728,30 +1753,6 @@ public class ClassTransformer extends AbstractTransformer {
         }
         builder.userAnnotationsSetter(expressionGen().transform(decl.getAnnotationList()));
         return builder;
-    }
-
-    public AttributeDefinitionBuilder transform(AttributeGetterDefinition decl, boolean forCompanion) {
-        if (Strategy.onlyOnCompanion(decl.getDeclarationModel()) && !forCompanion) {
-            return null;
-        }
-        String name = decl.getIdentifier().getText();
-        //expressionGen().transform(decl.getAnnotationList());
-        final AttributeDefinitionBuilder builder = AttributeDefinitionBuilder
-            .getter(this, name, decl.getDeclarationModel())
-            .modifiers(transformAttributeGetSetDeclFlags(decl.getDeclarationModel(), forCompanion));
-        
-        // companion class members are never actual no matter what the Declaration says
-        if(forCompanion)
-            builder.notActual();
-        
-        if (Decl.withinClass(decl) || forCompanion) {
-            JCBlock body = statementGen().transform(decl.getBlock());
-            builder.getterBlock(body);
-        } else {
-            builder.isFormal(true);
-        }
-        builder.userAnnotations(expressionGen().transform(decl.getAnnotationList()));
-        return builder;    
     }
 
     private int transformDeclarationSharedFlags(Declaration decl){
