@@ -8,8 +8,6 @@ import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
-import com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyAttribute;
-import com.redhat.ceylon.compiler.typechecker.tree.Tree.AttributeSetterDefinition;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCCatch;
@@ -504,6 +502,7 @@ public class ValueTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            // none
         }
         
         protected final void transformModifiers(Value value, MethodDefinitionBuilder builder) {
@@ -759,10 +758,10 @@ public class ValueTransformer extends AbstractTransformer {
         /**
          * Makes the initial value for the variable to be used in the 
          * {@linkplain #transformDeclaration(AnyAttribute) variable declaration}
-         * @param setter
+         * @param value
          * @return
          */
-        protected abstract JCExpression makeDeclarationInitialValue(Tree.AnyAttribute setter);
+        protected abstract JCExpression makeDeclarationInitialValue(Tree.AnyAttribute value);
         /**
          * Makes the type of the variable used in the variable declaration.
          * This may not be the same as the type used for a corresponding 
@@ -801,7 +800,7 @@ public class ValueTransformer extends AbstractTransformer {
         /**
          * Returns whether the annotations for the variable declaration
          */
-        protected List<JCAnnotation> transformAnnotations(AnyAttribute value) {
+        protected List<JCAnnotation> transformAnnotations(Tree.AnyAttribute value) {
             return List.<JCAnnotation>nil();
         }
     }
@@ -829,7 +828,7 @@ public class ValueTransformer extends AbstractTransformer {
         }
 
         @Override
-        protected JCExpression makeDeclarationInitialValue(AnyAttribute value) {
+        protected JCExpression makeDeclarationInitialValue(Tree.AnyAttribute value) {
             JCExpression result = null;
             if (value instanceof Tree.AttributeDeclaration
                     && ((Tree.AttributeDeclaration)value).getSpecifierOrInitializerExpression() != null) {
@@ -855,7 +854,7 @@ public class ValueTransformer extends AbstractTransformer {
         }
 
         @Override
-        protected JCExpression makeVariableType(AnyAttribute value) {
+        protected JCExpression makeVariableType(Tree.AnyAttribute value) {
             if (value.getDeclarationModel().isVariable() && value.getDeclarationModel().isCaptured()) {
                 return makeVariableBoxType(value.getDeclarationModel());
             }
@@ -922,7 +921,7 @@ public class ValueTransformer extends AbstractTransformer {
             }
         }
         @Override
-        protected JCExpression makeDeclarationInitialValue(AnyAttribute setter) {
+        protected JCExpression makeDeclarationInitialValue(Tree.AnyAttribute value) {
             // Always null, because we use the result of transformInit() in the ctor
             return null;
         }
@@ -967,7 +966,7 @@ public class ValueTransformer extends AbstractTransformer {
         /**
          * Returns whether the annotations for the variable declaration
          */
-        protected List<JCAnnotation> transformAnnotations(AnyAttribute value) {
+        protected List<JCAnnotation> transformAnnotations(Tree.AnyAttribute value) {
             if (!value.getDeclarationModel().isTransient()
                     && value.getDeclarationModel().isShared()) {
                 return makeAtIgnore();
@@ -1084,7 +1083,7 @@ public class ValueTransformer extends AbstractTransformer {
     }
 
     public void transformInterfaceAttribute(
-            ClassDefinitionBuilder classBuilder, AnyAttribute decl) {
+            ClassDefinitionBuilder classBuilder, Tree.AnyAttribute decl) {
         classBuilder.defs(interfaceGetter.transform(decl));
         if (decl.getDeclarationModel().isVariable() && !decl.getDeclarationModel().isTransient()) {
             classBuilder.defs(interfaceSetter.transform(decl.getDeclarationModel(), null));
@@ -1092,18 +1091,18 @@ public class ValueTransformer extends AbstractTransformer {
     }
 
     public void transformCompanionAttribute(
-            ClassDefinitionBuilder classBuilder, AnyAttribute decl) {
+            ClassDefinitionBuilder classBuilder, Tree.AnyAttribute decl) {
         classBuilder.defs(companionGetter.transform(decl));
     }
 
     public void transformInterfaceSetter(ClassDefinitionBuilder classBuilder,
-            AttributeSetterDefinition decl) {
+            Tree.AttributeSetterDefinition decl) {
         classBuilder.defs(interfaceSetter.transform(decl.getDeclarationModel().getGetter(), decl));
     }
 
     public void transformCompanionSetter(
             ClassDefinitionBuilder classBuilder,
-            AttributeSetterDefinition decl) {
+            Tree.AttributeSetterDefinition decl) {
         classBuilder.defs(companionSetter.transform(decl.getDeclarationModel().getGetter(), decl));
     }
     
@@ -1123,7 +1122,7 @@ public class ValueTransformer extends AbstractTransformer {
         return attrType;
     }
 
-    public List<? extends JCTree> transformLocalValue(AnyAttribute decl) {
+    public List<? extends JCTree> transformLocalValue(Tree.AnyAttribute decl) {
         Value model = decl.getDeclarationModel();
         ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
         if (model.isTransient()) {
@@ -1175,7 +1174,7 @@ public class ValueTransformer extends AbstractTransformer {
     }
     
     public List<? extends JCTree> transformLocalSetter(
-            AttributeSetterDefinition decl) {
+            Tree.AttributeSetterDefinition decl) {
         Value getter = decl.getDeclarationModel().getGetter();
         ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(getter, Naming.NA_SETTER), null);
         classBuilder
