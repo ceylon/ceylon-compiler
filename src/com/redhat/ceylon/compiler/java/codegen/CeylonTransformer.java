@@ -213,44 +213,6 @@ public class CeylonTransformer extends AbstractTransformer {
         }
         return at(that).Import(makeQuotedQualIdent(null, names), false);
     }
-    
-    public List<JCTree> transform(Tree.AnyAttribute decl) {
-        return transformAttribute(decl, null);
-    }
-
-    public List<JCTree> transform(Tree.AttributeSetterDefinition decl) {
-        return transformAttribute(decl, null);
-    }
-    
-    public List<JCTree> transformAttribute(Tree.TypedDeclaration decl, Tree.AttributeSetterDefinition setterDecl) {
-        at(decl);
-        TypedDeclaration declarationModel = decl.getDeclarationModel(); 
-        final String attrName = declarationModel.getName();
-        final String attrClassName = Naming.getAttrClassName(declarationModel, 0);
-        final Tree.SpecifierOrInitializerExpression expression;
-        final Tree.Block block;
-        final Tree.AnnotationList annotationList = decl.getAnnotationList();
-        if (decl instanceof Tree.AttributeDeclaration) {
-            Tree.AttributeDeclaration adecl = (Tree.AttributeDeclaration)decl;
-            expression = adecl.getSpecifierOrInitializerExpression();
-            block = null;
-        } else if (decl instanceof Tree.AttributeGetterDefinition) {
-            expression = null;
-            Tree.AttributeGetterDefinition gdef = (Tree.AttributeGetterDefinition)decl;
-            block = gdef.getBlock();
-        } else if (decl instanceof Tree.AttributeSetterDefinition) {
-            Tree.AttributeSetterDefinition sdef = (Tree.AttributeSetterDefinition)decl;
-            block = sdef.getBlock();
-            expression = sdef.getSpecifierExpression();
-            if (Decl.isLocal(decl)) {
-                declarationModel = ((Tree.AttributeSetterDefinition)decl).getDeclarationModel().getParameter().getModel();
-            }
-        } else {
-            throw new RuntimeException();
-        }
-        return transformAttribute(declarationModel, attrName, attrClassName,
-                annotationList, block, expression, setterDecl);
-    }
 
     public List<JCTree> transformAttribute(
             TypedDeclaration declarationModel,

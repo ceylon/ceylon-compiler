@@ -1622,30 +1622,6 @@ public class ClassTransformer extends AbstractTransformer {
         return false;
     }
     
-    public AttributeDefinitionBuilder transform(AttributeGetterDefinition decl, boolean forCompanion) {
-        if (Strategy.onlyOnCompanion(decl.getDeclarationModel()) && !forCompanion) {
-            return null;
-        }
-        String name = decl.getIdentifier().getText();
-        //expressionGen().transform(decl.getAnnotationList());
-        final AttributeDefinitionBuilder builder = AttributeDefinitionBuilder
-            .getter(this, name, decl.getDeclarationModel())
-            .modifiers(transformAttributeGetSetDeclFlags(decl.getDeclarationModel(), forCompanion));
-        
-        // companion class members are never actual no matter what the Declaration says
-        if(forCompanion)
-            builder.notActual();
-        
-        if (Decl.withinClass(decl) || forCompanion) {
-            JCBlock body = statementGen().transform(decl.getBlock());
-            builder.getterBlock(body);
-        } else {
-            builder.isFormal(true);
-        }
-        builder.userAnnotations(expressionGen().transform(decl.getAnnotationList()));
-        return builder;    
-    }
-    
     public void transform(AttributeDeclaration decl, ClassDefinitionBuilder classBuilder) {
         final Value model = decl.getDeclarationModel();
         boolean lazy = decl.getSpecifierOrInitializerExpression() instanceof LazySpecifierExpression;
@@ -1727,34 +1703,7 @@ public class ClassTransformer extends AbstractTransformer {
             }
         }
     }
-
-	public AttributeDefinitionBuilder transform(AttributeSetterDefinition decl, boolean forCompanion) {
-	    if (Strategy.onlyOnCompanion(decl.getDeclarationModel()) && !forCompanion) {
-	        return null;
-	    }
-        String name = decl.getIdentifier().getText();
-        final AttributeDefinitionBuilder builder = AttributeDefinitionBuilder
-                /* 
-                 * We use the getter as TypedDeclaration here because this is the same type but has a refined
-                 * declaration we can use to make sure we're not widening the attribute type.
-                 */
-            .setter(this, name, decl.getDeclarationModel().getGetter())
-            .modifiers(transformAttributeGetSetDeclFlags(decl.getDeclarationModel(), forCompanion));
-        
-        // companion class members are never actual no matter what the Declaration says
-        if(forCompanion)
-            builder.notActual();
-        
-        if (Decl.withinClass(decl) || forCompanion) {
-            JCBlock setterBlock = makeSetterBlock(decl.getDeclarationModel(), decl.getBlock(), decl.getSpecifierExpression());
-            builder.setterBlock(setterBlock);
-        } else {
-            builder.isFormal(true);
-        }
-        builder.userAnnotationsSetter(expressionGen().transform(decl.getAnnotationList()));
-        return builder;
-    }
-
+    
     private int transformDeclarationSharedFlags(Declaration decl){
         return Decl.isShared(decl) && !Decl.isAncestorLocal(decl) ? PUBLIC : 0;
     }

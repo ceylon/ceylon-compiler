@@ -135,17 +135,7 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             }
         } else {
             // Local
-            /*if (decl instanceof Tree.AttributeDeclaration
-                    && (Decl.isLocal(decl)) 
-                    && ((Decl.isCaptured(decl) && Decl.isVariable((Tree.AttributeDeclaration)decl))
-                            || Decl.isTransient((Tree.AttributeDeclaration)decl)
-                            || Decl.hasSetter((Tree.AttributeDeclaration)decl))) {
-                // Captured local attributes get turned into an inner getter/setter class
-                appendList(gen.transform(decl));
-            } else*/ {
-                // All other local attributes
-                appendList(gen.valueGen().transformLocalValue(decl));
-            }
+            appendList(gen.valueGen().transformLocalValue(decl));
         }
         gen.resetCompilerAnnotations(annots);
     }
