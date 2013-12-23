@@ -292,7 +292,6 @@ class Optim extends .com.redhat.ceylon.compiler.java.test.expression.operator.Op
             
             private localGetterInteger$setter$_() {
             }
-            private long value;
             
             public void set_(final long localGetterInteger) {
             }

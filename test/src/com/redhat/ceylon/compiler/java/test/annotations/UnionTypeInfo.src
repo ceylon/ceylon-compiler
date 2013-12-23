@@ -76,7 +76,6 @@ class UnionTypeInfo implements .com.redhat.ceylon.compiler.java.runtime.model.Re
             
             private getter$setter$_() {
             }
-            private .java.lang.Object value;
             
             public void set_(@.com.redhat.ceylon.compiler.java.metadata.Name("getter")
             final .java.lang.Object getter) {

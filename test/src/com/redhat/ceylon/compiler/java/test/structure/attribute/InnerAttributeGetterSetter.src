@@ -22,7 +22,6 @@ class InnerAttributeGetterSetter implements .com.redhat.ceylon.compiler.java.run
             
             private innerGetterSetter$setter$_() {
             }
-            private long value;
             
             public void set_(final long innerGetterSetter) {
             }
@@ -50,7 +49,6 @@ class InnerAttributeGetterSetter implements .com.redhat.ceylon.compiler.java.run
             
             private innerGetterSetter$setter$_() {
             }
-            private long value;
             
             public void set_(final long innerGetterSetter) {
                 (

@@ -88,7 +88,6 @@ public class LocalKlass implements .com.redhat.ceylon.compiler.java.runtime.mode
             
             private getter$setter$_() {
             }
-            private .java.lang.String value;
             
             public void set_(@.com.redhat.ceylon.compiler.java.metadata.Name("getter")
             final .java.lang.String getter) {

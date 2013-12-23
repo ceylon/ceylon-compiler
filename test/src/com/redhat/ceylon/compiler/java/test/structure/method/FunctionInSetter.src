@@ -19,7 +19,6 @@ class FunctionInSetter implements .com.redhat.ceylon.compiler.java.runtime.model
             
             private foo$setter$_() {
             }
-            private .java.lang.String value;
             
             public void set_(final .java.lang.String foo) {
                 if (true) {

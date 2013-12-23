@@ -316,7 +316,6 @@ class BitwiseOperators implements .com.redhat.ceylon.compiler.java.runtime.model
             
             private getterN1$setter$_() {
             }
-            private long value;
             
             public void set_(final long getterN1) {
                 n1.ref = getterN1;
@@ -339,7 +338,6 @@ class BitwiseOperators implements .com.redhat.ceylon.compiler.java.runtime.model
             
             private getterN2$setter$_() {
             }
-            private long value;
             
             public void set_(final long getterN2) {
                 n2.ref = getterN2;
@@ -362,7 +360,6 @@ class BitwiseOperators implements .com.redhat.ceylon.compiler.java.runtime.model
             
             private getterI1$setter$_() {
             }
-            private long value;
             
             public void set_(final long getterI1) {
                 i1.ref = getterI1;

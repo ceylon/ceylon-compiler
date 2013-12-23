@@ -19,7 +19,6 @@ class KeywordInClassGetter implements .com.redhat.ceylon.compiler.java.runtime.m
             
             private goto$setter$_() {
             }
-            private .java.lang.String value;
             
             public void set_(final .java.lang.String goto) {
             }

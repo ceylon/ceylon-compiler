@@ -390,7 +390,6 @@ final class bug1286_getterSetter_ {
             
             private getterSetter$setter$_() {
             }
-            private .java.lang.String value;
             
             public void set_(final .java.lang.String getterSetter) {
                 final .com.redhat.ceylon.compiler.java.test.issues.bug12xx.bug1286_getterSetter$0$getterSetter$2$Consumer_<? super .java.lang.Object> times1 = (.com.redhat.ceylon.compiler.java.test.issues.bug12xx.bug1286_getterSetter$0$getterSetter$2$Consumer_).ceylon.language.nothing_.get_();

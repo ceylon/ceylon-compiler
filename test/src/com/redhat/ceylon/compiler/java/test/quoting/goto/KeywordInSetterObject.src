@@ -19,7 +19,6 @@ class KeywordInSetterObject implements .com.redhat.ceylon.compiler.java.runtime.
             
             private i$setter$_() {
             }
-            private long value;
             
             public void set_(final long i) {
                 
