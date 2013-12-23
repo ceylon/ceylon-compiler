@@ -475,7 +475,7 @@ public abstract class AbstractTransformer implements Transformation {
      * Creates a {@code VariableBox<T>}, {@code VariableBoxBoolean}, 
      * {@code VariableBoxLong} etc depending on the given declaration model.
      */
-    private JCExpression makeVariableBoxType(TypedDeclaration declarationModel) {
+    JCExpression makeVariableBoxType(TypedDeclaration declarationModel) {
         JCExpression boxClass;
         boolean unboxed = CodegenUtil.isUnBoxed(declarationModel);
         if (unboxed && isCeylonBoolean(declarationModel.getType())) {

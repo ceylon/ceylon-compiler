@@ -2,6 +2,7 @@ package com.redhat.ceylon.compiler.java.codegen;
 
 import static com.sun.tools.javac.code.Flags.*;
 
+import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
@@ -794,7 +795,7 @@ public class ValueTransformer extends AbstractTransformer {
         /**
          * Returns whether the variable declaration should be final
          */
-        protected final boolean isFinal(Value value) {
+        protected boolean isFinal(Value value) {
             return !value.isVariable() && !value.isLate();
         }
         /**
@@ -808,9 +809,6 @@ public class ValueTransformer extends AbstractTransformer {
     class LocalVariable extends VariableTransformation {
         @Override
         public JCVariableDecl transformDeclaration(Tree.AnyAttribute value) {
-            if (value.getDeclarationModel().isParameter()) {
-                return null;
-            }
             return super.transformDeclaration(value);
         }
         
@@ -831,21 +829,43 @@ public class ValueTransformer extends AbstractTransformer {
         }
 
         @Override
-        protected JCExpression makeDeclarationInitialValue(AnyAttribute setter) {
-            if (setter instanceof Tree.AttributeDeclaration
-                    && ((Tree.AttributeDeclaration)setter).getSpecifierOrInitializerExpression() != null) {
-                return expressionGen().transformExpression(setter.getDeclarationModel(), ((Tree.AttributeDeclaration)setter).getSpecifierOrInitializerExpression().getExpression());
-            } else if (setter.getDeclarationModel().isVariable()) {
-                return statementGen().makeDefaultExprForType(setter.getDeclarationModel().getType());
+        protected JCExpression makeDeclarationInitialValue(AnyAttribute value) {
+            JCExpression result = null;
+            if (value instanceof Tree.AttributeDeclaration
+                    && ((Tree.AttributeDeclaration)value).getSpecifierOrInitializerExpression() != null) {
+                result = expressionGen().transformExpression(value.getDeclarationModel(), ((Tree.AttributeDeclaration)value).getSpecifierOrInitializerExpression().getExpression());
+            } else if (value.getDeclarationModel().isParameter()) {
+                Parameter p = CodegenUtil.findParamForDecl(value.getDeclarationModel());
+                if (p != null) {
+                    result = naming.makeName(p.getModel(), Naming.NA_MEMBER | Naming.NA_ALIASED);
+                }
+            } else if (value.getDeclarationModel().isVariable()) {
+                result = statementGen().makeDefaultExprForType(value.getDeclarationModel().getType());
             }
-            return null;
+            
+            if (value.getDeclarationModel().isVariable()
+                    && value.getDeclarationModel().isCaptured()) {
+                JCExpression newBox = make().NewClass(
+                        null, List.<JCExpression>nil(), 
+                        makeVariableBoxType(value.getDeclarationModel()), result != null ? List.of(result) : List.<JCExpression>nil(), null);
+                return newBox;
+            }
+            
+            return result;
         }
 
         @Override
         protected JCExpression makeVariableType(AnyAttribute value) {
+            if (value.getDeclarationModel().isVariable() && value.getDeclarationModel().isCaptured()) {
+                return makeVariableBoxType(value.getDeclarationModel());
+            }
             return makeJavaType(value.getDeclarationModel().getType());
         }
 
+        protected final boolean isFinal(Value value) {
+            return !value.isVariable() || value.isCaptured();
+        }
+        
         @Override
         protected boolean isStatic(Value value) {
             return false;
@@ -1105,43 +1125,53 @@ public class ValueTransformer extends AbstractTransformer {
 
     public List<? extends JCTree> transformLocalValue(AnyAttribute decl) {
         Value model = decl.getDeclarationModel();
+        ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
         if (model.isTransient()) {
-            // We local getter: We have to use a class+method
-            ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(model, 0), null);
-            classBuilder
-                .modifiers(FINAL | (model.isShared() ? PUBLIC : 0))
-                .constructorModifiers(PRIVATE)
-                .annotations(makeAtAttribute())
-                .satisfies(List.of(getGetterInterfaceType(decl.getDeclarationModel())));
-            classBuilder.defs(localGetter.transform(decl));
-            List<JCTree> classDef = classBuilder.build();
-            /*JCVariableDecl classInstantiate = at(decl).VarDef(
-                    make().Modifiers(FINAL),
-                    naming.getSyntheticInstanceName(model),
-                    naming.makeSyntheticClassname(model),
-                    makeSyntheticInstance(model));*/
-            JCTree classInstantiate = makeLocalIdentityInstance(
-                    makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
-                    Naming.getAttrClassName(model, 0), 
-                    Naming.getAttrClassName(model, 0), 
-                    decl.getDeclarationModel().isShared(), null);
-            return classDef.append(classInstantiate);
+            // A local getter: We have to use a class+method
+            if (!model.isDeferred()) {
+                ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(model, 0), null);
+                classBuilder
+                    .modifiers(FINAL | (model.isShared() ? PUBLIC : 0))
+                    .constructorModifiers(PRIVATE)
+                    .annotations(makeAtAttribute())
+                    .satisfies(List.of(getGetterInterfaceType(decl.getDeclarationModel())));
+                classBuilder.defs(localGetter.transform(decl));
+                lb.addAll(classBuilder.build());
+                JCTree classInstantiate = makeLocalIdentityInstance(
+                        makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
+                        Naming.getAttrClassName(model, 0), 
+                        Naming.getAttrClassName(model, 0), 
+                        decl.getDeclarationModel().isShared(), null);
+                lb.add(classInstantiate);
+            } else {
+                int modifiers = 0;//model.isShared() ? 0 : FINAL;
+                JCVariableDecl classInstantiate = make().VarDef(
+                        make().Modifiers(modifiers), 
+                        names().fromString(Naming.getAttrClassName(model, 0)), 
+                        makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
+                        null);
+                lb.add(classInstantiate);
+            }
         } else {
-            // A local value: We can just use a variable
-            if (decl.getDeclarationModel().isParameter()) {
+            // A local value
+            if (model.isParameter() && !(decl.getDeclarationModel().isVariable()
+                    && decl.getDeclarationModel().isCaptured())) {
+                // Already declared by the parameter
                 return List.nil();
             }
-            List<JCTree> result = List.<JCTree>of(localVariable.transformDeclaration(decl));
+            // We can just use a variable declaration...
+            lb.add(localVariable.transformDeclaration(decl));
+            // ... but to cope with javas definite specification analysis,
+            // we might need two declarations.
             JCStatement outerSubs = statementGen().openOuterSubstitutionIfNeeded(
                     decl.getDeclarationModel(), 
                     decl.getType().getTypeModel(), 
                     makeJavaTypeAnnotations(decl.getDeclarationModel()), FINAL);
             if (outerSubs != null) {
-                result = result.append(outerSubs);
+                lb.add(outerSubs);
             }
-            
-            return result;
         }
+        return lb.toList();
     }
     
     public List<? extends JCTree> transformLocalSetter(
