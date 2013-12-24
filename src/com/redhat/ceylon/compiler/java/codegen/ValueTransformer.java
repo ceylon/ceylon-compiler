@@ -913,7 +913,7 @@ public class ValueTransformer extends AbstractTransformer {
             }
             
             if (value.isLate()) {
-                JCExpression attrTypeRaw = makeJavaType(nonWideningType, AbstractTransformer.JT_RAW);
+                JCExpression attrTypeRaw = makeJavaType(nonWideningType);
                 return make().TypeArray(attrTypeRaw);
             } else {
                 JCExpression attrType = makeJavaType(nonWideningType, typeFlags);
@@ -941,7 +941,7 @@ public class ValueTransformer extends AbstractTransformer {
         public JCExpression allocate(Value value) {
             return make().Assign(
                     makeQualIdent(naming.makeThis(), getVariableName(value)),
-                    make().NewArray(makeJavaType(value.getType()), List.<JCExpression>of(make().Literal(1)), null));
+                    make().NewArray(makeJavaType(value.getType(), JT_RAW), List.<JCExpression>of(make().Literal(1)), null));
         }
         @Override
         public JCExpression testInit(Value value, boolean initialized) {
