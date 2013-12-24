@@ -8,15 +8,15 @@ final class bug1227_ifBreak_returnElse_ {
     static long bug1227_ifBreak_returnElse(final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> l) {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$0 = 0L;
+        long from$0 = 0L;
         boolean doforelse$1 = true;
         .java.lang.Object elem$2;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$3 = l.iterator();
         while (!((elem$2 = index$iterator$$3.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$2).longValue();
             if (someBoolean) {
-                get_$0 = index;
-                final long from$5 = get_$0;
+                from$0 = index;
+                final long from$5 = from$0;
                 
                 final class ohNo_ {
                     
@@ -35,7 +35,7 @@ final class bug1227_ifBreak_returnElse_ {
         if (doforelse$1) {
             return 0L;
         }
-        from = get_$0;
+        from = from$0;
         return from;
     }
 }
@@ -47,15 +47,15 @@ final class bug1227_ifBreak_returnElse_opt_ {
     static long bug1227_ifBreak_returnElse_opt() {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$6 = 0L;
+        long from$6 = 0L;
         boolean doforelse$7 = true;
         .java.lang.Object elem$8;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$9 = new .ceylon.language.Range<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L), .ceylon.language.Integer.instance(10L)).iterator();
         while (!((elem$8 = index$iterator$$9.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$8).longValue();
             if (someBoolean) {
-                get_$6 = index;
-                final long from$11 = get_$6;
+                from$6 = index;
+                final long from$11 = from$6;
                 doforelse$7 = false;
                 break;
             }
@@ -63,7 +63,7 @@ final class bug1227_ifBreak_returnElse_opt_ {
         if (doforelse$7) {
             return 0L;
         }
-        from = get_$6;
+        from = from$6;
         return from;
     }
     
@@ -80,25 +80,25 @@ final class bug1227_ifBreak_specifiedElse_ {
     static long bug1227_ifBreak_specifiedElse(final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> l) {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$12 = 0L;
+        long from$12 = 0L;
         boolean doforelse$13 = true;
         .java.lang.Object elem$14;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$15 = l.iterator();
         while (!((elem$14 = index$iterator$$15.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$14).longValue();
             if (someBoolean) {
-                get_$12 = index;
-                final long from$17 = get_$12;
+                from$12 = index;
+                final long from$17 = from$12;
                 final long x = from$17 + 1L;
                 doforelse$13 = false;
                 break;
             }
         }
         if (doforelse$13) {
-            get_$12 = 0L;
-            final long from$18 = get_$12;
+            from$12 = 0L;
+            final long from$18 = from$12;
         }
-        from = get_$12;
+        from = from$12;
         return from;
     }
 }
@@ -110,25 +110,25 @@ final class bug1227_ifBreak_specifiedElse_opt_ {
     static long bug1227_ifBreak_specifiedElse_opt() {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$19 = 0L;
+        long from$19 = 0L;
         boolean doforelse$20 = true;
         .java.lang.Object elem$21;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$22 = new .ceylon.language.Range<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L), .ceylon.language.Integer.instance(10L)).iterator();
         while (!((elem$21 = index$iterator$$22.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$21).longValue();
             if (someBoolean) {
-                get_$19 = index;
-                final long from$24 = get_$19;
+                from$19 = index;
+                final long from$24 = from$19;
                 final long x = from$24 + 1L;
                 doforelse$20 = false;
                 break;
             }
         }
         if (doforelse$20) {
-            get_$19 = 0L;
-            final long from$25 = get_$19;
+            from$19 = 0L;
+            final long from$25 = from$19;
         }
-        from = get_$19;
+        from = from$19;
         return from;
     }
     
@@ -145,15 +145,15 @@ final class bug1227_ifBreak_elseBreak_specifiedElse_ {
     static long bug1227_ifBreak_elseBreak_specifiedElse(final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> l) {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$26 = 0L;
+        long from$26 = 0L;
         boolean doforelse$27 = true;
         .java.lang.Object elem$28;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$29 = l.iterator();
         while (!((elem$28 = index$iterator$$29.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$28).longValue();
             if (someBoolean) {
-                get_$26 = index;
-                final long from$32 = get_$26;
+                from$26 = index;
+                final long from$32 = from$26;
                 
                 final class ohNo_ {
                     
@@ -168,8 +168,8 @@ final class bug1227_ifBreak_elseBreak_specifiedElse_ {
                 doforelse$27 = false;
                 break;
             } else {
-                get_$26 = index + 1L;
-                final long from$31 = get_$26;
+                from$26 = index + 1L;
+                final long from$31 = from$26;
                 
                 class C implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
                     
@@ -187,10 +187,10 @@ final class bug1227_ifBreak_elseBreak_specifiedElse_ {
             }
         }
         if (doforelse$27) {
-            get_$26 = 0L;
-            final long from$33 = get_$26;
+            from$26 = 0L;
+            final long from$33 = from$26;
         }
-        from = get_$26;
+        from = from$26;
         return from;
     }
 }
@@ -202,15 +202,15 @@ final class bug1227_ifBreak_elseBreak_specifiedElse_opt_ {
     static long bug1227_ifBreak_elseBreak_specifiedElse_opt() {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$34 = 0L;
+        long from$34 = 0L;
         boolean doforelse$35 = true;
         .java.lang.Object elem$36;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$37 = new .ceylon.language.Range<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L), .ceylon.language.Integer.instance(10L)).iterator();
         while (!((elem$36 = index$iterator$$37.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$36).longValue();
             if (someBoolean) {
-                get_$34 = index;
-                final long from$40 = get_$34;
+                from$34 = index;
+                final long from$40 = from$34;
                 
                 final class ohNo_ {
                     
@@ -225,8 +225,8 @@ final class bug1227_ifBreak_elseBreak_specifiedElse_opt_ {
                 doforelse$35 = false;
                 break;
             } else {
-                get_$34 = index + 1L;
-                final long from$39 = get_$34;
+                from$34 = index + 1L;
+                final long from$39 = from$34;
                 
                 class C implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
                     
@@ -244,10 +244,10 @@ final class bug1227_ifBreak_elseBreak_specifiedElse_opt_ {
             }
         }
         if (doforelse$35) {
-            get_$34 = 0L;
-            final long from$41 = get_$34;
+            from$34 = 0L;
+            final long from$41 = from$34;
         }
-        from = get_$34;
+        from = from$34;
         return from;
     }
     
@@ -264,14 +264,14 @@ final class bug1227_ifReturn_specifiedElse_ {
     static long bug1227_ifReturn_specifiedElse(final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> l) {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$42 = 0L;
+        long from$42 = 0L;
         .java.lang.Object elem$43;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$44 = l.iterator();
         while (!((elem$43 = index$iterator$$44.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$43).longValue();
             if (someBoolean) {
-                get_$42 = index;
-                final long from$46 = get_$42;
+                from$42 = index;
+                final long from$46 = from$42;
                 
                 final class ohNo_ {
                     
@@ -283,12 +283,12 @@ final class bug1227_ifReturn_specifiedElse_ {
                     }
                 }
                 final ohNo_ ohNo = new ohNo_();
-                return get_$42;
+                return from$42;
             }
         }
-        get_$42 = 0L;
-        final long from$47 = get_$42;
-        from = get_$42;
+        from$42 = 0L;
+        final long from$47 = from$42;
+        from = from$42;
         return from;
     }
 }
@@ -300,14 +300,14 @@ final class bug1227_ifReturn_specifiedElse_opt_ {
     static long bug1227_ifReturn_specifiedElse_opt() {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$48 = 0L;
+        long from$48 = 0L;
         .java.lang.Object elem$49;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$50 = new .ceylon.language.Range<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L), .ceylon.language.Integer.instance(10L)).iterator();
         while (!((elem$49 = index$iterator$$50.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$49).longValue();
             if (someBoolean) {
-                get_$48 = index;
-                final long from$52 = get_$48;
+                from$48 = index;
+                final long from$52 = from$48;
                 
                 final class ohNo_ {
                     
@@ -319,12 +319,12 @@ final class bug1227_ifReturn_specifiedElse_opt_ {
                     }
                 }
                 final ohNo_ ohNo = new ohNo_();
-                return get_$48;
+                return from$48;
             }
         }
-        get_$48 = 0L;
-        final long from$53 = get_$48;
-        from = get_$48;
+        from$48 = 0L;
+        final long from$53 = from$48;
+        from = from$48;
         return from;
     }
     
@@ -341,20 +341,20 @@ final class bug1227_ifThrow_specifiedElse_ {
     static long bug1227_ifThrow_specifiedElse(final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> l) {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$54 = 0L;
+        long from$54 = 0L;
         .java.lang.Object elem$55;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$56 = l.iterator();
         while (!((elem$55 = index$iterator$$56.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$55).longValue();
             if (someBoolean) {
-                get_$54 = index;
-                final long from$58 = get_$54;
+                from$54 = index;
+                final long from$58 = from$54;
                 throw new .ceylon.language.Exception(null, null);
             }
         }
-        get_$54 = 0L;
-        final long from$59 = get_$54;
-        from = get_$54;
+        from$54 = 0L;
+        final long from$59 = from$54;
+        from = from$54;
         return from;
     }
 }
@@ -366,20 +366,20 @@ final class bug1227_ifThrow_specifiedElse_opt_ {
     static long bug1227_ifThrow_specifiedElse_opt() {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$60 = 0L;
+        long from$60 = 0L;
         .java.lang.Object elem$61;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$62 = new .ceylon.language.Range<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L), .ceylon.language.Integer.instance(10L)).iterator();
         while (!((elem$61 = index$iterator$$62.next()) instanceof .ceylon.language.Finished)) {
             final long index = ((.ceylon.language.Integer)elem$61).longValue();
             if (someBoolean) {
-                get_$60 = index;
-                final long from$64 = get_$60;
+                from$60 = index;
+                final long from$64 = from$60;
                 throw new .ceylon.language.Exception(null, null);
             }
         }
-        get_$60 = 0L;
-        final long from$65 = get_$60;
-        from = get_$60;
+        from$60 = 0L;
+        final long from$65 = from$60;
+        from = from$60;
         return from;
     }
     
@@ -396,7 +396,7 @@ final class bug1227_for2_ifReturn_specifiedElse_ {
     static long bug1227_for2_ifReturn_specifiedElse(final .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> l) {
         final boolean someBoolean = ((.ceylon.language.Boolean).ceylon.language.nothing_.get_()).booleanValue();
         final long from;
-        long get_$66 = 0L;
+        long from$66 = 0L;
         .java.lang.Object elem$67;
         .ceylon.language.Iterator<? extends .ceylon.language.Integer> index$iterator$$68 = l.iterator();
         while (!((elem$67 = index$iterator$$68.next()) instanceof .ceylon.language.Finished)) {
@@ -406,12 +406,12 @@ final class bug1227_for2_ifReturn_specifiedElse_ {
             while (!((elem$69 = index2$iterator$$70.next()) instanceof .ceylon.language.Finished)) {
                 final long index2 = ((.ceylon.language.Integer)elem$69).longValue();
                 if (someBoolean) {
-                    get_$66 = index + index2;
-                    final long from$72 = get_$66;
-                    return get_$66;
+                    from$66 = index + index2;
+                    final long from$72 = from$66;
+                    return from$66;
                 }
             }
-            from = get_$66;
+            from = from$66;
         }
         from = 0L;
         final long from$73 = from;
