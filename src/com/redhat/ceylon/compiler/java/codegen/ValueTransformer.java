@@ -838,7 +838,8 @@ public class ValueTransformer extends AbstractTransformer {
                 if (p != null) {
                     result = naming.makeName(p.getModel(), Naming.NA_MEMBER | Naming.NA_ALIASED);
                 }
-            } else if (value.getDeclarationModel().isVariable()) {
+            } else if (value.getDeclarationModel().isVariable()
+                    && !value.getDeclarationModel().isCaptured()) {
                 result = statementGen().makeDefaultExprForType(value.getDeclarationModel().getType());
             }
             
