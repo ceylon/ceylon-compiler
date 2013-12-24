@@ -2543,7 +2543,7 @@ public class StatementTransformer extends AbstractTransformer {
                 throw new IllegalStateException("An Outer substitution (" + outerSubst + ") is already open");
             }
             //this.outerAlias = naming.alias(methodOrValue.getName());
-            this.outerAlias = naming.alias(naming.selector(methodOrValue));
+            this.outerAlias = naming.alias(methodOrValue.getName());
             // TODO Annots
             try (SavedPosition pos = noPosition()) {
                 return make().VarDef(
