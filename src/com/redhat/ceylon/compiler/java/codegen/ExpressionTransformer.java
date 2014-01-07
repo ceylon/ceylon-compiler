@@ -52,6 +52,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Functional;
 import com.redhat.ceylon.compiler.typechecker.model.Generic;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
+import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Module;
 import com.redhat.ceylon.compiler.typechecker.model.NothingType;
 import com.redhat.ceylon.compiler.typechecker.model.Package;
@@ -3783,11 +3784,17 @@ public class ExpressionTransformer extends AbstractTransformer {
                 }
                 selector = naming.selector((Value)decl);
                 ListBuffer<JCExpression> args = ListBuffer.lb();
-                /*if (((Value)decl).isDeferred()) {
-                    args.add(naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT));
-                }*/
+                if (((Value)decl).isDeferred()) {
+                    args.add(naming.makeUnquotedIdent(Naming.getAttrClassName((Value)decl, 0)));
+                }
                 for (Declaration captured : Decl.getCapturedLocals(decl)) {
                     if (captured instanceof TypedDeclaration) {
+                        if ((captured instanceof MethodOrValue)
+                                && Decl.isLocal(captured)
+                                && ((MethodOrValue)captured).isTransient()
+                                && !((MethodOrValue)captured).isDeferred()) {
+                            continue;
+                        }
                         args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                     }
                 }
@@ -4371,6 +4378,12 @@ public class ExpressionTransformer extends AbstractTransformer {
                     if (((Value)decl).getSetter() != null) {
                         for (Declaration captured : Decl.getCapturedLocals(((Value)decl).getSetter())) {
                             if (captured instanceof TypedDeclaration) {
+                                if ((captured instanceof MethodOrValue)
+                                        && Decl.isLocal(captured)
+                                        && ((MethodOrValue)captured).isTransient()
+                                        && !((MethodOrValue)captured).isDeferred()) {
+                                    continue;
+                                }
                                 setterArgs.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                             }
                         }

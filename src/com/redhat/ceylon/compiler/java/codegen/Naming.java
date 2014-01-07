@@ -482,8 +482,17 @@ public class Naming implements LocalId {
         }
         
         @Override
-        public void visit(Tree.AnyAttribute that) {
+        public void visit(Tree.AttributeGetterDefinition that) {
             if (Decl.isLocalNotInitializer(that.getDeclarationModel())) {
+                noteDecl(that.getDeclarationModel());
+            }
+            super.visit(that);
+        }
+        
+        @Override
+        public void visit(Tree.AttributeDeclaration that) {
+            if (that.getDeclarationModel().isDeferred() 
+                    && Decl.isLocalNotInitializer(that.getDeclarationModel())) {
                 noteDecl(that.getDeclarationModel());
             }
             super.visit(that);

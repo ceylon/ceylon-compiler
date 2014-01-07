@@ -5,6 +5,7 @@ import static com.sun.tools.javac.code.Flags.*;
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
+import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
@@ -485,6 +486,12 @@ public class ValueTransformer extends AbstractTransformer {
             }
             for (Declaration captured : Decl.getCapturedLocals(value)) {
                 if (captured instanceof TypedDeclaration) {
+                    if ((captured instanceof MethodOrValue)
+                            && Decl.isLocal(captured)
+                            && ((MethodOrValue)captured).isTransient()
+                            && !((MethodOrValue)captured).isDeferred()) {
+                        continue;
+                    }
                     builder.capturedLocalParameter((TypedDeclaration)captured);
                 }
             }
@@ -516,13 +523,17 @@ public class ValueTransformer extends AbstractTransformer {
             return getter().field();
         }
         
+        /** 
+         * Note {@code setter} parameter will be null if the setter is 
+         * implicit (e.g. a {@code variable} or {@code late} top level)
+         */
         public JCMethodDecl transform(Value value, Tree.AttributeSetterDefinition setter) {
             MethodDefinitionBuilder builder = makeBuilder(value);
             transformAnnotations(value, setter, builder);
             transformModifiers(value, builder);
             transformTypeParameters(value, builder);
             transformResultType(value, builder);
-            transformParameters(value, setter.getDeclarationModel(), builder);
+            transformParameters(value, setter != null ? setter.getDeclarationModel() : null, builder);
             transformBody(value, setter, builder);
             return builder.build();
         }
@@ -754,6 +765,12 @@ public class ValueTransformer extends AbstractTransformer {
         protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
             for (Declaration captured : Decl.getCapturedLocals(setter)) {
                 if (captured instanceof TypedDeclaration) {
+                    if ((captured instanceof MethodOrValue)
+                            && Decl.isLocal(captured)
+                            && ((MethodOrValue)captured).isTransient()
+                            && !((MethodOrValue)captured).isDeferred()) {
+                        continue;
+                    }
                     builder.capturedLocalParameter((TypedDeclaration)captured);
                 }
             }
@@ -1198,10 +1215,12 @@ public class ValueTransformer extends AbstractTransformer {
         ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
         if (model.isTransient()) {
             classBuilder.defs(localGetter.transform(decl));
-            lb.append(makeVar(
-                    Naming.getAttrClassName(model, 0),
-                    makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
-                    null));
+            if (model.isDeferred()) {
+                lb.append(makeVar(
+                        Naming.getAttrClassName(model, 0),
+                        makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
+                        null));
+            }
         } else {
             // A local value
             if (model.isParameter() && !(decl.getDeclarationModel().isVariable()
