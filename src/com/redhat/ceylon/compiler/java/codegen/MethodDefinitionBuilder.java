@@ -109,6 +109,10 @@ public class MethodDefinitionBuilder
         return new MethodDefinitionBuilder(gen, false, Naming.getGetterName(attr, indirect));
     }
     
+    public static MethodDefinitionBuilder getter(AbstractTransformer gen, String name) {
+        return new MethodDefinitionBuilder(gen, false, name);
+    }
+    
     public static MethodDefinitionBuilder setter(AbstractTransformer gen, TypedDeclaration attr) {
         return new MethodDefinitionBuilder(gen, false, Naming.getSetterName(attr));
     }

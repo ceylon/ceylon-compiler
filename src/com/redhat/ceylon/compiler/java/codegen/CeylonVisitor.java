@@ -139,7 +139,7 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             }
         } else {
             // Local
-            appendList(gen.valueGen().transformLocalValue(decl));
+            appendList(gen.valueGen().transformLocalValue(decl, classBuilder));
         }
         gen.resetCompilerAnnotations(annots);
     }
@@ -159,7 +159,7 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             }
         } else {
             // Local
-            appendList(gen.valueGen().transformLocalSetter(decl));
+            gen.valueGen().transformLocalSetter(decl, classBuilder);
         }
         gen.resetCompilerAnnotations(annots);
     }

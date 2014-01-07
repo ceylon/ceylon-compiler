@@ -886,10 +886,9 @@ public class Decl {
                 || (captured.isMember()
                 && !(Decl.isLocalToInitializer(captured) && Decl.isLocalToInitializer(decl)))) {
             return false;
-        } else if (decl instanceof Method
-                && Strategy.useStaticForFunction((Method)decl)
-                && (captured instanceof Value 
-                        || captured instanceof Setter
+        } else if (decl instanceof MethodOrValue
+                && ((captured instanceof Value  && Decl.isLocal(captured))
+                        || (captured instanceof Setter && !((Setter)captured).isTransient())
                         || (captured instanceof Method && Decl.isLocal(captured)
                                 && captured.isParameter())
                         || (captured instanceof Method && Decl.isLocal(captured)
@@ -905,46 +904,6 @@ public class Decl {
             for (Declaration captured : decl.getDirectlyCaptured()) {
                 if (isCapturedLocal(decl, captured)) {
                     result.add(captured);
-                }
-            }
-        }
-        return result;
-    }
-    
-    private static boolean isCapturedMember(Declaration decl, Declaration captured) {
-        return captured.isMember()
-                && !(Decl.isLocalToInitializer(captured) && Decl.isLocalToInitializer(decl));
-    }
-    
-    public static List<Declaration> getCapturedMembers(Declaration decl) {
-        List<Declaration> result = new ArrayList<Declaration>(2);
-        if (decl instanceof Method
-                && Strategy.useStaticForFunction((Method)decl)) {
-            if (decl.getDirectlyCaptured() != null) {
-                for (Declaration captured : decl.getDirectlyCaptured()) {
-                    if (isCapturedMember(decl, captured)) {
-                        result.add(captured);
-                    }
-                }
-            }
-        }
-        return result;
-    }
-    
-    public static List<TypeDeclaration> getCapturedInstances(Declaration decl) {
-        ArrayList<TypeDeclaration> result = new ArrayList<TypeDeclaration>(3);
-        if (decl.getDirectlyCaptured() != null) {
-            for (Declaration captured : decl.getDirectlyCaptured()) {
-                if (captured.isStaticallyImportable()) {
-                    continue;
-                }
-                if (captured instanceof TypeDeclaration) {
-                    result.add((TypeDeclaration)captured);
-                } else if (isCapturedMember(decl, captured)) {
-                    TypeDeclaration typeDeclaration = (TypeDeclaration)captured.getContainer();
-                    if (Decl.isCeylon(typeDeclaration) && !result.contains(typeDeclaration)) {
-                        result.add(typeDeclaration);
-                    }
                 }
             }
         }

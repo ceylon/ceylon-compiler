@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
-import com.redhat.ceylon.compiler.typechecker.model.Method;
+import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
@@ -23,7 +23,7 @@ public class LocalCaptureVisitor extends Visitor {
     }
     
     public static boolean isStaticDeclaration(Scope d) {
-        return d instanceof Method && Strategy.useStaticForFunction((Method)d);
+        return d instanceof MethodOrValue;
     }
     
     static void addCapture(Declaration capturer, Declaration captured) {

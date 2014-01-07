@@ -2058,7 +2058,7 @@ public class ClassTransformer extends AbstractTransformer {
         return Decl.isShared(decl) && !Decl.isAncestorLocal(decl) ? PUBLIC : 0;
     }
     
-    private int transformClassDeclFlags(ClassOrInterface cdecl) {
+    int transformClassDeclFlags(ClassOrInterface cdecl) {
         int result = 0;
 
         result |= transformDeclarationSharedFlags(cdecl);
@@ -2084,7 +2084,7 @@ public class ClassTransformer extends AbstractTransformer {
         return transformClassDeclFlags(cdecl.getDeclarationModel());
     }
     
-    private int transformMethodDeclFlags(Method def) {
+    int transformMethodDeclFlags(Method def) {
         int result = 0;
 
         if (def.isToplevel()) {

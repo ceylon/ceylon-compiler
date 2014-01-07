@@ -3757,6 +3757,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         
         JCExpression qualExpr = null;
         String selector = null;
+        List<JCExpression> getterArgs = null;
         // true for Java interop using fields, and for super constructor parameters, which must use
         // parameters rather than getter methods
         boolean mustUseField = false;
@@ -3778,9 +3779,19 @@ public class ExpressionTransformer extends AbstractTransformer {
             } else {
                 // method local attr
                 if (!isRecursiveReference(expr)) {
-                    primaryExpr = naming.makeQualifiedName(primaryExpr, (Value)decl, Naming.NA_Q_LOCAL_INSTANCE);
+                    //primaryExpr = naming.makeQualifiedName(primaryExpr, (Value)decl, Naming.NA_Q_LOCAL_INSTANCE);
                 }
                 selector = naming.selector((Value)decl);
+                ListBuffer<JCExpression> args = ListBuffer.lb();
+                /*if (((Value)decl).isDeferred()) {
+                    args.add(naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT));
+                }*/
+                for (Declaration captured : Decl.getCapturedLocals(decl)) {
+                    if (captured instanceof TypedDeclaration) {
+                        args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
+                    }
+                }
+                getterArgs = args.toList();
             }
         } else if (Decl.isValueOrSharedOrCapturedParam(decl)) {
             if (decl.isToplevel()) {
@@ -3929,7 +3940,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                     if (useGetter) {
                         result = make().Apply(List.<JCTree.JCExpression>nil(),
                                 result,
-                                List.<JCTree.JCExpression>nil());
+                                getterArgs != null ? getterArgs : List.<JCTree.JCExpression>nil());
                     }
                 }
             }
@@ -4345,6 +4356,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         
         at(op);
         String selector = naming.selector(decl, Naming.NA_SETTER);
+        ListBuffer<JCExpression> setterArgs = ListBuffer.lb();
         if (decl.isToplevel()) {
             // must use top level setter
             lhs = naming.makeName(decl, Naming.NA_FQ | Naming.NA_WRAPPER);
@@ -4355,7 +4367,14 @@ public class ExpressionTransformer extends AbstractTransformer {
             } else {
                 // must use the setter
                 if (Decl.isLocalNotInitializer(decl)) {
-                    lhs = naming.makeQualifiedName(lhs, decl, Naming.NA_WRAPPER | Naming.NA_SETTER);
+                    lhs = naming.makeQualifiedName(lhs, decl, Naming.NA_SETTER);
+                    if (((Value)decl).getSetter() != null) {
+                        for (Declaration captured : Decl.getCapturedLocals(((Value)decl).getSetter())) {
+                            if (captured instanceof TypedDeclaration) {
+                                setterArgs.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
+                            }
+                        }
+                    }
                 }
             }
         } else if (decl instanceof Method && Decl.isDeferred(decl)) {
@@ -4396,9 +4415,10 @@ public class ExpressionTransformer extends AbstractTransformer {
         }
         
         if (result == null) {
+            setterArgs.append(rhs);
             result = make().Apply(List.<JCTree.JCExpression>nil(),
                     makeQualIdent(lhs, selector),
-                    List.<JCTree.JCExpression>of(rhs));
+                    setterArgs.toList());
         }
         
         return result;

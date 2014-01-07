@@ -482,7 +482,7 @@ public class Naming implements LocalId {
         }
         
         @Override
-        public void visit(Tree.AttributeGetterDefinition that) {
+        public void visit(Tree.AnyAttribute that) {
             if (Decl.isLocalNotInitializer(that.getDeclarationModel())) {
                 noteDecl(that.getDeclarationModel());
             }
@@ -1189,7 +1189,7 @@ public class Naming implements LocalId {
             String name = ((FieldValue)decl).getRealName();
             expr = makeQualIdent(expr, name);
         } else if ((namingOptions & NA_IDENT) != 0) {
-            Assert.not((namingOptions & NA_GETTER | NA_SETTER) == 0);
+            //Assert.not((namingOptions & (NA_GETTER | NA_SETTER)) == 0);
             String name;
             if ((namingOptions & __NA_IDENT_PARAMETER_ALIASED) != 0) {
                 name = Naming.getAliasedParameterName((MethodOrValue)decl);
@@ -1379,11 +1379,21 @@ public class Naming implements LocalId {
     public String selector(TypedDeclaration decl, int namingOptions) {
         if ((namingOptions & NA_ANNOTATION_MEMBER) == 0 &&
                 (Decl.isGetter(decl) || Decl.isValueOrSharedOrCapturedParam(decl))) {
+            String name;
             if ((namingOptions & NA_SETTER) != 0) {
-                return getSetterName(decl);
+                if (Decl.isLocal(decl) && ((Value)decl).isTransient()) {
+                    name = getSetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
+                } else {
+                    name = getSetterName(decl);
+                }
             } else {
-                return getGetterName(decl);
+                if (Decl.isLocal(decl) && ((Value)decl).isTransient()) {
+                    name = getGetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
+                } else {
+                    name = getGetterName(decl);
+                }
             }
+            return name;
         } else if (decl instanceof Method) {
             if (decl.isClassMember()) {
                 // don't try to be smart with interop calls 

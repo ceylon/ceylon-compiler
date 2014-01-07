@@ -333,7 +333,11 @@ public class CeylonEnter extends Enter {
                 phasedUnit.getCompilationUnit().visit(lcv);
                 for (Declaration d : phasedUnit.getUnit().getDeclarations()) {
                     if (d.getDirectlyCaptured() != null) {
-                        System.err.println(d.getQualifiedNameString() + " captures " + d.getDirectlyCaptured());
+                        if (d instanceof Setter) {
+                            System.err.println(d.getQualifiedNameString() + " (setter) captures " + d.getDirectlyCaptured());
+                        } else {
+                            System.err.println(d.getQualifiedNameString() + " captures " + d.getDirectlyCaptured());
+                        }
                     }
                 }
                 nested.startTask("Ceylon code generation for " + phasedUnit.getUnitFile().getName());

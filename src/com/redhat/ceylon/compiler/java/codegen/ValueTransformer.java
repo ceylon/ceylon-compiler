@@ -2,9 +2,13 @@ package com.redhat.ceylon.compiler.java.codegen;
 
 import static com.sun.tools.javac.code.Flags.*;
 
+import com.redhat.ceylon.compiler.typechecker.model.Class;
+import com.redhat.ceylon.compiler.typechecker.model.Declaration;
+import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
+import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
@@ -418,6 +422,10 @@ public class ValueTransformer extends AbstractTransformer {
     
     class LocalGetter extends GetterTransformation{
 
+        protected MethodDefinitionBuilder makeBuilder(Value value) {
+            return MethodDefinitionBuilder.getter(ValueTransformer.this, naming.selector(value));
+        }
+        
         @Override
         public VariableTransformation field() {
             throw new RuntimeException();
@@ -430,19 +438,71 @@ public class ValueTransformer extends AbstractTransformer {
 
         @Override
         protected boolean isStatic(Value value) {
+            // TODO Refactor: Essentially the same logic exists for localFunctionTransformation
+            Declaration container = Decl.getDeclarationContainer(value, false);
+            Declaration nonLocalContainer = Decl.getNonLocalDeclarationContainer(value);
+            if (container instanceof Method) {
+                if ((classGen().transformMethodDeclFlags((Method)container) & STATIC) != 0
+                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                    return true;
+                }
+            } else if (container instanceof Value) {
+                if (container.isToplevel()
+                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                    return true;
+                }
+            } else if (container instanceof Setter) {
+                if (container.isToplevel()
+                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                    return true;
+                }
+            } else if (container instanceof Class) {
+            if ((classGen().transformClassDeclFlags((Class)container) & STATIC) != 0) {
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         protected boolean isFinal(Value value) {
-            return false;
+            return true;
         }
 
         @Override
         protected long getVisibility(Value value) {
-            return PUBLIC;
+            return PRIVATE;
         }
         
+        @Override
+        protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
+            if (value.isDeferred() && !value.isParameter()) {
+                ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ValueTransformer.this, naming.selector(value, Naming.NA_MEMBER));
+                pdb.modifiers(FINAL);
+                pdb.ignored();
+                pdb.type(makeJavaType(getGetterInterfaceType(value)), null);
+                builder.parameter(pdb);
+            }
+            for (Declaration captured : Decl.getCapturedLocals(value)) {
+                if (captured instanceof TypedDeclaration) {
+                    builder.capturedLocalParameter((TypedDeclaration)captured);
+                }
+            }
+        }
+
+        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            // No type parameters
+        }
+        
+        protected void transformBody(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
+            if (value.getDeclarationModel().isDeferred()) {
+                builder.body(make().Return(make().Apply(null, 
+                        naming.makeQualIdent(naming.makeUnquotedIdent(naming.selector(value.getDeclarationModel(), Naming.NA_MEMBER)), "get_"), 
+                        List.<JCExpression>nil())));
+            } else {
+                super.transformBody(value, builder);
+            }
+        }
     }
     private final LocalGetter localGetter = new LocalGetter();
     
@@ -462,7 +522,7 @@ public class ValueTransformer extends AbstractTransformer {
             transformModifiers(value, builder);
             transformTypeParameters(value, builder);
             transformResultType(value, builder);
-            transformParameters(value, builder);
+            transformParameters(value, setter.getDeclarationModel(), builder);
             transformBody(value, setter, builder);
             return builder.build();
         }
@@ -480,7 +540,7 @@ public class ValueTransformer extends AbstractTransformer {
             }
         }
         
-        protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
+        protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
             String attrName = getParameterName(value);
             ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.systemParameter(ValueTransformer.this, attrName);
             pdb.modifiers(FINAL);
@@ -686,11 +746,20 @@ public class ValueTransformer extends AbstractTransformer {
         public GetterTransformation getter() {
             return localGetter;
         }
-        @Override
-        public long getVisibility(Value value) {
-            return PUBLIC;
-        }
         
+        protected MethodDefinitionBuilder makeBuilder(Value value) {
+            return MethodDefinitionBuilder.getter(ValueTransformer.this, naming.selector(value, Naming.NA_SETTER));
+        }
+        @Override
+        protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
+            for (Declaration captured : Decl.getCapturedLocals(setter)) {
+                if (captured instanceof TypedDeclaration) {
+                    builder.capturedLocalParameter((TypedDeclaration)captured);
+                }
+            }
+            super.transformParameters(value, setter, builder);
+        }
+
     }
     private final LocalSetter localSetter = new LocalSetter();
     
@@ -1123,35 +1192,16 @@ public class ValueTransformer extends AbstractTransformer {
         return attrType;
     }
 
-    public List<? extends JCTree> transformLocalValue(Tree.AnyAttribute decl) {
+    public List<? extends JCTree> transformLocalValue(Tree.AnyAttribute decl, ClassDefinitionBuilder classBuilder) {
+        at(decl);
         Value model = decl.getDeclarationModel();
         ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
         if (model.isTransient()) {
-            // A local getter: We have to use a class+method
-            if (!model.isDeferred()) {
-                ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(model, 0), null);
-                classBuilder
-                    .modifiers(FINAL | (model.isShared() ? PUBLIC : 0))
-                    .constructorModifiers(PRIVATE)
-                    .annotations(makeAtAttribute())
-                    .satisfies(List.of(getGetterInterfaceType(decl.getDeclarationModel())));
-                classBuilder.defs(localGetter.transform(decl));
-                lb.addAll(classBuilder.build());
-                JCTree classInstantiate = makeLocalIdentityInstance(
-                        makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
-                        Naming.getAttrClassName(model, 0), 
-                        Naming.getAttrClassName(model, 0), 
-                        decl.getDeclarationModel().isShared(), null);
-                lb.add(classInstantiate);
-            } else {
-                int modifiers = 0;//model.isShared() ? 0 : FINAL;
-                JCVariableDecl classInstantiate = make().VarDef(
-                        make().Modifiers(modifiers), 
-                        names().fromString(Naming.getAttrClassName(model, 0)), 
-                        makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
-                        null);
-                lb.add(classInstantiate);
-            }
+            classBuilder.defs(localGetter.transform(decl));
+            lb.append(makeVar(
+                    Naming.getAttrClassName(model, 0),
+                    makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
+                    null));
         } else {
             // A local value
             if (model.isParameter() && !(decl.getDeclarationModel().isVariable()
@@ -1174,20 +1224,10 @@ public class ValueTransformer extends AbstractTransformer {
         return lb.toList();
     }
     
-    public List<? extends JCTree> transformLocalSetter(
-            Tree.AttributeSetterDefinition decl) {
+    public void transformLocalSetter(
+            Tree.AttributeSetterDefinition decl, ClassDefinitionBuilder classBuilder) {
+        at(decl);
         Value getter = decl.getDeclarationModel().getGetter();
-        ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(getter, Naming.NA_SETTER), null);
-        classBuilder
-            .modifiers(FINAL | (getter.isShared() ? PUBLIC : 0))
-            .constructorModifiers(PRIVATE)
-            .annotations(makeAtAttribute());
-        ClassDefinitionBuilder classDef = classBuilder.defs(localSetter.transform(getter, decl));
-        JCTree classInstantiate = makeLocalIdentityInstance(
-                makeQuotedIdent(Naming.getAttrClassName(decl.getDeclarationModel(), 0)),
-                Naming.getAttrClassName(decl.getDeclarationModel(), 0),
-                Naming.getAttrClassName(decl.getDeclarationModel(), 0),
-                decl.getDeclarationModel().isShared(), null);
-        return classDef.build().append(classInstantiate);
+        classBuilder.defs(localSetter.transform(getter, decl));
     }
 }
