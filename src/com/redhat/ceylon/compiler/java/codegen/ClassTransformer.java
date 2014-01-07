@@ -1993,7 +1993,7 @@ public class ClassTransformer extends AbstractTransformer {
             ProducedType nonWideningType = nonWideningType(typedRef, nonWideningTypedRef);
             
             if (Decl.isIndirect(decl)) {
-                attrName = Naming.getAttrClassName(model, 0);
+                attrName = naming.getAttrClassName(model, 0);
                 nonWideningType = getGetterInterfaceType(model);
             }
             
@@ -4043,6 +4043,13 @@ public class ClassTransformer extends AbstractTransformer {
         private void capturedLocalParameters(Method function, MethodDefinitionBuilder builder) {
             for (Declaration captured : Decl.getCapturedLocals(function)) {
                 if (captured instanceof TypedDeclaration) {
+                    if ((captured instanceof MethodOrValue)
+                            && Decl.isLocal(captured)
+                            && ((MethodOrValue)captured).isTransient()
+                            && !((MethodOrValue)captured).isParameter()
+                            && !((MethodOrValue)captured).isDeferred()) {
+                        continue;
+                    }
                     builder.capturedLocalParameter((TypedDeclaration)captured);
                 }
             }
@@ -4051,6 +4058,13 @@ public class ClassTransformer extends AbstractTransformer {
         private void capturedLocalArguments(Method function, ListBuffer<JCExpression> args) {
             for (Declaration captured : Decl.getCapturedLocals(function)) {
                 if (captured instanceof TypedDeclaration) {
+                    if ((captured instanceof MethodOrValue)
+                            && Decl.isLocal(captured)
+                            && ((MethodOrValue)captured).isTransient()
+                            && !((MethodOrValue)captured).isParameter()
+                            && !((MethodOrValue)captured).isDeferred()) {
+                        continue;
+                    }
                     args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                 }
             }

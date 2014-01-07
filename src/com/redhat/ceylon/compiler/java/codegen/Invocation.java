@@ -40,6 +40,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Functional;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
+import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedReference;
@@ -182,18 +183,25 @@ abstract class Invocation {
                         && !decl.isParameter()) {
                     continue;
                 }
+                if ((decl instanceof MethodOrValue)
+                        && Decl.isLocal(decl)
+                        && ((MethodOrValue)decl).isTransient()
+                        && !((MethodOrValue)decl).isParameter()
+                        && !((MethodOrValue)decl).isDeferred()) {
+                    continue;
+                }
                 /*result.append(new ExpressionAndType(
                         gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
                         gen.makeJavaType(((TypedDeclaration)decl).getType())));*/
                 if (Decl.isGetter(decl)
                         && Decl.isLocal(decl)){
                     result.append(new ExpressionAndType(
-                            ((Value)decl).isTransient() ? gen.naming.makeQuotedIdent(Naming.getAttrClassName((Value)decl, 0)) : gen.naming.makeName((TypedDeclaration)decl, Naming.NA_Q_LOCAL_INSTANCE),
+                            ((Value)decl).isTransient() ? gen.naming.makeQuotedIdent(gen.naming.getAttrClassName((Value)decl, 0)) : gen.naming.makeName((TypedDeclaration)decl, Naming.NA_Q_LOCAL_INSTANCE),
                             gen.makeJavaType(((TypedDeclaration)decl).getType())));
                 } else if (decl instanceof Setter
                         && Decl.isLocal(decl)){
                     result.append(new ExpressionAndType(
-                            gen.naming.makeQuotedIdent(Naming.getAttrClassName((Setter)decl, 0)),
+                            gen.naming.makeQuotedIdent(gen.naming.getAttrClassName((Setter)decl, 0)),
                             gen.makeJavaType(((TypedDeclaration)decl).getType())));
                 } else {
                     result.append(new ExpressionAndType(

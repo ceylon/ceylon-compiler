@@ -3785,7 +3785,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 selector = naming.selector((Value)decl);
                 ListBuffer<JCExpression> args = ListBuffer.lb();
                 if (((Value)decl).isDeferred()) {
-                    args.add(naming.makeUnquotedIdent(Naming.getAttrClassName((Value)decl, 0)));
+                    args.add(naming.makeUnquotedIdent(naming.getAttrClassName((Value)decl, 0)));
                 }
                 for (Declaration captured : Decl.getCapturedLocals(decl)) {
                     if (captured instanceof TypedDeclaration) {

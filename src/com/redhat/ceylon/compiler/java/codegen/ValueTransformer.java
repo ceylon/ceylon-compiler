@@ -969,7 +969,7 @@ public class ValueTransformer extends AbstractTransformer {
         // TODO The ctor need to use me to generate the initializing stmt
         protected String getVariableName(Value value) {
             if (value.isDeferred()) {
-                return Naming.getAttrClassName(value, 0);
+                return naming.getAttrClassName(value, 0);
             }
             return value.getName();
         }
@@ -1131,7 +1131,7 @@ public class ValueTransformer extends AbstractTransformer {
      */
     public List<JCTree> transformToplevel(Tree.AnyAttribute getter, Tree.AttributeSetterDefinition setter) {
         Value getterModel = getter.getDeclarationModel();
-        ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, Naming.getAttrClassName(getterModel, 0), null);
+        ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder.klass(ValueTransformer.this, naming.getAttrClassName(getterModel, 0), null);
         classBuilder
             .modifiers(FINAL | (getterModel.isShared() ? PUBLIC : 0))
             .constructorModifiers(PRIVATE)
@@ -1217,7 +1217,7 @@ public class ValueTransformer extends AbstractTransformer {
             classBuilder.defs(localGetter.transform(decl));
             if (model.isDeferred()) {
                 lb.append(makeVar(
-                        Naming.getAttrClassName(model, 0),
+                        naming.getAttrClassName(model, 0),
                         makeJavaType(getGetterInterfaceType(decl.getDeclarationModel())),
                         null));
             }

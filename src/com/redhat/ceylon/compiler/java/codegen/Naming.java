@@ -1309,7 +1309,7 @@ public class Naming implements LocalId {
      * @param namingOptions Only {@link #NA_SETTER}, {@link #NA_GETTER} and 
      * {@link #NA_WRAPPER_UNQUOTED} are supported.
      */
-    private static String getRealName(Declaration decl, int namingOptions) {
+    private String getRealName(Declaration decl, int namingOptions) {
         String name;
         if (decl instanceof LazyValue) {
             name = ((LazyValue)decl).getRealName();
@@ -1332,7 +1332,7 @@ public class Naming implements LocalId {
         return name;
     }
     
-    private static String getQuotedClassName(Declaration decl, int namingOptions) {
+    private String getQuotedClassName(Declaration decl, int namingOptions) {
         return getRealName(decl, namingOptions);
     }
     
@@ -1410,6 +1410,9 @@ public class Naming implements LocalId {
                     return ((JavaMethod)decl).getRealName();
                 return getMethodName(decl, namingOptions);
             } else if (Decl.isLocal(decl)) {
+                if (isSubstituted(decl)) {
+                    return substitute(decl);
+                }
                 return quoteMethodName((Method)decl, namingOptions) + "$" + getLocalId(decl.getContainer());
             }
             return quoteMethodName((Method)decl, namingOptions);
@@ -1425,11 +1428,14 @@ public class Naming implements LocalId {
      * Gets the class name for the attribute wrapper class. The class name 
      * will be quoted unless namingOptions includes NA_WRAPPER_UNQUOTED
      */
-    static String getAttrClassName(TypedDeclaration decl, int namingOptions) {
+    String getAttrClassName(TypedDeclaration decl, int namingOptions) {
         Assert.that((namingOptions & ~(NA_SETTER | NA_GETTER | NA_WRAPPER_UNQUOTED)) == 0, 
                 "Unsupported namingOption");
         String name = decl.getName();
         if (Decl.isLocal(decl)) {
+            if (isSubstituted(decl)) {
+                return substitute(decl);
+            }
             if ((Decl.isGetter(decl) && (namingOptions & NA_SETTER) == 0)
                     || (namingOptions & NA_GETTER) != 0){
                 name = suffixName(Suffix.$getter$, name);

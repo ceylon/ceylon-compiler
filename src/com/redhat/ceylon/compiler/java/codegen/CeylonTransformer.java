@@ -334,7 +334,7 @@ public class CeylonTransformer extends AbstractTransformer {
             final JCExpression expression) {
         
         final String attrName = declarationModel.getName();
-        final String attrClassName = Naming.getAttrClassName(declarationModel, 0);
+        final String attrClassName = naming.getAttrClassName(declarationModel, 0);
         
         JCBlock getterBlock = makeGetterBlock(expression);
         

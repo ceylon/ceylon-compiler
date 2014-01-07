@@ -331,7 +331,7 @@ public class MethodDefinitionBuilder
         /*if (Decl.isGetter(declaration)) {// TODO This is just wrong
             parameterName = gen.naming.getLocalInstanceName(declaration, 0);
         } else*/ if (declaration instanceof Setter) {
-            parameterName = Naming.getAttrClassName(declaration, 0);
+            parameterName = gen.naming.getAttrClassName(declaration, 0);
         } else {
             parameterName = gen.naming.aliasName(declaration.getName()).toString();
             subsToClose.add(gen.naming.addVariableSubst(declaration, parameterName));
@@ -352,7 +352,7 @@ public class MethodDefinitionBuilder
         if (Decl.isGetter(declaration)) {
             pdb.type(gen.makeJavaType(gen.getGetterInterfaceType((TypedDeclaration)declaration)), null);
         } else if (declaration instanceof Setter) {
-            pdb.type(gen.naming.makeQuotedIdent(Naming.getAttrClassName(declaration, 0)), null);
+            pdb.type(gen.naming.makeQuotedIdent(gen.naming.getAttrClassName(declaration, 0)), null);
         } else if (declaration.isVariable()) {
             pdb.type(gen.makeVariableBoxType(declaration), null);
         } else if (declaration instanceof Value
