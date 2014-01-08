@@ -109,6 +109,22 @@ public class LocalTest extends CompilerTest {
         // TODO also InterfaceGetterSetter
         // in fact change this test for ...Member
     }
+    
+    
+    // TODO valueLocalToClassMemberClassInit
+    // TODO valueLocalToClassMemberClassMethod
+    // TODO valueLocalToClassMemberClassValue
+    // TODO valueLocalToInterfaceMemberClassInit
+    // TODO valueLocalToInterfaceMemberClassMethod
+    // TODO valueLocalToInterfaceMemberClassValue
+    // TODO valueLocalToInterfaceMemberInterfaceMethod
+    // TODO valueLocalToInterfaceMemberInterfaceValue
+    // TODO valueLocalToClassMemberInterfaceMethod
+    // TODO valueLocalToClassMemberInterfaceValue
+    
+    // TODO valueLocalToLocalFunction
+    // TODO valueLocalToLocalValue
+    
     /*
     // Local classes
     @Test
