@@ -139,7 +139,12 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             }
         } else {
             // Local
-            appendList(gen.valueGen().transformLocalValue(decl, classBuilder));
+            if (Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).isInterfaceMember()) {
+                ClassDefinitionBuilder companionBuilder = classBuilder.getCompanionBuilder((Interface)Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).getContainer());
+                appendList(gen.valueGen().transformLocalValue(decl, companionBuilder));
+            } else {
+                appendList(gen.valueGen().transformLocalValue(decl, classBuilder));
+            }
         }
         gen.resetCompilerAnnotations(annots);
     }
@@ -159,7 +164,12 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             }
         } else {
             // Local
-            gen.valueGen().transformLocalSetter(decl, classBuilder);
+            if (Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).isInterfaceMember()) {
+                ClassDefinitionBuilder companionBuilder = classBuilder.getCompanionBuilder((Interface)Decl.getNonLocalDeclarationContainer(decl.getDeclarationModel()).getContainer());
+                gen.valueGen().transformLocalSetter(decl, companionBuilder);
+            } else {
+                gen.valueGen().transformLocalSetter(decl, classBuilder);
+            }
         }
         gen.resetCompilerAnnotations(annots);
     }

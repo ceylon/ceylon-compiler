@@ -1189,7 +1189,7 @@ public class ValueTransformer extends AbstractTransformer {
         return attrType;
     }
 
-    public List<? extends JCTree> transformLocalValue(Tree.AnyAttribute decl, ClassDefinitionBuilder classBuilder) {
+    public List<JCTree> transformLocalValue(Tree.AnyAttribute decl, ClassDefinitionBuilder classBuilder) {
         at(decl);
         Value model = decl.getDeclarationModel();
         ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
