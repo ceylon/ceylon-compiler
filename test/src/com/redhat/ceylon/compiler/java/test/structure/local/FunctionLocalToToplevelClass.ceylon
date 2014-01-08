@@ -3,7 +3,7 @@ class FunctionLocalToToplevelClass<U>(U u)
         given U satisfies Object {
     shared actual String string => "";
     Integer x = 0;
-    variable Anything ref;
+    variable Anything ref = null;
     
     if (1+1==2) {
         void local(){}
@@ -103,7 +103,7 @@ class FunctionLocalToToplevelClass<U>(U u)
     
     Anything deferred(U i=u);
     Anything deferredCaptured(U i=u);
-    
+    variable Anything ref2 = null;
     if (1+1==2) {
         deferred = function(U i){ return i; };
         deferredCaptured = deferred;
@@ -113,7 +113,7 @@ class FunctionLocalToToplevelClass<U>(U u)
             deferredCaptured{
                 i=u;
             };
-            ref = deferredCaptured;
+            ref2 = deferredCaptured;
         }
     } else {
         deferred = function(U i){ return i; };

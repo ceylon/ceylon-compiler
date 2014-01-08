@@ -1,416 +1,324 @@
 package com.redhat.ceylon.compiler.java.test.structure.local;
 
-final class functionLocalToToplevelValue_ {
+final class valueLocalToToplevelValue_ {
     
-    private functionLocalToToplevelValue_() {
+    private valueLocalToToplevelValue_() {
     }
     
-    private static final void local$1() {
+    private static final long getLocal$1() {
+        return 2L;
     }
     
-    private static final void local$0() {
+    private static final void setLocal$1(final long local) {
     }
     
-    private static final long localCapture$2(final long x$1) {
+    private static final long getLocal$0() {
+        return 1L;
+    }
+    
+    private static final void setLocal$0(final long local) {
+    }
+    
+    private static final long getLocalCapture$2(final long x$1) {
         return x$1 + 1L;
     }
     
-    private static final long localVariableCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$2) {
-        y$2.ref = 1L;
+    private static final void setLocalCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$2, final long localCapture) {
         (
             let
             {
-                long $ceylontmp$op$3 = y$2.ref;
-                y$2.ref = $ceylontmp$op$3 + 1;
+                long $ceylontmp$op$3 = result$2.ref + localCapture;
+                result$2.ref = $ceylontmp$op$3;
             }
             returning $ceylontmp$op$3;
         );
+    }
+    
+    private static final long getLocalVariableCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$4) {
+        y$4.ref = 1L;
         (
             let
             {
-                long $ceylontmp$op$4 = y$2.ref + 1L;
-                y$2.ref = $ceylontmp$op$4;
+                long $ceylontmp$op$5 = y$4.ref;
+                y$4.ref = $ceylontmp$op$5 + 1;
             }
-            returning $ceylontmp$op$4;
-        );
-        return y$2.ref;
-    }
-    
-    private static final long transitiveCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$5, final long x$6) {
-        return localVariableCapture$2(y$5) + localCapture$2(x$6);
-    }
-    
-    private static final <V, W>long nested$3(final long x$8, final V v$9, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$V, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$W, final W w) {
-        return x$8 + v$9.hashCode() + w.hashCode();
-    }
-    
-    private static final <V>long nesting$2(final long x$7, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$V, final V v) {
-        return nested$3(x$7, v, $reified$V, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L));
-    }
-    
-    private static final long defaultedParameters$2(final long i) {
-        return (
-            let
-            {
-                long $ceylontmp$j$10 = .com.redhat.ceylon.compiler.java.test.structure.local.functionLocalToToplevelValue_.defaultedParameters$2$j(i);
-            }
-            returning defaultedParameters$2(i, $ceylontmp$j$10);
-        );
-    }
-    
-    private static final long defaultedParameters$2$j(final long i) {
-        return i;
-    }
-    
-    private static final long defaultedParameters$2(final long i, final long j) {
-        return i + j;
-    }
-    
-    private static final void local$7() {
-    }
-    
-    private static final void local$6() {
-    }
-    
-    private static final long localCapture$8(final long x$14) {
-        return x$14 + 1L;
-    }
-    
-    private static final long localVariableCapture$8(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$15) {
-        y$15.ref = 1L;
-        (
-            let
-            {
-                long $ceylontmp$op$16 = y$15.ref;
-                y$15.ref = $ceylontmp$op$16 + 1;
-            }
-            returning $ceylontmp$op$16;
+            returning $ceylontmp$op$5;
         );
         (
             let
             {
-                long $ceylontmp$op$17 = y$15.ref + 1L;
-                y$15.ref = $ceylontmp$op$17;
+                long $ceylontmp$op$6 = y$4.ref + 1L;
+                y$4.ref = $ceylontmp$op$6;
             }
-            returning $ceylontmp$op$17;
+            returning $ceylontmp$op$6;
         );
-        return y$15.ref;
+        return y$4.ref;
     }
     
-    private static final long transitiveCapture$8(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$18, final long x$19) {
-        return localVariableCapture$8(y$18) + localCapture$8(x$19);
+    private static final void setLocalVariableCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$7, final long localVariableCapture) {
+        y$7.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$8 = y$7.ref;
+                y$7.ref = $ceylontmp$op$8 + 1;
+            }
+            returning $ceylontmp$op$8;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$9 = y$7.ref + 1L;
+                y$7.ref = $ceylontmp$op$9;
+            }
+            returning $ceylontmp$op$9;
+        );
     }
     
-    private static final <V, W>long nested$9(final long x$21, final V v$22, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$V, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$W, final W w) {
-        return x$21 + v$22.hashCode() + w.hashCode();
+    private static final long getTransitiveCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$10, final long x$11, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$12) {
+        return getLocalVariableCapture$2(y$10) + getLocalCapture$2(x$11);
     }
     
-    private static final <V>long nesting$8(final long x$20, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$V, final V v) {
-        return nested$9(x$20, v, $reified$V, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L));
+    private static final void setTransitiveCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$13, final long x$14, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$15, final long transitiveCapture) {
+        setLocalVariableCapture$2(y$13, transitiveCapture);
+        setLocalCapture$2(result$15, transitiveCapture);
     }
     
-    private static final long defaultedParameters$8(final long i) {
+    private static final long getNested$3(final long x$17) {
+        return x$17;
+    }
+    
+    private static final void setNested$3(final long nested) {
+    }
+    
+    private static final long getNesting$2(final long x$16) {
         return (
             let
             {
-                long $ceylontmp$j$23 = .com.redhat.ceylon.compiler.java.test.structure.local.functionLocalToToplevelValue_.defaultedParameters$8$j(i);
+                long $ceylontmp$op$18 = getNested$3(x$16);
+                setNested$3($ceylontmp$op$18 + 1);
             }
-            returning defaultedParameters$8(i, $ceylontmp$j$23);
+            returning $ceylontmp$op$18;
         );
     }
     
-    private static final long defaultedParameters$8$j(final long i) {
-        return i;
+    private static final long getNested$4(final long x$20) {
+        return x$20;
     }
     
-    private static final long defaultedParameters$8(final long i, final long j) {
-        return i + j;
+    private static final void setNested$4(final long nested) {
     }
     
-    private static final .java.lang.Object deferred$8(final .ceylon.language.Callable<? extends .java.lang.Object> deferred$8, final long x$26) {
-        return (
+    private static final void setNesting$2(final long x$19, final long nesting) {
+        (
             let
             {
-                long $ceylontmp$i$27 = .com.redhat.ceylon.compiler.java.test.structure.local.functionLocalToToplevelValue_.deferred$8$i(x$26);
+                long $ceylontmp$op$21 = getNested$4(x$19);
+                setNested$4($ceylontmp$op$21 + 1);
             }
-            returning deferred$8(deferred$8, x$26, $ceylontmp$i$27);
+            returning $ceylontmp$op$21;
         );
     }
     
-    private static final long deferred$8$i(final long x$28) {
-        return x$28;
-    }
-    
-    private static final .java.lang.Object deferred$8(final .ceylon.language.Callable<? extends .java.lang.Object> deferred$8, final long x$29, final long i) {
-        if (deferred$8 == null) throw new .com.redhat.ceylon.compiler.java.language.UninitializedMethodError(); else return deferred$8.$call$(.ceylon.language.Integer.instance(i));
+    private static final long getDeferred$2(final .com.redhat.ceylon.compiler.java.language.GetterLong getDeferred$2) {
+        return getDeferred$2.get_();
     }
     
     public static long get_() {
         final long x = 0L;
-        .java.lang.Object ref = null;
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
         if (1L + 1L == 2L) {
-            local$0();
-            ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Anything()", (short)-1){
-                
-                @.java.lang.Override
-                public .java.lang.Object $call$() {
-                    return (
-                        let
-                        {
-                            local$0();
-                        }
-                        returning null;
-                    );
-                }
-            };
+            final long k = getLocal$0();
+            setLocal$0(k);
         } else {
-            local$1();
-            ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Anything()", (short)-1){
-                
-                @.java.lang.Override
-                public .java.lang.Object $call$() {
-                    return (
-                        let
-                        {
-                            local$1();
-                        }
-                        returning null;
-                    );
-                }
-            };
+            final long k = getLocal$1();
+            setLocal$1(k);
         }
-        localCapture$2(x);
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$() {
-                return .ceylon.language.Integer.instance(localCapture$2(x));
-            }
-        };
+        result.ref = getLocalCapture$2(x);
+        setLocalCapture$2(result, result.ref);
         final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
-        localVariableCapture$2(y);
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$() {
-                return .ceylon.language.Integer.instance(localVariableCapture$2(y));
-            }
-        };
-        transitiveCapture$2(y, x);
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$() {
-                return .ceylon.language.Integer.instance(transitiveCapture$2(y, x));
-            }
-        };
-        nesting$2(x, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L));
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.String.$TypeDescriptor$, .ceylon.language.String.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(String)", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
-                final .ceylon.language.String $ceylontmp$v = (.ceylon.language.String)$param$0;
-                return .ceylon.language.Integer.instance(nesting$2(x, .ceylon.language.String.$TypeDescriptor$, $ceylontmp$v));
-            }
-        };
-        defaultedParameters$2(0L);
-        defaultedParameters$2(0L, 1L);
-        (
+        result.ref = getLocalVariableCapture$2(y);
+        setLocalVariableCapture$2(y, result.ref);
+        result.ref = getTransitiveCapture$2(y, x, result);
+        setTransitiveCapture$2(y, x, result, result.ref);
+        result.ref = getNesting$2(x);
+        setNesting$2(x, result.ref);
+        .com.redhat.ceylon.compiler.java.language.GetterLong deferred$getter$_;
+        deferred$getter$_ = (
             let
             {
-                long arg$11$0 = 0L;
-                long arg$11$1 = .com.redhat.ceylon.compiler.java.test.structure.local.functionLocalToToplevelValue_.defaultedParameters$2$j(arg$11$0);
+                
+                final class deferred$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                    
+                    private deferred$getter$_() {
+                    }
+                    
+                    public long get_() {
+                        return getNesting$2(x);
+                    }
+                }
             }
-            returning defaultedParameters$2(arg$11$0, arg$11$1);
+            returning new deferred$getter$_();
         );
-        (
-            let
-            {
-                long arg$12$1 = 1L;
-                long arg$12$0 = 0L;
-            }
-            returning defaultedParameters$2(arg$12$0, arg$12$1);
-        );
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$))), "Integer(Integer, Integer=)", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
-                final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
-                return .ceylon.language.Integer.instance(defaultedParameters$2($ceylontmp$i));
-            }
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0, final .java.lang.Object $param$1) {
-                final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
-                final long $ceylontmp$j = ((.ceylon.language.Integer)$param$1).longValue();
-                return .ceylon.language.Integer.instance(defaultedParameters$2($ceylontmp$i, $ceylontmp$j));
-            }
-        };
+        result.ref = getDeferred$2(deferred$getter$_);
         return 0L;
     }
     
-    public static void set_(final long functionLocalToToplevelValue) {
+    private static final long getLocal$6() {
+        return 2L;
+    }
+    
+    private static final void setLocal$6(final long local) {
+    }
+    
+    private static final long getLocal$5() {
+        return 1L;
+    }
+    
+    private static final void setLocal$5(final long local) {
+    }
+    
+    private static final long getLocalCapture$7(final long x$24) {
+        return x$24 + 1L;
+    }
+    
+    private static final void setLocalCapture$7(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$25, final long localCapture) {
+        (
+            let
+            {
+                long $ceylontmp$op$26 = result$25.ref + localCapture;
+                result$25.ref = $ceylontmp$op$26;
+            }
+            returning $ceylontmp$op$26;
+        );
+    }
+    
+    private static final long getLocalVariableCapture$7(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$27) {
+        y$27.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$28 = y$27.ref;
+                y$27.ref = $ceylontmp$op$28 + 1;
+            }
+            returning $ceylontmp$op$28;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$29 = y$27.ref + 1L;
+                y$27.ref = $ceylontmp$op$29;
+            }
+            returning $ceylontmp$op$29;
+        );
+        return y$27.ref;
+    }
+    
+    private static final void setLocalVariableCapture$7(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$30, final long localVariableCapture) {
+        y$30.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$31 = y$30.ref;
+                y$30.ref = $ceylontmp$op$31 + 1;
+            }
+            returning $ceylontmp$op$31;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$32 = y$30.ref + 1L;
+                y$30.ref = $ceylontmp$op$32;
+            }
+            returning $ceylontmp$op$32;
+        );
+    }
+    
+    private static final long getTransitiveCapture$7(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$33, final long x$34, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$35) {
+        return getLocalVariableCapture$7(y$33) + getLocalCapture$7(x$34);
+    }
+    
+    private static final void setTransitiveCapture$7(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$36, final long x$37, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$38, final long transitiveCapture) {
+        setLocalVariableCapture$7(y$36, transitiveCapture);
+        setLocalCapture$7(result$38, transitiveCapture);
+    }
+    
+    private static final long getNested$8(final long x$40) {
+        return x$40;
+    }
+    
+    private static final void setNested$8(final long nested) {
+    }
+    
+    private static final long getNesting$7(final long x$39) {
+        return (
+            let
+            {
+                long $ceylontmp$op$41 = getNested$8(x$39);
+                setNested$8($ceylontmp$op$41 + 1);
+            }
+            returning $ceylontmp$op$41;
+        );
+    }
+    
+    private static final long getNested$9(final long x$43) {
+        return x$43;
+    }
+    
+    private static final void setNested$9(final long nested) {
+    }
+    
+    private static final void setNesting$7(final long x$42, final long nesting) {
+        (
+            let
+            {
+                long $ceylontmp$op$44 = getNested$9(x$42);
+                setNested$9($ceylontmp$op$44 + 1);
+            }
+            returning $ceylontmp$op$44;
+        );
+    }
+    
+    private static final long getDeferred$7(final .com.redhat.ceylon.compiler.java.language.GetterLong getDeferred$7) {
+        return getDeferred$7.get_();
+    }
+    
+    public static void set_(final long valueLocalToToplevelValue) {
         final long x = 0L;
-        .java.lang.Object ref = null;
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
         if (1L + 1L == 2L) {
-            local$6();
-            ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Anything()", (short)-1){
-                
-                @.java.lang.Override
-                public .java.lang.Object $call$() {
-                    return (
-                        let
-                        {
-                            local$6();
-                        }
-                        returning null;
-                    );
-                }
-            };
+            final long k = getLocal$5();
+            setLocal$5(k);
         } else {
-            local$7();
-            ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Anything()", (short)-1){
-                
-                @.java.lang.Override
-                public .java.lang.Object $call$() {
-                    return (
-                        let
-                        {
-                            local$7();
-                        }
-                        returning null;
-                    );
-                }
-            };
+            final long k = getLocal$6();
+            setLocal$6(k);
         }
-        localCapture$8(x);
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$() {
-                return .ceylon.language.Integer.instance(localCapture$8(x));
-            }
-        };
+        result.ref = getLocalCapture$7(x);
+        setLocalCapture$7(result, result.ref);
         final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
-        localVariableCapture$8(y);
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$() {
-                return .ceylon.language.Integer.instance(localVariableCapture$8(y));
-            }
-        };
-        transitiveCapture$8(y, x);
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$() {
-                return .ceylon.language.Integer.instance(transitiveCapture$8(y, x));
-            }
-        };
-        nesting$8(x, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(1L));
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.String.$TypeDescriptor$, .ceylon.language.String.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(String)", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
-                final .ceylon.language.String $ceylontmp$v = (.ceylon.language.String)$param$0;
-                return .ceylon.language.Integer.instance(nesting$8(x, .ceylon.language.String.$TypeDescriptor$, $ceylontmp$v));
-            }
-        };
-        defaultedParameters$8(0L);
-        defaultedParameters$8(0L, 1L);
-        (
+        result.ref = getLocalVariableCapture$7(y);
+        setLocalVariableCapture$7(y, result.ref);
+        result.ref = getTransitiveCapture$7(y, x, result);
+        setTransitiveCapture$7(y, x, result, result.ref);
+        result.ref = getNesting$7(x);
+        setNesting$7(x, result.ref);
+        .com.redhat.ceylon.compiler.java.language.GetterLong deferred$getter$_;
+        deferred$getter$_ = (
             let
             {
-                long arg$24$0 = 0L;
-                long arg$24$1 = .com.redhat.ceylon.compiler.java.test.structure.local.functionLocalToToplevelValue_.defaultedParameters$8$j(arg$24$0);
+                
+                final class deferred$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                    
+                    private deferred$getter$_() {
+                    }
+                    
+                    public long get_() {
+                        return getNesting$7(x);
+                    }
+                }
             }
-            returning defaultedParameters$8(arg$24$0, arg$24$1);
+            returning new deferred$getter$_();
         );
-        (
-            let
-            {
-                long arg$25$1 = 1L;
-                long arg$25$0 = 0L;
-            }
-            returning defaultedParameters$8(arg$25$0, arg$25$1);
-        );
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$))), "Integer(Integer, Integer=)", (short)-1){
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
-                final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
-                return .ceylon.language.Integer.instance(defaultedParameters$8($ceylontmp$i));
-            }
-            
-            @.java.lang.Override
-            public .ceylon.language.Integer $call$(final .java.lang.Object $param$0, final .java.lang.Object $param$1) {
-                final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
-                final long $ceylontmp$j = ((.ceylon.language.Integer)$param$1).longValue();
-                return .ceylon.language.Integer.instance(defaultedParameters$8($ceylontmp$i, $ceylontmp$j));
-            }
-        };
-        final .ceylon.language.Callable<? extends .java.lang.Object> deferred$8;
-        if (1L + 1L == 2L) {
-            deferred$8 = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(Integer)", (short)-1){
-                
-                @.java.lang.Override
-                public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
-                    final long i = ((.ceylon.language.Integer)$param$0).longValue();
-                    return .ceylon.language.Integer.instance(i);
-                }
-            };
-            
-            class X implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
-                
-                X() {
-                    deferred$8(deferred$8, x, x);
-                    deferred$8(deferred$8, x);
-                    (
-                        let
-                        {
-                            long arg$31$0 = x;
-                        }
-                        returning deferred$8(deferred$8, x, arg$31$0);
-                    );
-                }
-                
-                @.java.lang.Override
-                public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
-                    return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(X.class);
-                }
-            }
-        } else {
-            deferred$8 = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Integer(Integer)", (short)-1){
-                
-                @.java.lang.Override
-                public .ceylon.language.Integer $call$(final .java.lang.Object $param$0) {
-                    final long i = ((.ceylon.language.Integer)$param$0).longValue();
-                    return .ceylon.language.Integer.instance(i);
-                }
-            };
-        }
-        deferred$8(deferred$8, x, 1L);
-        deferred$8(deferred$8, x);
-        (
-            let
-            {
-                long arg$32$0 = 1L;
-            }
-            returning deferred$8(deferred$8, x, arg$32$0);
-        );
-        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$)), "Anything(Integer=)", (short)-1){
-            
-            @.java.lang.Override
-            public .java.lang.Object $call$() {
-                return deferred$8(deferred$8, x);
-            }
-            
-            @.java.lang.Override
-            public .java.lang.Object $call$(final .java.lang.Object $param$0) {
-                final long $ceylontmp$i = ((.ceylon.language.Integer)$param$0).longValue();
-                return deferred$8(deferred$8, x, $ceylontmp$i);
-            }
-        };
+        result.ref = getDeferred$7(deferred$getter$_);
     }
 }

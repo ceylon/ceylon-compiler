@@ -1,0 +1,180 @@
+package com.redhat.ceylon.compiler.java.test.structure.local;
+
+final class valueLocalToToplevelFunction_ {
+    
+    private valueLocalToToplevelFunction_() {
+    }
+    
+    private static final <T>long getLocal$1(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return 2L;
+    }
+    
+    private static final <T>void setLocal$1(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long local) {
+    }
+    
+    private static final <T>long getLocal$0(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return 1L;
+    }
+    
+    private static final <T>void setLocal$0(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long local) {
+    }
+    
+    private static final <T>long getLocalCapture$2(final long x$1, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return x$1 + 1L;
+    }
+    
+    private static final <T>void setLocalCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$2, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long localCapture) {
+        (
+            let
+            {
+                long $ceylontmp$op$3 = result$2.ref + localCapture;
+                result$2.ref = $ceylontmp$op$3;
+            }
+            returning $ceylontmp$op$3;
+        );
+    }
+    
+    private static final <T>long getLocalVariableCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$4, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        y$4.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$5 = y$4.ref;
+                y$4.ref = $ceylontmp$op$5 + 1;
+            }
+            returning $ceylontmp$op$5;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$6 = y$4.ref + 1L;
+                y$4.ref = $ceylontmp$op$6;
+            }
+            returning $ceylontmp$op$6;
+        );
+        return y$4.ref;
+    }
+    
+    private static final <T>void setLocalVariableCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$7, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long localVariableCapture) {
+        y$7.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$8 = y$7.ref;
+                y$7.ref = $ceylontmp$op$8 + 1;
+            }
+            returning $ceylontmp$op$8;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$9 = y$7.ref + 1L;
+                y$7.ref = $ceylontmp$op$9;
+            }
+            returning $ceylontmp$op$9;
+        );
+    }
+    
+    private static final <T>long getTransitiveCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$10, final long x$11, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$12, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return getLocalVariableCapture$2(y$10, $reified$T) + getLocalCapture$2(x$11, $reified$T);
+    }
+    
+    private static final <T>void setTransitiveCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$13, final long x$14, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$15, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long transitiveCapture) {
+        setLocalVariableCapture$2(y$13, $reified$T, transitiveCapture);
+        setLocalCapture$2(result$15, $reified$T, transitiveCapture);
+    }
+    
+    private static final <T>T getTpCapture$2(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return (T).ceylon.language.nothing_.get_();
+    }
+    
+    private static final <T>void setTpCapture$2(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final T tpCapture) {
+    }
+    
+    private static final <T>long getNested$3(final long x$17, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return x$17;
+    }
+    
+    private static final <T>void setNested$3(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long nested) {
+    }
+    
+    private static final <T>long getNesting$2(final long x$16, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return (
+            let
+            {
+                long $ceylontmp$op$18 = getNested$3(x$16, $reified$T);
+                setNested$3($reified$T, $ceylontmp$op$18 + 1);
+            }
+            returning $ceylontmp$op$18;
+        );
+    }
+    
+    private static final <T>long getNested$4(final long x$20, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return x$20;
+    }
+    
+    private static final <T>void setNested$4(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long nested) {
+    }
+    
+    private static final <T>void setNesting$2(final long x$19, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long nesting) {
+        (
+            let
+            {
+                long $ceylontmp$op$21 = getNested$4(x$19, $reified$T);
+                setNested$4($reified$T, $ceylontmp$op$21 + 1);
+            }
+            returning $ceylontmp$op$21;
+        );
+    }
+    
+    private static final <T>long getDeferred$2(final .com.redhat.ceylon.compiler.java.language.GetterLong getDeferred$2, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return getDeferred$2.get_();
+    }
+    
+    static <T>long valueLocalToToplevelFunction(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        final long x = 0L;
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
+        if (1L + 1L == 2L) {
+            final long k = getLocal$0($reified$T);
+            setLocal$0($reified$T, k);
+        } else {
+            final long k = getLocal$1($reified$T);
+            setLocal$1($reified$T, k);
+        }
+        result.ref = getLocalCapture$2(x, $reified$T);
+        setLocalCapture$2(result, $reified$T, result.ref);
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
+        result.ref = getLocalVariableCapture$2(y, $reified$T);
+        setLocalVariableCapture$2(y, $reified$T, result.ref);
+        result.ref = getTransitiveCapture$2(y, x, result, $reified$T);
+        setTransitiveCapture$2(y, x, result, $reified$T, result.ref);
+        result.ref = getTpCapture$2($reified$T).hashCode();
+        setTpCapture$2($reified$T, (T).ceylon.language.nothing_.get_());
+        result.ref = getNesting$2(x, $reified$T);
+        setNesting$2(x, $reified$T, result.ref);
+        .com.redhat.ceylon.compiler.java.language.GetterLong deferred$getter$_;
+        deferred$getter$_ = (
+            let
+            {
+                
+                final class deferred$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                    
+                    private deferred$getter$_() {
+                    }
+                    
+                    public long get_() {
+                        return getNesting$2(x, $reified$T);
+                    }
+                }
+            }
+            returning new deferred$getter$_();
+        );
+        result.ref = getDeferred$2(deferred$getter$_, $reified$T);
+        return 0L;
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        .com.redhat.ceylon.compiler.java.test.structure.local.valueLocalToToplevelFunction_.valueLocalToToplevelFunction(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
+    }
+}

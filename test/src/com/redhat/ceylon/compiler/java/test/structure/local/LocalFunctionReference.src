@@ -1,4 +1,4 @@
-package com.redhat.ceylon.compiler.java.test.expression.invoke;
+package com.redhat.ceylon.compiler.java.test.structure.local;
 
 final class localFunctionReference_ {
     
@@ -24,7 +24,7 @@ final class localFunctionReference_ {
         return (
             let
             {
-                long $ceylontmp$y$3 = .com.redhat.ceylon.compiler.java.test.expression.invoke.localFunctionReference_.withDefaulted$0$y(x);
+                long $ceylontmp$y$3 = .com.redhat.ceylon.compiler.java.test.structure.local.localFunctionReference_.withDefaulted$0$y(x);
             }
             returning withDefaulted$0(x, $ceylontmp$y$3);
         );
@@ -42,7 +42,7 @@ final class localFunctionReference_ {
         return (
             let
             {
-                long $ceylontmp$y$5 = .com.redhat.ceylon.compiler.java.test.expression.invoke.localFunctionReference_.withDefaultedAndCaptured$0$y(i$4, x);
+                long $ceylontmp$y$5 = .com.redhat.ceylon.compiler.java.test.structure.local.localFunctionReference_.withDefaultedAndCaptured$0$y(i$4, x);
             }
             returning withDefaultedAndCaptured$0(i$4, x, $ceylontmp$y$5);
         );

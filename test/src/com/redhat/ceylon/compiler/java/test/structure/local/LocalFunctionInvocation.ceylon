@@ -95,7 +95,7 @@ class LocalFunctionInvocation() {
                 return captureLocalValue(y);
             }
             z = captureLocalFunction(z);
-            
+            /* TODO 
             class LocalClass() {
                 
             }
@@ -103,7 +103,7 @@ class LocalFunctionInvocation() {
                 return LocalClass().hash;
             }
             z += captureLocalClass();
-            
+            */
             return z;
         }
     }

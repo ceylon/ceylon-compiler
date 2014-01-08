@@ -3,21 +3,28 @@ Integer valueLocalToToplevelValue {
     Integer x = 0;
     variable Integer result = 0;
     if (1+1==2) {
-        value local{ return 0; }
+        value local{ return 1; }
         assign local {
         }
         Integer k = local;
+        local = k;
     } else {
-        value local{ return 0; }
+        value local{ return 2; }
         assign local {
         }
         Integer k = local;
+        local = k;
     }
-    /*
-    value localCapture => x+1;
+    // TODO Test with a => getter
+    // TODO Retest variations of this onces gavin's fixed #887
+    Integer localCapture { 
+        return  x+1; 
+    }
     assign localCapture {
+        result+=localCapture;
     }
     result = localCapture;
+    localCapture = result;
     
     // local variable capture
     variable Integer y = 0;
@@ -33,6 +40,7 @@ Integer valueLocalToToplevelValue {
         y+=1;
     }
     result = localVariableCapture;
+    localVariableCapture = result;
     
     // transitive capture
     value transitiveCapture {
@@ -42,7 +50,9 @@ Integer valueLocalToToplevelValue {
         localVariableCapture = transitiveCapture;
         localCapture = transitiveCapture;
     }
+    
     result = transitiveCapture;
+    transitiveCapture = result;
     
     // nesting
     Integer nesting {
@@ -64,11 +74,12 @@ Integer valueLocalToToplevelValue {
         nested++;
     }
     result = nesting;
-     
-    variable Integer deferred;
-    deferred => 0;
-    assign deferred => result++;
-    */
+    nesting = result;
+    // TODO Retest variations of this onces gavin's fixed #885
+    Integer deferred;
+    deferred => nesting;
+    result = deferred;
+    
     return 0;
 }
 // Setter
@@ -76,21 +87,28 @@ assign valueLocalToToplevelValue {
     Integer x = 0;
     variable Integer result = 0;
     if (1+1==2) {
-        value local{ return 0; }
+        value local{ return 1; }
         assign local {
         }
         Integer k = local;
+        local = k;
     } else {
-        value local{ return 0; }
+        value local{ return 2; }
         assign local {
         }
         Integer k = local;
+        local = k;
     }
-    /*
-    value localCapture => x+1;
+    // TODO Test with a => getter
+    // TODO Retest variations of this onces gavin's fixed #887
+    Integer localCapture { 
+        return  x+1; 
+    }
     assign localCapture {
+        result+=localCapture;
     }
     result = localCapture;
+    localCapture = result;
     
     // local variable capture
     variable Integer y = 0;
@@ -106,6 +124,7 @@ assign valueLocalToToplevelValue {
         y+=1;
     }
     result = localVariableCapture;
+    localVariableCapture = result;
     
     // transitive capture
     value transitiveCapture {
@@ -115,7 +134,9 @@ assign valueLocalToToplevelValue {
         localVariableCapture = transitiveCapture;
         localCapture = transitiveCapture;
     }
+    
     result = transitiveCapture;
+    transitiveCapture = result;
     
     // nesting
     Integer nesting {
@@ -137,8 +158,10 @@ assign valueLocalToToplevelValue {
         nested++;
     }
     result = nesting;
-    variable Integer deferred;
-    deferred => 0;
-    assign deferred => result++;
-    */
+    nesting = result;
+    // TODO Retest variations of this onces gavin's fixed #885
+    Integer deferred;
+    deferred => nesting;
+    result = deferred;
+
 }

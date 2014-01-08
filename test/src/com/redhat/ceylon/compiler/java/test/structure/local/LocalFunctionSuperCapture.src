@@ -1,4 +1,4 @@
-package com.redhat.ceylon.compiler.java.test.expression.invoke;
+package com.redhat.ceylon.compiler.java.test.structure.local;
 
 class LocalFunctionSuperCaptureClass<X, Y> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
     
@@ -41,17 +41,17 @@ class LocalFunctionSuperCaptureClass<X, Y> implements .com.redhat.ceylon.compile
     
     public static void main(.java.lang.String[] args) {
         .ceylon.language.process_.get_().setupArguments(args);
-        new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureClass(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
+        new .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureClass(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
     }
     
     @.java.lang.Override
     public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
-        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureClass.class, $reified$X, $reified$Y);
+        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureClass.class, $reified$X, $reified$Y);
     }
 }
 interface LocalFunctionSuperCaptureInterface<X, Y> {
     
-    public .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<X, Y> $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$impl();
+    public .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface$impl<X, Y> $com$redhat$ceylon$compiler$java$test$structure$local$LocalFunctionSuperCaptureInterface$impl();
     
     public X getGetXI();
     
@@ -71,14 +71,14 @@ interface LocalFunctionSuperCaptureInterface<X, Y> {
 }
 final class LocalFunctionSuperCaptureInterface$impl<X, Y> {
     
-    LocalFunctionSuperCaptureInterface$impl(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface<X, Y> $this) {
+    LocalFunctionSuperCaptureInterface$impl(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this) {
         this.$reified$X = $reified$X;
         this.$reified$Y = $reified$Y;
         this.$this = $this;
     }
     private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X;
     private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y;
-    private final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface<X, Y> $this;
+    private final .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this;
     
     public void $refine$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         this.$reified$Y = $reified$Y;
@@ -115,19 +115,19 @@ final class LocalFunctionSuperCaptureInterface$impl<X, Y> {
         return (Y).ceylon.language.nothing_.get_();
     }
 }
-class LocalFunctionSuperCapture<T> extends .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureClass<.ceylon.language.Integer, T> implements .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface<.ceylon.language.Integer, T> {
+class LocalFunctionSuperCapture<T> extends .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureClass<.ceylon.language.Integer, T> implements .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<.ceylon.language.Integer, T> {
     
     LocalFunctionSuperCapture(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
         super(.ceylon.language.Integer.$TypeDescriptor$, $reified$T);
         this.$reified$T = $reified$T;
-        this.$com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$this$ = new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T>(.ceylon.language.Integer.$TypeDescriptor$, $reified$T, this);
+        this.$com$redhat$ceylon$compiler$java$test$structure$local$LocalFunctionSuperCaptureInterface$this$ = new .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T>(.ceylon.language.Integer.$TypeDescriptor$, $reified$T, this);
     }
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
-    protected final .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T> $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$this$;
+    protected final .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T> $com$redhat$ceylon$compiler$java$test$structure$local$LocalFunctionSuperCaptureInterface$this$;
     
     @.java.lang.Override
-    public .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T> $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$impl() {
-        return $com$redhat$ceylon$compiler$java$test$expression$invoke$LocalFunctionSuperCaptureInterface$this$;
+    public .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface$impl<.ceylon.language.Integer, T> $com$redhat$ceylon$compiler$java$test$structure$local$LocalFunctionSuperCaptureInterface$impl() {
+        return $com$redhat$ceylon$compiler$java$test$structure$local$LocalFunctionSuperCaptureInterface$this$;
     }
     
     @.java.lang.Override
@@ -221,11 +221,11 @@ class LocalFunctionSuperCapture<T> extends .com.redhat.ceylon.compiler.java.test
     
     public static void main(.java.lang.String[] args) {
         .ceylon.language.process_.get_().setupArguments(args);
-        new .com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCapture(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
+        new .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCapture(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.NothingType);
     }
     
     @.java.lang.Override
     public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
-        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.expression.invoke.LocalFunctionSuperCapture.class, $reified$T);
+        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCapture.class, $reified$T);
     }
 }

@@ -1,0 +1,222 @@
+package com.redhat.ceylon.compiler.java.test.structure.local;
+
+class ValueLocalToToplevelClass<T> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+    
+    ValueLocalToToplevelClass(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final T t) {
+        this.$reified$T = $reified$T;
+        this.x = 0L;
+        this.result = 0L;
+        if (1L + 1L == 2L) {
+            final long k = getLocal$0();
+            setLocal$0(k);
+        } else {
+            final long k = getLocal$1();
+            setLocal$1(k);
+        }
+        setResult$priv$(getLocalCapture$priv$());
+        setLocalCapture$priv$(getResult$priv$());
+        this.y = 0L;
+        setResult$priv$(getLocalVariableCapture$priv$());
+        setLocalVariableCapture$priv$(getResult$priv$());
+        setResult$priv$(getTransitiveCapture$2());
+        setTransitiveCapture$2(getResult$priv$());
+        setResult$priv$(getTpCapture$2().hashCode());
+        setTpCapture$2((T).ceylon.language.nothing_.get_());
+        setResult$priv$(getThisAccess$2());
+        setResult$priv$(.ceylon.language.Boolean.hashCode(getReified$2()));
+        setResult$priv$(getNesting$priv$());
+        setNesting$priv$(getResult$priv$());
+        .com.redhat.ceylon.compiler.java.language.GetterLong deferred$getter$_;
+        deferred$getter$_ = (
+            let
+            {
+                
+                final class deferred$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                    
+                    private deferred$getter$_() {
+                    }
+                    
+                    public long get_() {
+                        return getNesting$priv$();
+                    }
+                }
+            }
+            returning new deferred$getter$_();
+        );
+        setResult$priv$(getDeferred$2(deferred$getter$_));
+    }
+    private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
+    
+    @.java.lang.Override
+    public final .java.lang.String toString() {
+        return "";
+    }
+    private final long x;
+    
+    private final long getX$priv$() {
+        return x;
+    }
+    private long result;
+    
+    private final long getResult$priv$() {
+        return result;
+    }
+    
+    private final void setResult$priv$(final long result) {
+        this.result = result;
+    }
+    
+    private final long getLocal$1() {
+        return 2L;
+    }
+    
+    private final void setLocal$1(final long local) {
+    }
+    
+    private final long getLocal$0() {
+        return 1L;
+    }
+    
+    private final void setLocal$0(final long local) {
+    }
+    
+    private final long getLocalCapture$priv$() {
+        return getX$priv$() + 1L;
+    }
+    
+    private final void setLocalCapture$priv$(final long localCapture) {
+        (
+            let
+            {
+                long $ceylontmp$op$1 = getResult$priv$() + localCapture;
+                setResult$priv$($ceylontmp$op$1);
+            }
+            returning $ceylontmp$op$1;
+        );
+    }
+    private long y;
+    
+    private final long getY$priv$() {
+        return y;
+    }
+    
+    private final void setY$priv$(final long y) {
+        this.y = y;
+    }
+    
+    private final long getLocalVariableCapture$priv$() {
+        setY$priv$(1L);
+        (
+            let
+            {
+                long $ceylontmp$op$2 = getY$priv$();
+                setY$priv$($ceylontmp$op$2 + 1);
+            }
+            returning $ceylontmp$op$2;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$3 = getY$priv$() + 1L;
+                setY$priv$($ceylontmp$op$3);
+            }
+            returning $ceylontmp$op$3;
+        );
+        return getY$priv$();
+    }
+    
+    private final void setLocalVariableCapture$priv$(final long localVariableCapture) {
+        setY$priv$(1L);
+        (
+            let
+            {
+                long $ceylontmp$op$4 = getY$priv$();
+                setY$priv$($ceylontmp$op$4 + 1);
+            }
+            returning $ceylontmp$op$4;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$5 = getY$priv$() + 1L;
+                setY$priv$($ceylontmp$op$5);
+            }
+            returning $ceylontmp$op$5;
+        );
+    }
+    
+    private final long getTransitiveCapture$2() {
+        return getLocalVariableCapture$priv$() + getLocalCapture$priv$();
+    }
+    
+    private final void setTransitiveCapture$2(final long transitiveCapture) {
+        setLocalVariableCapture$priv$(transitiveCapture);
+        setLocalCapture$priv$(transitiveCapture);
+    }
+    
+    private final T getTpCapture$2() {
+        return (T).ceylon.language.nothing_.get_();
+    }
+    
+    private final void setTpCapture$2(final T tpCapture) {
+    }
+    
+    private final long getThisAccess$2() {
+        return .ceylon.language.String.hashCode(this.toString());
+    }
+    
+    private final boolean getReified$2() {
+        return (
+            let
+            {
+                .java.lang.Object $ceylontmp$6 = .ceylon.language.Integer.instance(getX$priv$());
+            }
+            returning .com.redhat.ceylon.compiler.java.Util.isReified($ceylontmp$6, $reified$T);
+        );
+    }
+    
+    private final long getNested$3() {
+        return getX$priv$();
+    }
+    
+    private final void setNested$3(final long nested) {
+    }
+    
+    private final long getNesting$priv$() {
+        return (
+            let
+            {
+                long $ceylontmp$op$7 = getNested$3();
+                setNested$3($ceylontmp$op$7 + 1);
+            }
+            returning $ceylontmp$op$7;
+        );
+    }
+    
+    private final long getNested$4() {
+        return getX$priv$();
+    }
+    
+    private final void setNested$4(final long nested) {
+    }
+    
+    private final void setNesting$priv$(final long nesting) {
+        (
+            let
+            {
+                long $ceylontmp$op$8 = getNested$4();
+                setNested$4($ceylontmp$op$8 + 1);
+            }
+            returning $ceylontmp$op$8;
+        );
+    }
+    
+    private final long getDeferred$2(final .com.redhat.ceylon.compiler.java.language.GetterLong getDeferred$2) {
+        return getDeferred$2.get_();
+    }
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelClass.class, $reified$T);
+    }
+}

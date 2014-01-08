@@ -1,0 +1,29 @@
+package com.redhat.ceylon.compiler.java.test.structure.local;
+
+final class localFunctionMultipleTransitiveCapture_ {
+    
+    private localFunctionMultipleTransitiveCapture_() {
+    }
+    
+    private static final .java.lang.String f$0(final .java.lang.Object o$0) {
+        return o$0.toString();
+    }
+    
+    private static final .java.lang.String g$0(final .java.lang.Object o$1) {
+        return o$1.toString();
+    }
+    
+    private static final .java.lang.String h$0(final .java.lang.Object o$2) {
+        return f$0(o$2) + g$0(o$2);
+    }
+    
+    static void localFunctionMultipleTransitiveCapture() {
+        final .java.lang.Object o = .ceylon.language.nothing_.get_();
+        h$0(o);
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        .com.redhat.ceylon.compiler.java.test.structure.local.localFunctionMultipleTransitiveCapture_.localFunctionMultipleTransitiveCapture();
+    }
+}
