@@ -4,12 +4,14 @@ import static com.sun.tools.javac.code.Flags.*;
 
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
+import com.redhat.ceylon.compiler.typechecker.model.Functional;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
 import com.redhat.ceylon.compiler.typechecker.model.Setter;
+import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
@@ -421,8 +423,8 @@ public class ValueTransformer extends AbstractTransformer {
     
     private final CompanionGetter companionGetter = new CompanionGetter();
     
-    class LocalGetter extends GetterTransformation{
-
+    class LocalGetter extends GetterTransformation {
+        
         protected MethodDefinitionBuilder makeBuilder(Value value) {
             return MethodDefinitionBuilder.getter(ValueTransformer.this, naming.selector(value));
         }
@@ -475,30 +477,15 @@ public class ValueTransformer extends AbstractTransformer {
             return PRIVATE;
         }
         
+        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            ClassTransformer.outerTypeParameters(value, builder);
+        }
+        
         @Override
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
-            if (value.isDeferred() && !value.isParameter()) {
-                ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ValueTransformer.this, naming.selector(value, Naming.NA_MEMBER));
-                pdb.modifiers(FINAL);
-                pdb.ignored();
-                pdb.type(makeJavaType(getGetterInterfaceType(value)), null);
-                builder.parameter(pdb);
-            }
-            for (Declaration captured : Decl.getCapturedLocals(value)) {
-                if (captured instanceof TypedDeclaration) {
-                    if ((captured instanceof MethodOrValue)
-                            && Decl.isLocal(captured)
-                            && ((MethodOrValue)captured).isTransient()
-                            && !((MethodOrValue)captured).isDeferred()) {
-                        continue;
-                    }
-                    builder.capturedLocalParameter((TypedDeclaration)captured);
-                }
-            }
-        }
-
-        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            // No type parameters
+            ClassTransformer.deferredSpecificationParameter(ValueTransformer.this, value, makeJavaType(getGetterInterfaceType(value)), builder);
+            ClassTransformer.capturedLocalParameters(value, builder);
+            ClassTransformer.outerReifiedTypeParameters(value, builder);
         }
         
         protected void transformBody(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
@@ -551,6 +538,10 @@ public class ValueTransformer extends AbstractTransformer {
             }
         }
         
+        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            ClassTransformer.outerTypeParameters(value, builder);
+        }
+        
         protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
             String attrName = getParameterName(value);
             ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.systemParameter(ValueTransformer.this, attrName);
@@ -572,9 +563,6 @@ public class ValueTransformer extends AbstractTransformer {
             // void
         }
         
-        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            // none
-        }
         
         protected final void transformModifiers(Value value, MethodDefinitionBuilder builder) {
             long mods = getVisibility(value) & (PUBLIC | PROTECTED | PRIVATE);
@@ -763,17 +751,9 @@ public class ValueTransformer extends AbstractTransformer {
         }
         @Override
         protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
-            for (Declaration captured : Decl.getCapturedLocals(setter)) {
-                if (captured instanceof TypedDeclaration) {
-                    if ((captured instanceof MethodOrValue)
-                            && Decl.isLocal(captured)
-                            && ((MethodOrValue)captured).isTransient()
-                            && !((MethodOrValue)captured).isDeferred()) {
-                        continue;
-                    }
-                    builder.capturedLocalParameter((TypedDeclaration)captured);
-                }
-            }
+            ClassTransformer.deferredSpecificationParameter(ValueTransformer.this, setter, makeJavaType(getGetterInterfaceType(value)), builder);
+            ClassTransformer.capturedLocalParameters(setter, builder);
+            ClassTransformer.outerReifiedTypeParameters(setter, builder);
             super.transformParameters(value, setter, builder);
         }
 

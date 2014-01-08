@@ -330,9 +330,9 @@ public class MethodDefinitionBuilder
         Scope scope = declaration.getScope();
         /*if (Decl.isGetter(declaration)) {// TODO This is just wrong
             parameterName = gen.naming.getLocalInstanceName(declaration, 0);
-        } else*/ if (declaration instanceof Setter) {
+        } else if (declaration instanceof Setter) {
             parameterName = gen.naming.getAttrClassName(declaration, 0);
-        } else {
+        } else*/ {
             parameterName = gen.naming.aliasName(declaration.getName()).toString();
             subsToClose.add(gen.naming.addVariableSubst(declaration, parameterName));
         } /* else {

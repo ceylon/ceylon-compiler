@@ -3796,8 +3796,9 @@ public class ExpressionTransformer extends AbstractTransformer {
                             continue;
                         }
                         args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
-                    }
+                    } 
                 }
+                ClassTransformer.outerReifiedTypeArguments(this, decl, args);
                 getterArgs = args.toList();
             }
         } else if (Decl.isValueOrSharedOrCapturedParam(decl)) {
@@ -4387,6 +4388,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                                 setterArgs.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                             }
                         }
+                        ClassTransformer.outerReifiedTypeArguments(this, ((Value)decl).getSetter(), setterArgs);
                     }
                 }
             }

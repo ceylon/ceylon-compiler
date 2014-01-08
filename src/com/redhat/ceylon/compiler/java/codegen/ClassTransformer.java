@@ -3647,7 +3647,7 @@ public class ClassTransformer extends AbstractTransformer {
         return methbuilder;
     }
     
-    void copyTypeParameters(Functional def, MethodDefinitionBuilder methodBuilder) {
+    static void copyTypeParameters(Functional def, MethodDefinitionBuilder methodBuilder) {
         if (def.getTypeParameters() != null) {
             for (TypeParameter t : def.getTypeParameters()) {
                 methodBuilder.typeParameter(t);
@@ -3976,15 +3976,9 @@ public class ClassTransformer extends AbstractTransformer {
     }
     private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
     
-    /** 
-     * Transformation of a local function: We transform to a static 
-     * method declared on the same class as contains the method/getter
-     * that contains the local function. 
-     */
-    class LocalFunctionTransformation extends MethodOrFunctionTransformation {
-        
-        private void outerTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
-            Declaration container = Decl.getDeclarationContainer(function);
+    static void outerTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
+        Declaration container = Decl.getDeclarationContainer(function);
+        if (container != null) {
             if (Decl.isLocal(container)) {
                 outerTypeParameters(container, builder);
             }
@@ -3993,9 +3987,11 @@ public class ClassTransformer extends AbstractTransformer {
                 copyTypeParameters((Functional)container, builder);
             }
         }
-        
-        private void outerReifiedTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
-            Declaration container = Decl.getDeclarationContainer(function);
+    }
+    
+    static void outerReifiedTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
+        Declaration container = Decl.getDeclarationContainer(function);
+        if (container != null) {
             if (Decl.isLocal(container)) {
                 outerReifiedTypeParameters(container, builder);
             }
@@ -4004,54 +4000,63 @@ public class ClassTransformer extends AbstractTransformer {
                 builder.reifiedTypeParameters(((Functional)container).getTypeParameters());
             }
         }
-        
-        private void outerReifiedTypeArguments(Declaration declaration, ListBuffer<JCExpression> result) {
-            Declaration container = Decl.getDeclarationContainer(declaration);
-            if (Decl.isLocal(container)) {
-                outerReifiedTypeArguments(container, result);
+    }
+    
+    static void outerReifiedTypeArguments(AbstractTransformer gen, Declaration declaration, ListBuffer<JCExpression> result) {
+        Declaration container = Decl.getDeclarationContainer(declaration);
+        if (Decl.isLocal(container)) {
+            outerReifiedTypeArguments(gen, container, result);
+        }
+        if (container instanceof Functional
+                && !(container instanceof Class)) {
+            for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+                JCExpression reifiedTypeArg = gen.makeReifiedTypeArgument(tp.getType());
+                result.append(reifiedTypeArg);
             }
-            if (container instanceof Functional
-                    && !(container instanceof Class)) {
-                for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
-                    JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
-                    result.append(reifiedTypeArg);
+        }
+    }
+    
+    /** Appends implicit parameters for the captured locals */
+    static void capturedLocalParameters(MethodOrValue function, MethodDefinitionBuilder builder) {
+        for (Declaration captured : Decl.getCapturedLocals(function)) {
+            if (captured instanceof TypedDeclaration) {
+                if ((captured instanceof MethodOrValue)
+                        && Decl.isLocal(captured)
+                        && ((MethodOrValue)captured).isTransient()
+                        && !((MethodOrValue)captured).isParameter()
+                        && !((MethodOrValue)captured).isDeferred()) {
+                    continue;
                 }
+                builder.capturedLocalParameter((TypedDeclaration)captured);
             }
         }
-        
-        /** 
-         * When a function's specification is deferred, we need an 
-         * implicit parameter for the specified callable 
-         */
-        private void deferredSpecificationParameter(Method function, MethodDefinitionBuilder builder) {
-            if (function.isDeferred() && !function.isParameter()) {
-                ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ClassTransformer.this, naming.selector(function, Naming.NA_MEMBER));
-                pdb.modifiers(FINAL);
-                pdb.ignored();
-                pdb.type(makeJavaType(function.getType().getFullType()), null);
-                builder.parameter(pdb);
-            }
+    }
+    
+    
+    /** 
+     * When a function's specification is deferred, we need an 
+     * implicit parameter for the specified callable 
+     */
+    static void deferredSpecificationParameter(AbstractTransformer gen, MethodOrValue function, JCExpression type, MethodDefinitionBuilder builder) {
+        if (function.isDeferred() && !function.isParameter()) {
+            ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(gen, gen.naming.selector(function, Naming.NA_MEMBER));
+            pdb.modifiers(FINAL);
+            pdb.ignored();
+            pdb.type(type, null);
+            builder.parameter(pdb);
         }
+    }
+    
+    /** 
+     * Transformation of a local function: We transform to a static 
+     * method declared on the same class as contains the method/getter
+     * that contains the local function. 
+     */
+    class LocalFunctionTransformation extends MethodOrFunctionTransformation {
         
         private void deferredSpecificationArgument(Method function, ListBuffer<JCExpression> args) {
             if (function.isDeferred() && !function.isParameter()) {
                 args.add(naming.makeUnquotedIdent(naming.selector(function, Naming.NA_MEMBER)));
-            }
-        }
-        
-        /** Appends implicit parameters for the captured locals */
-        private void capturedLocalParameters(Method function, MethodDefinitionBuilder builder) {
-            for (Declaration captured : Decl.getCapturedLocals(function)) {
-                if (captured instanceof TypedDeclaration) {
-                    if ((captured instanceof MethodOrValue)
-                            && Decl.isLocal(captured)
-                            && ((MethodOrValue)captured).isTransient()
-                            && !((MethodOrValue)captured).isParameter()
-                            && !((MethodOrValue)captured).isDeferred()) {
-                        continue;
-                    }
-                    builder.capturedLocalParameter((TypedDeclaration)captured);
-                }
             }
         }
         
@@ -4094,7 +4099,7 @@ public class ClassTransformer extends AbstractTransformer {
                 }
                 @Override
                 protected final void transformParameterList(Method method, ParameterList parameterList, Parameter currentParameter, MethodDefinitionBuilder overloadBuilder) {
-                    deferredSpecificationParameter(method, overloadBuilder);
+                    deferredSpecificationParameter(ClassTransformer.this, method, makeJavaType(method.getType().getFullType()), overloadBuilder);
                     capturedLocalParameters(method, overloadBuilder);
                     outerReifiedTypeParameters(method, overloadBuilder);
                     super.transformParameterList(method, parameterList, currentParameter, overloadBuilder);
@@ -4105,7 +4110,7 @@ public class ClassTransformer extends AbstractTransformer {
                         MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
                     deferredSpecificationArgument(method, args);
                     capturedLocalArguments(method, args);
-                    outerReifiedTypeArguments(method, args);
+                    outerReifiedTypeArguments(ClassTransformer.this, method, args);
                     super.appendCanonicalImplicitArguments(method, typeParameterList, overloadBuilder, args);
                 }
                 @Override
@@ -4114,7 +4119,7 @@ public class ClassTransformer extends AbstractTransformer {
                         MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
                     // don't include the $impl$ for a deferred method: It cannot affect the result
                     capturedLocalArguments(method, args);
-                    outerReifiedTypeArguments(method, args);
+                    outerReifiedTypeArguments(ClassTransformer.this, method, args);
                     super.appendDpmImplicitArguments(method, typeParameterList, overloadBuilder, args);
                 }
                 /** Returns the name of the method that the overload delegates to */
@@ -4175,7 +4180,7 @@ public class ClassTransformer extends AbstractTransformer {
         
         protected void transformUltimateParameterList(Tree.AnyMethod methodOrFunction, MethodDefinitionBuilder builder) {
             Method model = methodOrFunction.getDeclarationModel();
-            deferredSpecificationParameter(model, builder);
+            deferredSpecificationParameter(ClassTransformer.this, model, makeJavaType(model.getType().getFullType()), builder);
             capturedLocalParameters(model, builder);
             outerReifiedTypeParameters(model, builder);
             super.transformUltimateParameterList(methodOrFunction, builder);
