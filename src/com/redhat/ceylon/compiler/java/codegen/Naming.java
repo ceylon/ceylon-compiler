@@ -450,7 +450,7 @@ public class Naming implements LocalId {
         void noteDecl(Declaration decl) {
             if (decl.isToplevel()) {
                 resetLocals();
-            } else if (Decl.isLocalNotInitializer(decl)){
+            } else if (Decl.isLocal(decl)){
                 local(decl.getContainer());
             }
         }
@@ -475,7 +475,7 @@ public class Naming implements LocalId {
         
         @Override
         public void visit(Tree.AnyMethod that) {
-            if (Decl.isLocalNotInitializer(that.getDeclarationModel())) {
+            if (Decl.isLocal(that.getDeclarationModel())) {
                 noteDecl(that.getDeclarationModel());
             }
             super.visit(that);
@@ -483,7 +483,7 @@ public class Naming implements LocalId {
         
         @Override
         public void visit(Tree.AttributeGetterDefinition that) {
-            if (Decl.isLocalNotInitializer(that.getDeclarationModel())) {
+            if (Decl.isLocal(that.getDeclarationModel())) {
                 noteDecl(that.getDeclarationModel());
             }
             super.visit(that);
@@ -491,8 +491,8 @@ public class Naming implements LocalId {
         
         @Override
         public void visit(Tree.AttributeDeclaration that) {
-            if (that.getDeclarationModel().isDeferred() 
-                    && Decl.isLocalNotInitializer(that.getDeclarationModel())) {
+            if (that.getDeclarationModel().isDeferred()
+                    && Decl.isLocal(that.getDeclarationModel())) {
                 noteDecl(that.getDeclarationModel());
             }
             super.visit(that);
@@ -500,7 +500,7 @@ public class Naming implements LocalId {
         
         @Override
         public void visit(Tree.AttributeSetterDefinition that) {
-            if (Decl.isLocalNotInitializer(that.getDeclarationModel())) {
+            if (Decl.isLocal(that.getDeclarationModel())) {
                 noteDecl(that.getDeclarationModel());
             }
             super.visit(that);
@@ -1390,14 +1390,24 @@ public class Naming implements LocalId {
                 (Decl.isGetter(decl) || Decl.isValueOrSharedOrCapturedParam(decl))) {
             String name;
             if ((namingOptions & NA_SETTER) != 0) {
-                if (Decl.isLocal(decl) && ((Value)decl).isTransient()) {
-                    name = getSetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
+                if (Decl.isLocal(decl) 
+                        && ((Value)decl).isTransient()) {
+                    if (Decl.isLocalToInitializer(decl) && ((Value)decl).isCaptured()) {
+                        name = getSetterName(decl) + "$" + getLocalId(decl.getContainer());
+                    } else {
+                        name = getSetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
+                    }
                 } else {
                     name = getSetterName(decl);
                 }
             } else {
-                if (Decl.isLocal(decl) && ((Value)decl).isTransient()) {
-                    name = getGetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
+                if (Decl.isLocal(decl) 
+                        && ((Value)decl).isTransient()) {
+                    if (Decl.isLocalToInitializer(decl) && ((Value)decl).isCaptured()) {
+                        name = getGetterName(decl) + "$" + getLocalId(decl.getContainer());
+                    } else {
+                        name = getGetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
+                    }
                 } else {
                     name = getGetterName(decl);
                 }
