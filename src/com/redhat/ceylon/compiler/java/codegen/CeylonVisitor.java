@@ -20,6 +20,7 @@
 
 package com.redhat.ceylon.compiler.java.codegen;
 
+import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
@@ -92,8 +93,11 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
             } else {
                 classBuilder.defs(gen.classGen().transform(decl));
             }
-        } else {
+        } else if (decl.getDeclarationModel().isToplevel()) {
             appendList(gen.classGen().transform(decl));
+        } else {
+            // Must be local
+            classBuilder.defs(gen.classGen().transform(decl));
         }
         gen.resetCompilerAnnotations(annots);
     }

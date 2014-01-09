@@ -131,7 +131,7 @@ public class LocalCaptureVisitor extends Visitor {
                 if (scope == declScope) {
                     break;
                 }
-                if (isStaticDeclaration(scope) && !(scope.getContainer() instanceof Class)) {
+                if (isStaticDeclaration(scope) /*&& !(scope.getContainer() instanceof Class)*/) {
                     addCapture((Declaration)scope, that.getDeclaration());
                 }
             }

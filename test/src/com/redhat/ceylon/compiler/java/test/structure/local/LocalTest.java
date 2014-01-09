@@ -109,7 +109,7 @@ public class LocalTest extends CompilerTest {
         // TODO also InterfaceGetterSetter
         // in fact change this test for ...Member
     }
-    
+    // TODO Also object declarations
     
     // TODO valueLocalToClassMemberClassInit
     // TODO valueLocalToClassMemberClassMethod
@@ -125,13 +125,13 @@ public class LocalTest extends CompilerTest {
     // TODO valueLocalToLocalFunction
     // TODO valueLocalToLocalValue
     
-    /*
+    
     // Local classes
     @Test
     public void testClassLocalToToplevelFunction() {
         compareWithJavaSource("ClassLocalToToplevelFunction");
     }
-    
+    /*
     @Test
     public void testClassLocalToToplevelValue() {
         compareWithJavaSource("ClassLocalToToplevelValue");
