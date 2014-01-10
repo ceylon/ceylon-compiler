@@ -755,6 +755,7 @@ public class ClassTransformer extends AbstractTransformer {
             return List.nil();
         
         naming.clearSubstitutions(model);
+
         if (model instanceof ClassAlias) {
             final ClassAliasTransformation transformation;
             if (model.isToplevel()) { 
