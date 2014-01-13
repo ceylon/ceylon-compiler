@@ -124,13 +124,12 @@ public class ClassTransformer extends AbstractTransformer {
         
         private List<JCTree> transform(T def, D model,
                 ClassDefinitionBuilder classBuilder) {
-            addAtContainer(classBuilder, model);
             
             // Transform the class/interface members
             //List<JCStatement> childDefs = visitClassOrInterfaceDefinition(def, classBuilder);
             transformUserAnnotations(def, classBuilder);
-            transformMembers(def, classBuilder);
             
+            transformMembers(def, classBuilder);
             transformModifiers(model, classBuilder);
             transformModelAnnotations(model, classBuilder);
             transformSuperTypes(def, classBuilder);
@@ -149,6 +148,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected void transformModelAnnotations(D model, ClassDefinitionBuilder builder) {
+            addAtContainer(builder, model);
             builder.modelAnnotations(model.getAnnotations());
         }
         
@@ -279,11 +279,30 @@ public class ClassTransformer extends AbstractTransformer {
         }
 
     }
-    /*
-    class MemberClassTransformation extends ClassTransformation {
+    
+    class MemberClassTransformation extends ClassTransformation<Class> {
+        protected void transformInitializer(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
+            TypeParameterList typeParameterList = def.getTypeParameterList();
+            if(typeParameterList != null) {
+                classBuilder.reifiedTypeParameters(typeParameterList);
+            }
+            
+            Class cls = def.getDeclarationModel();
+            boolean generateInstantiator = Strategy.generateInstantiator(cls);
+            if(generateInstantiator){
+                generateInstantiators(cls, classBuilder, def.getParameterList(), cls, 
+                        null, gen().current().getContainingClassBuilder(), 
+                        typeParameterList);
+            }
+            
+            transformClassInitializer(def, def.getDeclarationModel(), classBuilder, def.getParameterList(), 
+                    generateInstantiator, def.getDeclarationModel(), 
+                    null, gen().current().getContainingClassBuilder(),
+                    typeParameterList);
+        }
     
     }
-    
+    /*
     class LocalClassTransformation extends ClassTransformation {
     
     }
@@ -375,7 +394,13 @@ public class ClassTransformer extends AbstractTransformer {
                 ClassTransformation t = new ToplevelClassTransformation();
                 return t.transform((Tree.AnyClass)def, (Class)model);
             }
+        } else if (model instanceof Class && 
+                model.isClassMember() 
+                && !(model instanceof ClassAlias)) {
+            ClassTransformation t = new MemberClassTransformation();
+            return t.transform((Tree.AnyClass)def, (Class)model);
         }
+        
         
         final String javaClassName;
         String ceylonClassName = def.getIdentifier().getText();
