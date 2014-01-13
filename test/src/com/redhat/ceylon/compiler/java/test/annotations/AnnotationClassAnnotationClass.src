@@ -142,6 +142,12 @@ final class AnnotationClassAnnotationClassSequence implements .com.redhat.ceylon
         this.$ceylon$language$ConstrainedAnnotation$this$ = new .ceylon.language.ConstrainedAnnotation$impl<.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence, .ceylon.language.Sequential<? extends .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence>, .ceylon.language.meta.declaration.ClassOrInterfaceDeclaration>(.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Sequential.class, .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence.$TypeDescriptor$), .ceylon.language.meta.declaration.ClassOrInterfaceDeclaration.$TypeDescriptor$, this);
         this.$ceylon$language$Annotation$this$ = new .ceylon.language.Annotation$impl(this);
     }
+    
+    private static .ceylon.language.Sequential<? extends .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam> $annotationSequence$(.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam$annotation$[] $array$) {
+        final .ceylon.language.SequenceBuilder<.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam> $sb$ = new .ceylon.language.SequenceBuilder<.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam>(.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam.$TypeDescriptor$);
+        for (.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam$annotation$ $element$ : $array$) $sb$.append(new .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam($element$));
+        return $sb$.getSequence();
+    }
     protected final .ceylon.language.SequencedAnnotation$impl<? extends .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence, ? super .ceylon.language.meta.declaration.ClassOrInterfaceDeclaration> $ceylon$language$SequencedAnnotation$this$;
     
     @.java.lang.Override
@@ -171,12 +177,6 @@ final class AnnotationClassAnnotationClassSequence implements .com.redhat.ceylon
         return .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence.$TypeDescriptor$;
     }
     public static final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $TypeDescriptor$ = .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassAnnotationClassSequence.class);
-    
-    private static .ceylon.language.Sequential<? extends .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam> $annotationSequence$(.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam$annotation$[] $array$) {
-        final .ceylon.language.SequenceBuilder<.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam> $sb$ = new .ceylon.language.SequenceBuilder<.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam>(.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam.$TypeDescriptor$);
-        for (.com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam$annotation$ $element$ : $array$) $sb$.append(new .com.redhat.ceylon.compiler.java.test.annotations.AnnotationClassParam($element$));
-        return $sb$.getSequence();
-    }
 }
 @.com.redhat.ceylon.compiler.java.metadata.AnnotationInstantiation(
         arguments = {0},
