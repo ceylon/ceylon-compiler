@@ -196,40 +196,24 @@ public class ClassTransformer extends AbstractTransformer {
             classbuilder.init(childDefs);
         }
     }
-    
-    abstract class ClassTransformation<M extends Class> extends ClassOrInterfaceTransformation<Tree.AnyClass, M> {
+    /**
+     * Abstraction over different ways of transforming initializers: "
+     * constructors and instantiator methods
+     */
+    interface InitializerTransformation {
+
+        public void transformInitializer(AnyClass def,
+                ClassDefinitionBuilder classBuilder);
         
-        ClassTransformation() {
-        }
-        
+    }
+    /**
+     * Transforms initializers as constructors
+     */
+    abstract class Constructor implements InitializerTransformation {
+
         @Override
-        protected void transformGetTypeMethod(M model,
+        public void transformInitializer(AnyClass def,
                 ClassDefinitionBuilder classBuilder) {
-            // only classes get a $getType method
-            classBuilder.addGetTypeMethod(model.getType());
-            super.transformGetTypeMethod(model, classBuilder);
-        }
-        
-        /** 
-         * Transform the case types of this declaration. 
-         * Overridden to handle the {@code extends} clause.
-         */
-        @Override
-        protected void transformSuperTypes(Tree.AnyClass def,
-                ClassDefinitionBuilder classBuilder) {
-            // TODO the extended type
-            super.transformSuperTypes(def, classBuilder);
-        }
-        
-        @Override
-        protected void transformSatisfies(Tree.AnyClass def,
-                ClassDefinitionBuilder classBuilder) {
-            // Make sure top types satisfy reified type
-            addReifiedTypeInterface(classBuilder, def.getDeclarationModel());
-            super.transformSatisfies(def, classBuilder);
-        }
-        
-        protected void transformInitializer(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
             TypeParameterList typeParameterList = def.getTypeParameterList();
             if(typeParameterList != null) {
                 classBuilder.reifiedTypeParameters(typeParameterList);
@@ -238,50 +222,31 @@ public class ClassTransformer extends AbstractTransformer {
                     false, def.getDeclarationModel(), null, 
                     null, typeParameterList);
         }
-        
-        protected final void transformMixins(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
-            Class model = def.getDeclarationModel();
-            satisfaction(model, classBuilder);
-            at(def);
-            // Generate the inner members list for model loading
-            addAtMembers(classBuilder, model);
-        }
+    }
+    /**
+     * Transforms initializer of top level classes as constructors, 
+     * and adds an extra constructor if it's an annotation class.
+     */
+    class ToplevelClassConstructor extends Constructor {
         
         @Override
-        protected void transformMembers(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
-            transformInitializer(def, classBuilder);
-            transformMixins(def, classBuilder);
-            super.transformMembers(def, classBuilder);
-            // If it's a Class without initializer parameters...
-            if (Strategy.generateMain(def)) {
-                // ... then add a main() method
-                classBuilder.method(classGen().makeMainForClass(def.getDeclarationModel()));
-            }
-        }
-    }
-    
-    class ToplevelClassTransformation extends ClassTransformation<Class> {
-
-        protected void transformInitializer(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
-            super.transformInitializer(def, classBuilder);
+        public void transformInitializer(AnyClass def,
+                ClassDefinitionBuilder classBuilder) {
+            super.transformInitializer(def, classBuilder); 
             if (Decl.isAnnotationClass(def)) {
                 transformAnnotationClassConstructor(def, classBuilder);
             }
         }
-        
-        @Override
-        public List<JCTree> transform(Tree.AnyClass def, Class model) {
-            List<JCTree> result = super.transform(def, model);
-            if (Decl.isAnnotationClass(def)) {
-                result = result.prependList(transformAnnotationClass(def));
-            }
-            return result;
-        }
-
     }
     
-    class MemberClassTransformation extends ClassTransformation<Class> {
-        protected void transformInitializer(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
+    /**
+     * Transforms initializer of member classes as constructors
+     * @see MemberClassInstantiator
+     */
+    class MemberClassConstructor extends Constructor {
+        @Override
+        public void transformInitializer(AnyClass def,
+                ClassDefinitionBuilder classBuilder) {
             TypeParameterList typeParameterList = def.getTypeParameterList();
             if(typeParameterList != null) {
                 classBuilder.reifiedTypeParameters(typeParameterList);
@@ -290,7 +255,46 @@ public class ClassTransformer extends AbstractTransformer {
             Class cls = def.getDeclarationModel();
             boolean generateInstantiator = Strategy.generateInstantiator(cls);
             
-
+            ClassDefinitionBuilder decl;
+            ClassDefinitionBuilder impl;
+            if (cls.isInterfaceMember()) {
+                decl = gen().current().getContainingClassBuilder();
+                impl = gen().current().getContainingClassBuilder().getCompanionBuilder((Interface)cls.getContainer());
+            } else {
+                decl = null;
+                impl = gen().current().getContainingClassBuilder();
+            }
+            
+            transformClassInitializer(def, def.getDeclarationModel(), classBuilder, def.getParameterList(), 
+                    generateInstantiator, def.getDeclarationModel(), 
+                    decl, impl,
+                    typeParameterList);
+        }
+    }
+    
+    /**
+     * Generates instantiator methods for a member class, and 
+     * possibly applies {@link #other another} transformation.
+     * The other transformation would be {@link MemberClassConstructor}
+     * for member classes, or {@link ClassAliasInitializer} for a member alias.
+     * @see MemberClassInstantiator
+     */
+    class MemberClassInstantiator implements InitializerTransformation {
+     
+        InitializerTransformation other;
+        
+        MemberClassInstantiator(InitializerTransformation other) {
+            this.other = other;
+        }
+        
+        @Override
+        public void transformInitializer(AnyClass def,
+                ClassDefinitionBuilder classBuilder) {
+            TypeParameterList typeParameterList = def.getTypeParameterList();
+            
+            Class cls = def.getDeclarationModel();
+            boolean generateInstantiator = Strategy.generateInstantiator(cls);
+            
             ClassDefinitionBuilder decl;
             ClassDefinitionBuilder impl;
             if (cls.isInterfaceMember()) {
@@ -308,43 +312,18 @@ public class ClassTransformer extends AbstractTransformer {
                         typeParameterList);
             }
             
-            
-            transformClassInitializer(def, def.getDeclarationModel(), classBuilder, def.getParameterList(), 
-                    generateInstantiator, def.getDeclarationModel(), 
-                    decl, impl,
-                    typeParameterList);
+            if (other != null) {
+                other.transformInitializer(def, classBuilder);
+            }
         }
-    
     }
-    /*
-    class LocalClassTransformation extends ClassTransformation {
     
-    }
-
-    class InstantiatorTransformation extends FunctionalTransformation {
-    
-    }
-    */
-    class ClassAliasTransformation extends ClassTransformation<ClassAlias> {
-        
+    class ClassAliasInitializer implements InitializerTransformation {
         @Override
-        protected void transformSatisfies(Tree.AnyClass def,
+        public void transformInitializer(AnyClass def,
                 ClassDefinitionBuilder classBuilder) {
-            // Make sure top types satisfy reified type
-            //addReifiedTypeInterface(classBuilder, def.getDeclarationModel());
-            //super.transformSatisfies(def, classBuilder);
-            classBuilder.satisfies(def.getDeclarationModel().getSatisfiedTypes());
-        }
-        
-        @Override
-        protected void transformModelAnnotations(ClassAlias model, ClassDefinitionBuilder builder) {
-            ProducedType aliasedClass = model.getExtendedType();
-            builder.annotations(makeAtAlias(aliasedClass));
-            super.transformModelAnnotations(model, builder);
-        }
-        
-        protected void transformInitializer(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
-            Class model = def.getDeclarationModel();
+            
+            ClassAlias model = (ClassAlias)def.getDeclarationModel();
             ProducedType aliasedClass = model.getExtendedType();
             
             classBuilder.isAlias(true);
@@ -372,6 +351,101 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
     }
+    
+    /**
+     * Transformation for a {@code Class}, with a pluggable transformation 
+     * for the class initializer.
+     */
+    class ClassTransformation extends ClassOrInterfaceTransformation<Tree.AnyClass, Class> {
+        
+        private final InitializerTransformation init;
+
+        ClassTransformation(InitializerTransformation init) {
+            this.init = init;
+        }
+        
+        @Override
+        protected void transformGetTypeMethod(Class model,
+                ClassDefinitionBuilder classBuilder) {
+            // only classes get a $getType method
+            classBuilder.addGetTypeMethod(model.getType());
+            super.transformGetTypeMethod(model, classBuilder);
+        }
+        
+        /** 
+         * Transform the case types of this declaration. 
+         * Overridden to handle the {@code extends} clause.
+         */
+        @Override
+        protected void transformSuperTypes(Tree.AnyClass def,
+                ClassDefinitionBuilder classBuilder) {
+            // TODO the extended type
+            super.transformSuperTypes(def, classBuilder);
+        }
+        
+        @Override
+        protected void transformSatisfies(Tree.AnyClass def,
+                ClassDefinitionBuilder classBuilder) {
+            if (def.getDeclarationModel() instanceof ClassAlias) {
+                classBuilder.satisfies(def.getDeclarationModel().getSatisfiedTypes());
+            } else {
+                // Make sure top types satisfy reified type
+                addReifiedTypeInterface(classBuilder, def.getDeclarationModel());
+                super.transformSatisfies(def, classBuilder);
+            }
+        }
+        
+        @Override
+        protected void transformModelAnnotations(Class model, ClassDefinitionBuilder builder) {
+            if (model instanceof ClassAlias) {
+                ProducedType aliasedClass = model.getExtendedType();
+                builder.annotations(makeAtAlias(aliasedClass));
+            }
+            super.transformModelAnnotations(model, builder);
+        }
+        
+        protected final void transformMixins(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
+            Class model = def.getDeclarationModel();
+            satisfaction(model, classBuilder);
+            at(def);
+            // Generate the inner members list for model loading
+            addAtMembers(classBuilder, model);
+        }
+        
+        @Override
+        protected void transformMembers(Tree.AnyClass def, ClassDefinitionBuilder classBuilder) {
+            init.transformInitializer(def, classBuilder);
+            transformMixins(def, classBuilder);
+            super.transformMembers(def, classBuilder);
+            // If it's a Class without initializer parameters...
+            if (Strategy.generateMain(def)) {
+                // ... then add a main() method
+                classBuilder.method(classGen().makeMainForClass(def.getDeclarationModel()));
+            }
+        }
+    }
+    ClassTransformation toplevelClassTransformation = new ClassTransformation(new ToplevelClassConstructor()) {
+
+        @Override
+        public List<JCTree> transform(Tree.AnyClass def, Class model) {
+            List<JCTree> result = super.transform(def, model);
+            if (Decl.isAnnotationClass(def)) {
+                result = result.prependList(transformAnnotationClass(def));
+            }
+            return result;
+        }
+    };
+    ClassTransformation toplevelClassAliasTransformation = new ClassTransformation(new ClassAliasInitializer());
+    ClassTransformation memberClassTransformation = new ClassTransformation(new MemberClassInstantiator(new MemberClassConstructor()));
+    ClassTransformation memberClassAliasTransformation = new ClassTransformation(new MemberClassInstantiator(new ClassAliasInitializer()));
+    
+    /*
+    class LocalClassTransformation extends ClassTransformation {
+    
+    }
+
+    */
+
     /*
     abstract class InterfaceTransformation 
             extends ClassOrInterfaceTransformation<Tree.AnyInterface, Interface> {
@@ -402,24 +476,19 @@ public class ClassTransformer extends AbstractTransformer {
         naming.clearSubstitutions(model);
         if (model.isToplevel() && model instanceof Class) {
             if (model instanceof ClassAlias) {
-                ClassAliasTransformation t = new ClassAliasTransformation();
-                return t.transform((Tree.AnyClass)def, (ClassAlias)model);
+                return toplevelClassAliasTransformation.transform((Tree.AnyClass)def, (ClassAlias)model);
             } else {
-                ClassTransformation t = new ToplevelClassTransformation();
-                return t.transform((Tree.AnyClass)def, (Class)model);
+                return toplevelClassTransformation.transform((Tree.AnyClass)def, (Class)model);
             }
         } else if (model instanceof Class && 
-                model.isClassMember() 
+                model.isMember() 
                 && !(model instanceof ClassAlias)) {
-            ClassTransformation t = new MemberClassTransformation();
-            return t.transform((Tree.AnyClass)def, (Class)model);
+            return memberClassTransformation.transform((Tree.AnyClass)def, (Class)model);
         } else if (model instanceof Class && 
-                model.isInterfaceMember() 
-                && !(model instanceof ClassAlias)) {
-            ClassTransformation t = new MemberClassTransformation();
-            return t.transform((Tree.AnyClass)def, (Class)model);
+                model.isMember() 
+                && model instanceof ClassAlias) {
+            return memberClassAliasTransformation.transform((Tree.AnyClass)def, (Class)model);
         }
-        
         
         final String javaClassName;
         String ceylonClassName = def.getIdentifier().getText();
