@@ -1043,29 +1043,6 @@ public class ClassTransformer extends AbstractTransformer {
         }
         classBuilder.parameter(pdb);
     }
-    
-    private void transformClass(Tree.AnyClass def, Class model, 
-            ClassDefinitionBuilder classBuilder, 
-            Tree.ParameterList paramList, 
-            boolean generateInstantiator, 
-            Class cls, 
-            ClassDefinitionBuilder instantiatorDeclCb, 
-            ClassDefinitionBuilder instantiatorImplCb, 
-            TypeParameterList typeParameterList) {
-        // do reified type params first
-        if(typeParameterList != null)
-            classBuilder.reifiedTypeParameters(typeParameterList);
-        
-        transformClassInitializer(def, model, classBuilder, paramList,
-                generateInstantiator, cls, instantiatorDeclCb,
-                instantiatorImplCb, typeParameterList);
-        satisfaction(model, classBuilder);
-        at(def);
-        // Generate the inner members list for model loading
-        addAtMembers(classBuilder, model);
-        // Make sure top types satisfy reified type
-        addReifiedTypeInterface(classBuilder, model);
-    }
 
     private void transformClassInitializer(
             Tree.AnyClass def,
@@ -1213,21 +1190,6 @@ public class ClassTransformer extends AbstractTransformer {
             type = makeJavaType(decl, paramType, 0);
         }
         return type;
-    }
-
-    private void transformInterface(com.redhat.ceylon.compiler.typechecker.tree.Tree.ClassOrInterface def, ClassOrInterface model, ClassDefinitionBuilder classBuilder, TypeParameterList typeParameterList) {
-        //  Copy all the qualifying type's type parameters into the interface
-        java.util.List<TypeParameter> typeParameters = typeParametersOfAllContainers(model, false);
-        for(TypeParameter tp : typeParameters){
-            classBuilder.typeParameter(tp, false);
-        }
-        
-        classBuilder.method(makeCompanionAccessor((Interface)model, model.getType(), null, false));
-        // Build the companion class
-        buildCompanion(def, (Interface)model, classBuilder, typeParameterList);
-        
-        // Generate the inner members list for model loading
-        addAtMembers(classBuilder, model);
     }
 
     private void addAtMembers(ClassDefinitionBuilder classBuilder, ClassOrInterface model) {
