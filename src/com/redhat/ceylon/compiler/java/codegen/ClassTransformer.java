@@ -209,7 +209,7 @@ public class ClassTransformer extends AbstractTransformer {
     /**
      * Transforms initializers as constructors
      */
-    abstract class Constructor implements InitializerTransformation {
+    class Constructor implements InitializerTransformation {
 
         @Override
         public void transformInitializer(AnyClass def,
@@ -344,19 +344,16 @@ public class ClassTransformer extends AbstractTransformer {
             default:
                 Assert.fail("", def);
             }
-            
             cbInstantiator.method(instantiator);
-            
             classBuilder.constructorModifiers(PRIVATE);
         }
-        
     }
     
     /**
      * Transformation for a {@code Class}, with a pluggable transformation 
      * for the class initializer.
      */
-    class ClassTransformation extends ClassOrInterfaceTransformation<Tree.AnyClass, Class> {
+    class ClassTransformation<M extends Class> extends ClassOrInterfaceTransformation<Tree.AnyClass, M> {
         
         private final InitializerTransformation init;
 
@@ -365,7 +362,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void transformGetTypeMethod(Class model,
+        protected void transformGetTypeMethod(M model,
                 ClassDefinitionBuilder classBuilder) {
             // only classes get a $getType method
             classBuilder.addGetTypeMethod(model.getType());
@@ -396,7 +393,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void transformModelAnnotations(Class model, ClassDefinitionBuilder builder) {
+        protected void transformModelAnnotations(M model, ClassDefinitionBuilder builder) {
             if (model instanceof ClassAlias) {
                 ProducedType aliasedClass = model.getExtendedType();
                 builder.annotations(makeAtAlias(aliasedClass));
@@ -424,7 +421,7 @@ public class ClassTransformer extends AbstractTransformer {
             }
         }
     }
-    ClassTransformation toplevelClassTransformation = new ClassTransformation(new ToplevelClassConstructor()) {
+    ClassTransformation<Class> toplevelClassTransformation = new ClassTransformation<Class>(new ToplevelClassConstructor()) {
 
         @Override
         public List<JCTree> transform(Tree.AnyClass def, Class model) {
@@ -435,16 +432,13 @@ public class ClassTransformer extends AbstractTransformer {
             return result;
         }
     };
-    ClassTransformation toplevelClassAliasTransformation = new ClassTransformation(new ClassAliasInitializer());
-    ClassTransformation memberClassTransformation = new ClassTransformation(new MemberClassInstantiator(new MemberClassConstructor()));
-    ClassTransformation memberClassAliasTransformation = new ClassTransformation(new MemberClassInstantiator(new ClassAliasInitializer()));
-    
-    /*
-    class LocalClassTransformation extends ClassTransformation {
-    
-    }
+    ClassTransformation<ClassAlias> toplevelClassAliasTransformation = new ClassTransformation<ClassAlias>(new ClassAliasInitializer());
+    ClassTransformation<Class> memberClassTransformation = new ClassTransformation<Class>(new MemberClassInstantiator(new MemberClassConstructor()));
+    ClassTransformation<ClassAlias> memberClassAliasTransformation = new ClassTransformation<ClassAlias>(new MemberClassInstantiator(new ClassAliasInitializer()));
+    ClassTransformation<Class> localClassTransformation = new ClassTransformation<Class>(new Constructor());
+    ClassTransformation<ClassAlias> localClassAliasTransformation = new ClassTransformation<ClassAlias>(new ClassAliasInitializer());
 
-    */
+    
 
     /*
     abstract class InterfaceTransformation 
@@ -474,21 +468,30 @@ public class ClassTransformer extends AbstractTransformer {
             return List.nil();
         
         naming.clearSubstitutions(model);
-        if (model.isToplevel() && model instanceof Class) {
-            if (model instanceof ClassAlias) {
-                return toplevelClassAliasTransformation.transform((Tree.AnyClass)def, (ClassAlias)model);
+        if (model instanceof ClassAlias) {
+            final ClassTransformation<ClassAlias> transformation;
+            if (model.isToplevel()) { 
+                transformation = toplevelClassAliasTransformation;
+            } else if (model.isMember()) {
+                transformation = memberClassAliasTransformation;
             } else {
-                return toplevelClassTransformation.transform((Tree.AnyClass)def, (Class)model);
+                transformation = localClassAliasTransformation;
             }
-        } else if (model instanceof Class && 
-                model.isMember() 
-                && !(model instanceof ClassAlias)) {
-            return memberClassTransformation.transform((Tree.AnyClass)def, (Class)model);
-        } else if (model instanceof Class && 
-                model.isMember() 
-                && model instanceof ClassAlias) {
-            return memberClassAliasTransformation.transform((Tree.AnyClass)def, (Class)model);
+            return transformation.transform((Tree.AnyClass)def, (ClassAlias)model);
+        } else if (model instanceof Class) {
+            final ClassTransformation<Class> transformation ;
+            if (model.isToplevel()) { 
+                transformation = toplevelClassTransformation;
+            } else if (model.isMember()) {
+                transformation = memberClassTransformation;
+            } else {
+                transformation = localClassTransformation;
+            }
+            return transformation.transform((Tree.AnyClass)def, (Class)model);
+        } else {// interface
+            
         }
+        
         
         final String javaClassName;
         String ceylonClassName = def.getIdentifier().getText();
