@@ -289,15 +289,29 @@ public class ClassTransformer extends AbstractTransformer {
             
             Class cls = def.getDeclarationModel();
             boolean generateInstantiator = Strategy.generateInstantiator(cls);
+            
+
+            ClassDefinitionBuilder decl;
+            ClassDefinitionBuilder impl;
+            if (cls.isInterfaceMember()) {
+                decl = gen().current().getContainingClassBuilder();
+                impl = gen().current().getContainingClassBuilder().getCompanionBuilder((Interface)cls.getContainer());
+            } else {
+                decl = null;
+                impl = gen().current().getContainingClassBuilder();
+            }
+            
             if(generateInstantiator){
                 generateInstantiators(cls, classBuilder, def.getParameterList(), cls, 
-                        null, gen().current().getContainingClassBuilder(), 
+                        decl, 
+                        impl, 
                         typeParameterList);
             }
             
+            
             transformClassInitializer(def, def.getDeclarationModel(), classBuilder, def.getParameterList(), 
                     generateInstantiator, def.getDeclarationModel(), 
-                    null, gen().current().getContainingClassBuilder(),
+                    decl, impl,
                     typeParameterList);
         }
     
@@ -396,6 +410,11 @@ public class ClassTransformer extends AbstractTransformer {
             }
         } else if (model instanceof Class && 
                 model.isClassMember() 
+                && !(model instanceof ClassAlias)) {
+            ClassTransformation t = new MemberClassTransformation();
+            return t.transform((Tree.AnyClass)def, (Class)model);
+        } else if (model instanceof Class && 
+                model.isInterfaceMember() 
                 && !(model instanceof ClassAlias)) {
             ClassTransformation t = new MemberClassTransformation();
             return t.transform((Tree.AnyClass)def, (Class)model);
@@ -907,8 +926,13 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
 
-    private void generateInstantiators(Class model, ClassDefinitionBuilder classBuilder, Tree.ParameterList paramList,
-            Class cls, ClassDefinitionBuilder instantiatorDeclCb, ClassDefinitionBuilder instantiatorImplCb, TypeParameterList typeParameterList) {
+    private void generateInstantiators(Class model, 
+            ClassDefinitionBuilder classBuilder, 
+            Tree.ParameterList paramList,
+            Class cls, 
+            ClassDefinitionBuilder instantiatorDeclCb, 
+            ClassDefinitionBuilder instantiatorImplCb, 
+            TypeParameterList typeParameterList) {
         // TODO Instantiators on companion classes
         classBuilder.constructorModifiers(PROTECTED);
         
@@ -1003,9 +1027,14 @@ public class ClassTransformer extends AbstractTransformer {
         classBuilder.parameter(pdb);
     }
     
-    private void transformClass(com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyClass def, Class model, ClassDefinitionBuilder classBuilder, 
-            com.redhat.ceylon.compiler.typechecker.tree.Tree.ParameterList paramList, boolean generateInstantiator, 
-            Class cls, ClassDefinitionBuilder instantiatorDeclCb, ClassDefinitionBuilder instantiatorImplCb, TypeParameterList typeParameterList) {
+    private void transformClass(Tree.AnyClass def, Class model, 
+            ClassDefinitionBuilder classBuilder, 
+            Tree.ParameterList paramList, 
+            boolean generateInstantiator, 
+            Class cls, 
+            ClassDefinitionBuilder instantiatorDeclCb, 
+            ClassDefinitionBuilder instantiatorImplCb, 
+            TypeParameterList typeParameterList) {
         // do reified type params first
         if(typeParameterList != null)
             classBuilder.reifiedTypeParameters(typeParameterList);
@@ -1022,10 +1051,10 @@ public class ClassTransformer extends AbstractTransformer {
     }
 
     private void transformClassInitializer(
-            com.redhat.ceylon.compiler.typechecker.tree.Tree.AnyClass def,
+            Tree.AnyClass def,
             Class model,
             ClassDefinitionBuilder classBuilder,
-            com.redhat.ceylon.compiler.typechecker.tree.Tree.ParameterList paramList,
+            Tree.ParameterList paramList,
             boolean generateInstantiator, Class cls,
             ClassDefinitionBuilder instantiatorDeclCb,
             ClassDefinitionBuilder instantiatorImplCb,
