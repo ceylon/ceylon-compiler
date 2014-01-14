@@ -200,13 +200,6 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         // Handled in AbstractTransformer.makeAtAnnotations
     }
 
-    // FIXME: also support Tree.SequencedTypeParameter
-    public void visit(Tree.TypeParameterDeclaration param) {
-        TypeDeclaration container = (TypeDeclaration)param.getDeclarationModel().getContainer();
-        classBuilder.typeParameter(param);
-        classBuilder.getCompanionBuilder(container).typeParameter(param);
-    }
-
     public void visit(Tree.ExtendedType extendedType) {
         classBuilder.extending(extendedType.getType().getTypeModel());
         gen.expressionGen().transformSuperInvocation(extendedType, classBuilder);
