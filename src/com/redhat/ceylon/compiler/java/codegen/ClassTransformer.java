@@ -373,7 +373,7 @@ public class ClassTransformer extends AbstractTransformer {
                 classBuilder.reifiedTypeParameters(typeParameterList);
             }
             transformClassInitializer(def, def.getDeclarationModel(), classBuilder, def.getParameterList(), 
-                    false, def.getDeclarationModel(), null, 
+                    false, null, 
                     null, typeParameterList);
         }
         
@@ -382,7 +382,7 @@ public class ClassTransformer extends AbstractTransformer {
                 Class model,
                 ClassDefinitionBuilder classBuilder,
                 Tree.ParameterList paramList,
-                boolean generateInstantiator, Class cls,
+                boolean generateInstantiator, 
                 ClassDefinitionBuilder instantiatorDeclCb,
                 ClassDefinitionBuilder instantiatorImplCb,
                 TypeParameterList typeParameterList) {
@@ -393,7 +393,7 @@ public class ClassTransformer extends AbstractTransformer {
                 Parameter refinedParam = CodegenUtil.findParamForDecl(
                         (TypedDeclaration)CodegenUtil.getTopmostRefinedDeclaration(param.getParameterModel().getModel()));
                 at(param);
-
+                
                 List<JCAnnotation> annotations = expressionGen().transform(Decl.getAnnotations(def, param));
                 transformParameter(classBuilder, paramModel, annotations);
                 makeAttributeForValueParameter(classBuilder, param, annotations);
@@ -401,8 +401,7 @@ public class ClassTransformer extends AbstractTransformer {
                 
                 if (Strategy.hasDefaultParameterValueMethod(paramModel)
                         || Strategy.hasDefaultParameterOverload(paramModel)
-                        || (generateInstantiator
-                                && refinedParam != null
+                        || (refinedParam != null
                                 && (Strategy.hasDefaultParameterValueMethod(refinedParam)
                                         || Strategy.hasDefaultParameterOverload(refinedParam)))) {
                     ClassDefinitionBuilder cbForDevaultValues;
@@ -422,7 +421,7 @@ public class ClassTransformer extends AbstractTransformer {
                         cbForDevaultValues = classBuilder.getCompanionBuilder(model);
                     }
                     if ((Strategy.hasDefaultParameterValueMethod(paramModel) 
-                                || (refinedParam != null && Strategy.hasDefaultParameterValueMethod(refinedParam)))) {
+                                || (generateInstantiator && refinedParam != null && Strategy.hasDefaultParameterValueMethod(refinedParam)))) {
                         if (!generateInstantiator || refinedParam == paramModel) {
                             cbForDevaultValues.method(classDpvmTransformation.transform(
                                     def.getDeclarationModel(), 
@@ -432,45 +431,26 @@ public class ClassTransformer extends AbstractTransformer {
                                 cbForDevaultValuesDecls.method(
                                 abstractClassDpvmTransformation.transform(def.getDeclarationModel(), paramList.getModel(), param));
                             }
-                        } else if (Strategy.hasDelegatedDpm(cls)) {
+                        } else if (Strategy.hasDelegatedDpm(model)) {
                             java.util.List<Parameter> parameters = paramList.getModel().getParameters();
                             MethodDefinitionBuilder mdb = 
-                            makeDelegateToCompanion((Interface)cls.getRefinedDeclaration().getContainer(),
-                                    paramModel.getModel().getProducedTypedReference(cls.getType(), null),
-                                    ((TypeDeclaration)cls.getContainer()).getType(),
-                                    FINAL | transformClassDeclFlags(cls), 
+                            makeDelegateToCompanion((Interface)model.getRefinedDeclaration().getContainer(),
+                                    paramModel.getModel().getProducedTypedReference(model.getType(), null),
+                                    ((TypeDeclaration)model.getContainer()).getType(),
+                                    FINAL | transformClassDeclFlags(model), 
                                     List.<TypeParameter>nil(), 
                                     paramModel.getType(), 
-                                    Naming.getDefaultedParamMethodName(cls, paramModel),
+                                    Naming.getDefaultedParamMethodName(model, paramModel),
                                     parameters.subList(0, parameters.indexOf(paramModel)), 
                                     false, 
-                                    Naming.getDefaultedParamMethodName(cls, paramModel));
+                                    Naming.getDefaultedParamMethodName(model, paramModel));
                             cbForDevaultValues.method(mdb);
                         }
                     }
-                    boolean addOverloadedConstructor = false;
-                    if (generateInstantiator) {
-                        if (Decl.withinInterface(cls)) {
-                            MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator().makeOverload(model,
-                                    model.getParameterList(),//paramList.getModel(),
-                                    param.getParameterModel(),
-                                    typeParameterListModel(typeParameterList),
-                                    daoAbstract);
-                            instantiatorDeclCb.method(instBuilder);
-                        }
-                        if (!Decl.withinInterface(cls) || !cls.isFormal()) {
-                            MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator().makeOverload(model,
-                                    model.getParameterList(),//paramList.getModel(),
-                                    param.getParameterModel(),
-                                    typeParameterListModel(typeParameterList),
-                                    daoThis);
-                            instantiatorImplCb.method(instBuilder);
-                        } else {
-                            addOverloadedConstructor  = true;
-                        }
-                    } else {
-                        addOverloadedConstructor = true;
-                    }
+                    boolean addOverloadedConstructor = 
+                            Strategy.hasDefaultParameterOverload(paramModel) && 
+                                (!generateInstantiator || 
+                                        (generateInstantiator && Decl.withinInterface(model) && model.isFormal()));
                     if (addOverloadedConstructor) {
                         // Add overloaded constructors for defaulted parameter
                         new DefaultedArgumentConstructor(classBuilder).makeOverload(model,
@@ -478,6 +458,25 @@ public class ClassTransformer extends AbstractTransformer {
                                 param.getParameterModel(),
                                 typeParameterListModel(typeParameterList),
                                 daoThis);
+                    }
+                    
+                    if (generateInstantiator) {
+                        if (Decl.withinInterface(model)) {
+                            MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator().makeOverload(model,
+                                    model.getParameterList(),
+                                    param.getParameterModel(),
+                                    typeParameterListModel(typeParameterList),
+                                    daoAbstract);
+                            instantiatorDeclCb.method(instBuilder);
+                        }
+                        if (!Decl.withinInterface(model) || !model.isFormal()) {
+                            MethodDefinitionBuilder instBuilder = new DefaultedArgumentInstantiator().makeOverload(model,
+                                    model.getParameterList(),
+                                    param.getParameterModel(),
+                                    typeParameterListModel(typeParameterList),
+                                    daoThis);
+                            instantiatorImplCb.method(instBuilder);
+                        }
                     }
                 }
             }
@@ -526,7 +525,7 @@ public class ClassTransformer extends AbstractTransformer {
             }
             
             transformClassInitializer(def, def.getDeclarationModel(), classBuilder, def.getParameterList(), 
-                    generateInstantiator, def.getDeclarationModel(), 
+                    generateInstantiator,
                     decl, impl,
                     typeParameterList);
         }
