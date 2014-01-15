@@ -9,10 +9,6 @@ class ClassDefaultMemberClassWithDefaultedParams implements .com.redhat.ceylon.c
         return new Member(i);
     }
     
-    public final long $default$Member$i() {
-        return 1L;
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.ClassDefaultMemberClassWithDefaultedParams.Member Member$new$() {
         return (
             let
@@ -21,6 +17,10 @@ class ClassDefaultMemberClassWithDefaultedParams implements .com.redhat.ceylon.c
             }
             returning new Member($ceylontmp$i$0);
         );
+    }
+    
+    public final long $default$Member$i() {
+        return 1L;
     }
     
     public class Member implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {

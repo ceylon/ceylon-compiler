@@ -10,19 +10,19 @@ interface InstantiatorDelegates<X> {
     
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary Binary$new$(final boolean b, final long i);
     
-    public abstract long $default$Binary$i(final boolean b);
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary Binary$new$(final boolean b);
+    
+    public abstract long $default$Binary$i(final boolean b);
     
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary2 Binary2$new$(final boolean b, final long i);
     
-    public abstract boolean $default$Binary2$b();
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary2 Binary2$new$();
     
-    public abstract long $default$Binary2$i(final boolean b);
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary2 Binary2$new$(final boolean b);
+    
+    public abstract boolean $default$Binary2$b();
+    
+    public abstract long $default$Binary2$i(final boolean b);
     
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Sequenced Sequenced$new$(final boolean b, final .ceylon.language.Sequential<? extends .ceylon.language.Integer> i);
     
@@ -77,10 +77,6 @@ final class InstantiatorDelegates$impl<X> {
         return new Binary(b, i);
     }
     
-    public final long $default$Binary$i(final boolean b) {
-        return 1L;
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary Binary$new$(final boolean b) {
         return (
             let
@@ -89,6 +85,10 @@ final class InstantiatorDelegates$impl<X> {
             }
             returning new Binary(b, $ceylontmp$i$0);
         );
+    }
+    
+    public final long $default$Binary$i(final boolean b) {
+        return 1L;
     }
     
     public class Binary implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
@@ -106,10 +106,6 @@ final class InstantiatorDelegates$impl<X> {
         return new Binary2(b, i);
     }
     
-    public final boolean $default$Binary2$b() {
-        return true;
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary2 Binary2$new$() {
         return (
             let
@@ -121,10 +117,6 @@ final class InstantiatorDelegates$impl<X> {
         );
     }
     
-    public final long $default$Binary2$i(final boolean b) {
-        return 1L;
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.structure.mcr.InstantiatorDelegates$impl<X>.Binary2 Binary2$new$(final boolean b) {
         return (
             let
@@ -133,6 +125,14 @@ final class InstantiatorDelegates$impl<X> {
             }
             returning new Binary2(b, $ceylontmp$i$3);
         );
+    }
+    
+    public final boolean $default$Binary2$b() {
+        return true;
+    }
+    
+    public final long $default$Binary2$i(final boolean b) {
+        return 1L;
     }
     
     public class Binary2 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {

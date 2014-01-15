@@ -20,13 +20,13 @@ interface InterfaceErasure<Element, Absent> {
     
     public .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceErasure$impl<Element, Absent>.Class Class$new$(final .java.lang.Object p, final .java.lang.Object p2);
     
-    public abstract .java.lang.Object $default$Class$p();
-    
     public .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceErasure$impl<Element, Absent>.Class Class$new$();
     
-    public abstract .java.lang.Object $default$Class$p2(final .java.lang.Object p);
-    
     public .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceErasure$impl<Element, Absent>.Class Class$new$(final .java.lang.Object p);
+    
+    public abstract .java.lang.Object $default$Class$p();
+    
+    public abstract .java.lang.Object $default$Class$p2(final .java.lang.Object p);
 }
 final class InterfaceErasure$impl<Element, Absent> {
     
@@ -93,10 +93,6 @@ final class InterfaceErasure$impl<Element, Absent> {
         return new Class(p, p2);
     }
     
-    public final .java.lang.Object $default$Class$p() {
-        return .ceylon.language.nothing_.get_();
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceErasure$impl<Element, Absent>.Class Class$new$() {
         return (
             let
@@ -108,10 +104,6 @@ final class InterfaceErasure$impl<Element, Absent> {
         );
     }
     
-    public final .java.lang.Object $default$Class$p2(final .java.lang.Object p) {
-        return .ceylon.language.nothing_.get_();
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceErasure$impl<Element, Absent>.Class Class$new$(final .java.lang.Object p) {
         return (
             let
@@ -120,6 +112,14 @@ final class InterfaceErasure$impl<Element, Absent> {
             }
             returning new Class(p, $ceylontmp$p2$5);
         );
+    }
+    
+    public final .java.lang.Object $default$Class$p() {
+        return .ceylon.language.nothing_.get_();
+    }
+    
+    public final .java.lang.Object $default$Class$p2(final .java.lang.Object p) {
+        return .ceylon.language.nothing_.get_();
     }
     
     public class Class implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {

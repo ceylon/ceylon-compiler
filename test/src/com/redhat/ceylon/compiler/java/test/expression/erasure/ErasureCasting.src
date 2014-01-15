@@ -433,9 +433,9 @@ interface EC_ErasedMember<Element, Absent> {
     
     public .com.redhat.ceylon.compiler.java.test.expression.erasure.EC_ErasedMember$impl<Element, Absent>.Class Class$new$(final .java.lang.Object p);
     
-    public abstract .java.lang.Object $default$Class$p();
-    
     public .com.redhat.ceylon.compiler.java.test.expression.erasure.EC_ErasedMember$impl<Element, Absent>.Class Class$new$();
+    
+    public abstract .java.lang.Object $default$Class$p();
 }
 final class EC_ErasedMember$impl<Element, Absent> {
     
@@ -487,10 +487,6 @@ final class EC_ErasedMember$impl<Element, Absent> {
         return new Class(p);
     }
     
-    public final .java.lang.Object $default$Class$p() {
-        return .ceylon.language.nothing_.get_();
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.erasure.EC_ErasedMember$impl<Element, Absent>.Class Class$new$() {
         return (
             let
@@ -499,6 +495,10 @@ final class EC_ErasedMember$impl<Element, Absent> {
             }
             returning new Class($ceylontmp$p$23);
         );
+    }
+    
+    public final .java.lang.Object $default$Class$p() {
+        return .ceylon.language.nothing_.get_();
     }
     
     public class Class implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {

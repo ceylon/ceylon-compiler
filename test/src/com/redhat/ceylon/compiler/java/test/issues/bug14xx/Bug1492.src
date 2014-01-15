@@ -164,8 +164,8 @@ class Bug1492_3 implements .com.redhat.ceylon.compiler.java.runtime.model.Reifie
         (
             let
             {
-                .ceylon.language.Callable<? extends .java.lang.Object> $ceylontmp$b$5 = .com.redhat.ceylon.compiler.java.test.issues.bug14xx.Bug1492_3.$default$b(a);
-                this(a, $ceylontmp$b$5);
+                .ceylon.language.Callable<? extends .java.lang.Object> $ceylontmp$b$4 = .com.redhat.ceylon.compiler.java.test.issues.bug14xx.Bug1492_3.$default$b(a);
+                this(a, $ceylontmp$b$4);
             }
             returning null;
         );

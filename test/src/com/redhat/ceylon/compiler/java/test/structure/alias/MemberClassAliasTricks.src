@@ -109,11 +109,6 @@ public class MemberClassAliasTricks_Foo implements .com.redhat.ceylon.compiler.j
     }
     
     @.com.redhat.ceylon.compiler.java.metadata.Ignore
-    public final long $default$Member$a() {
-        return 1L;
-    }
-    
-    @.com.redhat.ceylon.compiler.java.metadata.Ignore
     public .com.redhat.ceylon.compiler.java.test.structure.alias.MemberClassAliasTricks_Foo.Member Member$new$() {
         return (
             let
@@ -126,11 +121,6 @@ public class MemberClassAliasTricks_Foo implements .com.redhat.ceylon.compiler.j
     }
     
     @.com.redhat.ceylon.compiler.java.metadata.Ignore
-    public final long $default$Member$b(final long a) {
-        return 2L;
-    }
-    
-    @.com.redhat.ceylon.compiler.java.metadata.Ignore
     public .com.redhat.ceylon.compiler.java.test.structure.alias.MemberClassAliasTricks_Foo.Member Member$new$(final long a) {
         return (
             let
@@ -139,6 +129,16 @@ public class MemberClassAliasTricks_Foo implements .com.redhat.ceylon.compiler.j
             }
             returning new Member(a, $ceylontmp$b$5);
         );
+    }
+    
+    @.com.redhat.ceylon.compiler.java.metadata.Ignore
+    public final long $default$Member$a() {
+        return 1L;
+    }
+    
+    @.com.redhat.ceylon.compiler.java.metadata.Ignore
+    public final long $default$Member$b(final long a) {
+        return 2L;
     }
     
     @.com.redhat.ceylon.compiler.java.metadata.Ceylon(major = 6)

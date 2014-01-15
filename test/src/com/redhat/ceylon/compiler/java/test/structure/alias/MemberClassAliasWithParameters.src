@@ -17,11 +17,6 @@ public class MemberClassAliasWithParameters_Foo implements .com.redhat.ceylon.co
     }
     
     @.com.redhat.ceylon.compiler.java.metadata.Ignore
-    public final .java.lang.String $default$Member$s(final long i) {
-        return "foo";
-    }
-    
-    @.com.redhat.ceylon.compiler.java.metadata.Ignore
     public .com.redhat.ceylon.compiler.java.test.structure.alias.MemberClassAliasWithParameters_Foo.Member Member$new$(final long i) {
         return (
             let
@@ -30,6 +25,11 @@ public class MemberClassAliasWithParameters_Foo implements .com.redhat.ceylon.co
             }
             returning new Member(i, $ceylontmp$s$0);
         );
+    }
+    
+    @.com.redhat.ceylon.compiler.java.metadata.Ignore
+    public final .java.lang.String $default$Member$s(final long i) {
+        return "foo";
     }
     
     @.com.redhat.ceylon.compiler.java.metadata.Ceylon(major = 6)

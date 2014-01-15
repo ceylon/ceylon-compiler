@@ -262,10 +262,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         return new UnaryDefaulted(s);
     }
     
-    public final .java.lang.String $default$UnaryDefaulted$s() {
-        return "s";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.UnaryDefaulted UnaryDefaulted$new$() {
         return (
             let
@@ -274,6 +270,10 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
             }
             returning new UnaryDefaulted($ceylontmp$s$5);
         );
+    }
+    
+    public final .java.lang.String $default$UnaryDefaulted$s() {
+        return "s";
     }
     
     public class UnaryDefaulted implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
@@ -302,10 +302,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         return new BinaryDefaulted(s1, s2);
     }
     
-    public final .java.lang.String $default$BinaryDefaulted$s1() {
-        return "s1";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.BinaryDefaulted BinaryDefaulted$new$() {
         return (
             let
@@ -317,10 +313,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         );
     }
     
-    public final .java.lang.String $default$BinaryDefaulted$s2(final .java.lang.String s1) {
-        return "s2";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.BinaryDefaulted BinaryDefaulted$new$(final .java.lang.String s1) {
         return (
             let
@@ -329,6 +321,14 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
             }
             returning new BinaryDefaulted(s1, $ceylontmp$s2$8);
         );
+    }
+    
+    public final .java.lang.String $default$BinaryDefaulted$s1() {
+        return "s1";
+    }
+    
+    public final .java.lang.String $default$BinaryDefaulted$s2(final .java.lang.String s1) {
+        return "s2";
     }
     
     public class BinaryDefaulted implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
@@ -363,10 +363,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         return new TernaryDefaulted(s1, s2, s3);
     }
     
-    public final .java.lang.String $default$TernaryDefaulted$s1() {
-        return "s1";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.TernaryDefaulted TernaryDefaulted$new$() {
         return (
             let
@@ -377,10 +373,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
             }
             returning new TernaryDefaulted($ceylontmp$s1$9, $ceylontmp$s2$10, $ceylontmp$s3$11);
         );
-    }
-    
-    public final .java.lang.String $default$TernaryDefaulted$s2(final .java.lang.String s1) {
-        return "s2";
     }
     
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.TernaryDefaulted TernaryDefaulted$new$(final .java.lang.String s1) {
@@ -394,10 +386,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         );
     }
     
-    public final .java.lang.String $default$TernaryDefaulted$s3(final .java.lang.String s1, final .java.lang.String s2) {
-        return "s3";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.TernaryDefaulted TernaryDefaulted$new$(final .java.lang.String s1, final .java.lang.String s2) {
         return (
             let
@@ -406,6 +394,18 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
             }
             returning new TernaryDefaulted(s1, s2, $ceylontmp$s3$14);
         );
+    }
+    
+    public final .java.lang.String $default$TernaryDefaulted$s1() {
+        return "s1";
+    }
+    
+    public final .java.lang.String $default$TernaryDefaulted$s2(final .java.lang.String s1) {
+        return "s2";
+    }
+    
+    public final .java.lang.String $default$TernaryDefaulted$s3(final .java.lang.String s1, final .java.lang.String s2) {
+        return "s3";
     }
     
     public class TernaryDefaulted implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
@@ -446,10 +446,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         return new NaryDefaulted(s1, s2, s3, s4);
     }
     
-    public final .java.lang.String $default$NaryDefaulted$s1() {
-        return "s1";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.NaryDefaulted NaryDefaulted$new$() {
         return (
             let
@@ -461,10 +457,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
             }
             returning new NaryDefaulted($ceylontmp$s1$15, $ceylontmp$s2$16, $ceylontmp$s3$17, $ceylontmp$s4$18);
         );
-    }
-    
-    public final .java.lang.String $default$NaryDefaulted$s2(final .java.lang.String s1) {
-        return "s2";
     }
     
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.NaryDefaulted NaryDefaulted$new$(final .java.lang.String s1) {
@@ -479,10 +471,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         );
     }
     
-    public final .java.lang.String $default$NaryDefaulted$s3(final .java.lang.String s1, final .java.lang.String s2) {
-        return "s3";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.NaryDefaulted NaryDefaulted$new$(final .java.lang.String s1, final .java.lang.String s2) {
         return (
             let
@@ -494,10 +482,6 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
         );
     }
     
-    public final .java.lang.String $default$NaryDefaulted$s4(final .java.lang.String s1, final .java.lang.String s2, final .java.lang.String s3) {
-        return "s4";
-    }
-    
     public .com.redhat.ceylon.compiler.java.test.expression.ref.MemberClassRef.NaryDefaulted NaryDefaulted$new$(final .java.lang.String s1, final .java.lang.String s2, final .java.lang.String s3) {
         return (
             let
@@ -506,6 +490,22 @@ class MemberClassRef implements .com.redhat.ceylon.compiler.java.runtime.model.R
             }
             returning new NaryDefaulted(s1, s2, s3, $ceylontmp$s4$24);
         );
+    }
+    
+    public final .java.lang.String $default$NaryDefaulted$s1() {
+        return "s1";
+    }
+    
+    public final .java.lang.String $default$NaryDefaulted$s2(final .java.lang.String s1) {
+        return "s2";
+    }
+    
+    public final .java.lang.String $default$NaryDefaulted$s3(final .java.lang.String s1, final .java.lang.String s2) {
+        return "s3";
+    }
+    
+    public final .java.lang.String $default$NaryDefaulted$s4(final .java.lang.String s1, final .java.lang.String s2, final .java.lang.String s3) {
+        return "s4";
     }
     
     public class NaryDefaulted implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
