@@ -886,7 +886,7 @@ public class Decl {
                 || (captured.isMember()
                 && !(Decl.isLocalToInitializer(captured) && Decl.isLocalToInitializer(decl)))) {
             return false;
-        } else if (decl instanceof MethodOrValue
+        } else if ((decl instanceof MethodOrValue || decl instanceof Class)
                 && ((captured instanceof Value  && Decl.isLocal(captured))
                         || (captured instanceof Setter && !((Setter)captured).isTransient())
                         || (captured instanceof Method && Decl.isLocal(captured)
@@ -894,7 +894,7 @@ public class Decl {
                         || (captured instanceof Method && Decl.isLocal(captured)
                         && ! Strategy.useStaticForFunction((Method)captured)))) {
             return true;
-        }
+        } 
         return false;
     }
     

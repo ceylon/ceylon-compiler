@@ -561,8 +561,8 @@ public class ClassDefinitionBuilder
         return forDefinition;
     }
 
-    public ClassDefinitionBuilder reifiedTypeParameter(TypeParameterDeclaration param) {
-        String descriptorName = gen.naming.getTypeArgumentDescriptorName(param.getIdentifier().getText());
+    public ClassDefinitionBuilder reifiedTypeParameter(TypeParameter param) {
+        String descriptorName = gen.naming.getTypeArgumentDescriptorName(param.getName());
         parameter(makeReifiedParameter(descriptorName));
         long flags = PRIVATE;
         if(!isCompanion)
@@ -612,8 +612,15 @@ public class ClassDefinitionBuilder
 
     public void reifiedTypeParameters(TypeParameterList typeParameterList) {
         for(TypeParameterDeclaration tp : typeParameterList.getTypeParameterDeclarations()){
-            reifiedTypeParameter(tp);
+            reifiedTypeParameter(tp.getDeclarationModel());
         }
+    }
+    
+    @Override
+    public ClassDefinitionBuilder reifiedTypeParameters(java.util.List<TypeParameter> typeParams) {
+        for(TypeParameter typeParam : typeParams)
+            reifiedTypeParameter(typeParam);
+        return this;
     }
 
     public ClassDefinitionBuilder addRefineReifiedTypeParametersMethod(TypeParameterList typeParameterList) {

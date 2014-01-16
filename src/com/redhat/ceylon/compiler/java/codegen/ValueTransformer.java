@@ -441,30 +441,7 @@ public class ValueTransformer extends AbstractTransformer {
 
         @Override
         protected boolean isStatic(Value value) {
-            // TODO Refactor: Essentially the same logic exists for localFunctionTransformation
-            Declaration container = Decl.getDeclarationContainer(value, false);
-            Declaration nonLocalContainer = Decl.getNonLocalDeclarationContainer(value);
-            if (container instanceof Method) {
-                if ((classGen().transformMethodDeclFlags((Method)container) & STATIC) != 0
-                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
-                    return true;
-                }
-            } else if (container instanceof Value) {
-                if (container.isToplevel()
-                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
-                    return true;
-                }
-            } else if (container instanceof Setter) {
-                if (container.isToplevel()
-                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
-                    return true;
-                }
-            } else if (container instanceof Class) {
-            if ((classGen().transformClassDeclFlags((Class)container) & STATIC) != 0) {
-                    return true;
-                }
-            }
-            return false;
+            return ClassTransformer.localStatic(value);
         }
 
         @Override

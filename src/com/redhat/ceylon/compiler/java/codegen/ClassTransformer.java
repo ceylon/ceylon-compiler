@@ -455,6 +455,36 @@ public class ClassTransformer extends AbstractTransformer {
     }
     
     class LocalClassConstructor extends Constructor {
+        
+        @Override
+        protected void transformUltimate(AnyClass def,
+                ClassDefinitionBuilder classBuilder) {
+            capturedLocalParameters(def.getDeclarationModel(), classBuilder);
+            outerReifiedTypeParameters(def.getDeclarationModel(), classBuilder);
+            super.transformUltimate(def, classBuilder);
+            for (Declaration captured : Decl.getCapturedLocals(def.getDeclarationModel())) {
+                if (captured instanceof TypedDeclaration) {
+                    if ((captured instanceof MethodOrValue)
+                            && Decl.isLocal(captured)
+                            && ((MethodOrValue)captured).isTransient()
+                            && !((MethodOrValue)captured).isParameter()
+                            && !((MethodOrValue)captured).isDeferred()) {
+                        continue;
+                    }
+                    String subsName = naming.substitute((TypedDeclaration)captured);
+                    classBuilder.field(PRIVATE | FINAL, 
+                            subsName,
+                            makeJavaType(((TypedDeclaration) captured).getType()),
+                            null, 
+                            false);
+                    classBuilder.init(make().Exec(make().Assign(
+                            naming.makeQualIdent(naming.makeThis(), subsName),
+                            naming.makeUnquotedIdent(subsName))));
+                    
+                }
+            }
+
+        }
         @Override
         protected void transformDefaultParameterValueMethod(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
             // For local classes we currently generate a companion class to hold dpvms
@@ -738,7 +768,28 @@ public class ClassTransformer extends AbstractTransformer {
             // Nothing to do, currently
         }
     });
-    ClassTransformation localClassTransformation = new ClassTransformation(new LocalClassConstructor());
+    class LocalClassTransformation extends ClassTransformation {
+
+        LocalClassTransformation() {
+            super(new LocalClassConstructor());
+        }
+        
+        protected void transformModifiers(Class model,
+                ClassDefinitionBuilder classBuilder) {
+            int mods = transformClassDeclFlags(model);
+            if (localStatic(model)) {
+                mods |= STATIC;
+            }
+            classBuilder.modifiers(mods);
+        }
+        
+        protected void transformTypeParameters(Tree.ClassDefinition def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
+            outerTypeParameters(def.getDeclarationModel(), classBuilder);
+            super.transformTypeParameters(def, typeParameters, classBuilder);
+        }
+        
+    }
+    ClassTransformation localClassTransformation = new LocalClassTransformation();
     ClassAliasTransformation localClassAliasTransformation = new ClassAliasTransformation(new ClassAliasInitializer());
 
     InterfaceTransformation interfaceTransformation = new InterfaceTransformation();
@@ -2054,11 +2105,11 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     
-    private int transformDeclarationSharedFlags(Declaration decl){
+    private static int transformDeclarationSharedFlags(Declaration decl){
         return Decl.isShared(decl) && !Decl.isAncestorLocal(decl) ? PUBLIC : 0;
     }
     
-    int transformClassDeclFlags(ClassOrInterface cdecl) {
+    static int transformClassDeclFlags(ClassOrInterface cdecl) {
         int result = 0;
 
         result |= transformDeclarationSharedFlags(cdecl);
@@ -2084,7 +2135,7 @@ public class ClassTransformer extends AbstractTransformer {
         return transformClassDeclFlags(cdecl.getDeclarationModel());
     }
     
-    int transformMethodDeclFlags(Method def) {
+    static int transformMethodDeclFlags(Method def) {
         int result = 0;
 
         if (def.isToplevel()) {
@@ -3647,7 +3698,7 @@ public class ClassTransformer extends AbstractTransformer {
         return methbuilder;
     }
     
-    static void copyTypeParameters(Functional def, MethodDefinitionBuilder methodBuilder) {
+    static <B extends ParameterizedBuilder<B>> void copyTypeParameters(Functional def, B methodBuilder) {
         if (def.getTypeParameters() != null) {
             for (TypeParameter t : def.getTypeParameters()) {
                 methodBuilder.typeParameter(t);
@@ -3976,7 +4027,7 @@ public class ClassTransformer extends AbstractTransformer {
     }
     private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
     
-    static void outerTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
+    static <B extends ParameterizedBuilder<B>> void outerTypeParameters(Declaration function, B builder) {
         Declaration container = Decl.getDeclarationContainer(function);
         if (container != null) {
             if (Decl.isLocal(container)) {
@@ -3989,7 +4040,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     
-    static void outerReifiedTypeParameters(Declaration function, MethodDefinitionBuilder builder) {
+    static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParameters(Declaration function, B builder) {
         Declaration container = Decl.getDeclarationContainer(function);
         if (container != null) {
             if (Decl.isLocal(container)) {
@@ -4017,8 +4068,8 @@ public class ClassTransformer extends AbstractTransformer {
     }
     
     /** Appends implicit parameters for the captured locals */
-    static void capturedLocalParameters(MethodOrValue function, MethodDefinitionBuilder builder) {
-        for (Declaration captured : Decl.getCapturedLocals(function)) {
+    static <B extends ParameterizedBuilder<B>> void capturedLocalParameters(Declaration decl, B builder) {
+        for (Declaration captured : Decl.getCapturedLocals(decl)) {
             if (captured instanceof TypedDeclaration) {
                 if ((captured instanceof MethodOrValue)
                         && Decl.isLocal(captured)
@@ -4194,31 +4245,37 @@ public class ClassTransformer extends AbstractTransformer {
         }
 
         private int useStatic(Method methodOrFunction) {
-            Declaration container = Decl.getDeclarationContainer(methodOrFunction, false);
-            Declaration nonLocalContainer = Decl.getNonLocalDeclarationContainer(methodOrFunction);
-            if (container instanceof Method) {
-                if ((transformMethodDeclFlags((Method)container) & STATIC) != 0
-                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
-                    return STATIC;
-                }
-            } else if (container instanceof Value) {
-                if (container.isToplevel()
-                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
-                    return STATIC;
-                }
-            } else if (container instanceof Setter) {
-                if (container.isToplevel()
-                    || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
-                    return STATIC;
-                }
-            } else if (container instanceof Class) {
-            if ((transformClassDeclFlags((Class)container) & STATIC) != 0) {
-                    return STATIC;
-                }
-            }
-            return 0;
+            return localStatic(methodOrFunction) ? STATIC : 0;
         }
     }
+    
+    static boolean localStatic(Declaration value) {
+        // TODO Refactor: Essentially the same logic exists for localFunctionTransformation
+        Declaration container = Decl.getDeclarationContainer(value, false);
+        Declaration nonLocalContainer = Decl.getNonLocalDeclarationContainer(value);
+        if (container instanceof Method) {
+            if ((transformMethodDeclFlags((Method)container) & STATIC) != 0
+                || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                return true;
+            }
+        } else if (container instanceof Value) {
+            if (container.isToplevel()
+                || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                return true;
+            }
+        } else if (container instanceof Setter) {
+            if (container.isToplevel()
+                || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
+                return true;
+            }
+        } else if (container instanceof Class) {
+        if ((transformClassDeclFlags((Class)container) & STATIC) != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     LocalFunctionTransformation localFunctionTransformation = new LocalFunctionTransformation();
     
     /** 

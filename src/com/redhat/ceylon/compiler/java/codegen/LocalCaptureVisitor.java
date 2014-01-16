@@ -89,7 +89,7 @@ public class LocalCaptureVisitor extends Visitor {
     }
     
     public static boolean isStaticDeclaration(Scope d) {
-        return d instanceof MethodOrValue;
+        return d instanceof MethodOrValue| d instanceof Class;
     }
     
     static void addCapture(Declaration capturer, Declaration captured) {
