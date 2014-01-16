@@ -613,6 +613,10 @@ public class Naming implements LocalId {
             TypeDeclaration klass = (TypeDeclaration)scope;
             helper.append(klass.getName());
             if (Decl.isCeylon(klass)) {
+                if (klass instanceof Class
+                        && Decl.isLocal(klass)) {
+                    helper.append("$" + getLocalId(klass.getContainer()));
+                }
                 if (flags.contains(DeclNameFlag.COMPANION)
                     && Decl.isLocalNotInitializer(klass)
                     && last) {
@@ -722,6 +726,8 @@ public class Naming implements LocalId {
      * @param options Option flags
      */
     String declName(final TypeDeclaration decl, DeclNameFlag... options) {
+        // TODO This is the most disgusting thing ever: 
+        // We build a JCExpression just to call toString() on it. Urgh!
         return makeDeclName(null, decl, options).toString();
     }
 

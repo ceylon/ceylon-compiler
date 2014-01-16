@@ -154,15 +154,19 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected final ClassDefinitionBuilder makeBuilder(T tree) {
-            String ceylonClassName = tree.getIdentifier().getText();
+            String ceylonClassName = ceylonClassName(tree);
             ClassDefinitionBuilder classBuilder = ClassDefinitionBuilder
                     .klass(ClassTransformer.this, javaClassName(tree), ceylonClassName)
                     .forDefinition(tree);
             return classBuilder;
         }
         
+        protected String ceylonClassName(T tree) {
+            return naming.declName(tree.getDeclarationModel());
+        }
+        
         protected String javaClassName(T def) {
-            return Naming.quoteClassName(def.getIdentifier().getText());
+            return Naming.quoteClassName(ceylonClassName(def));
         }
         
         /** 
