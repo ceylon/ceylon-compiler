@@ -228,6 +228,7 @@ public class ClassTransformer extends AbstractTransformer {
         
         private void transformGetTypeMethod(Interface model,
                 ClassDefinitionBuilder classBuilder) {
+            at(null);
             if(supportsReifiedAlias(model)) {
                 classBuilder.reifiedAlias(model.getType());
             }
@@ -293,6 +294,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformMembers(Tree.ClassDefinition def, ClassDefinitionBuilder classBuilder) {
             init.transformInitializer(def, classBuilder);
+            at(null);
             transformMixins(def, classBuilder);
             super.transformMembers(def, classBuilder);
             // If it's a Class without initializer parameters...
@@ -305,6 +307,7 @@ public class ClassTransformer extends AbstractTransformer {
         
         private void transformGetTypeMethod(Class model,
                 ClassDefinitionBuilder classBuilder) {
+            at(null);
             classBuilder.addGetTypeMethod(model.getType());
             if(supportsReifiedAlias(model)) {
                 classBuilder.reifiedAlias(model.getType());
@@ -358,6 +361,7 @@ public class ClassTransformer extends AbstractTransformer {
         
         public void transformInitializer(AnyClass def,
                 ClassDefinitionBuilder classBuilder) {
+            at(def);
             transformUltimate(def, classBuilder);
             transformPeripheral(def, classBuilder);
         }
@@ -374,10 +378,10 @@ public class ClassTransformer extends AbstractTransformer {
                 Parameter paramModel = param.getParameterModel();
                 Parameter refinedParam = CodegenUtil.findParamForDecl(
                         (TypedDeclaration)CodegenUtil.getTopmostRefinedDeclaration(param.getParameterModel().getModel()));
-                at(param);
-                
                 if (isDefaultedOrOverloaded(paramModel, refinedParam)) {
+                    at(param);
                     transformOverload(def.getDeclarationModel(), param, classBuilder);
+                    at(param);
                     transformDefaultParameterValueMethod(def.getDeclarationModel(), param, classBuilder);
                 }
             }
@@ -411,7 +415,8 @@ public class ClassTransformer extends AbstractTransformer {
             }
             for (final Tree.Parameter param : def.getParameterList().getParameters()) {
                 List<JCAnnotation> annotations = expressionGen().transform(Decl.getAnnotations(def, param));
-                // Add a constructor parameter for each class parameter 
+                // Add a constructor parameter for each class parameter
+                at(param);
                 transformParameter(classBuilder, param.getParameterModel(), annotations);
                 // If the parameter requires a membe, add that.
                 makeAttributeForValueParameter(classBuilder, param, annotations);
@@ -421,6 +426,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformDefaultParameterValueMethod(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
             if (Strategy.hasDefaultParameterValueMethod(param.getParameterModel())) {
+                at(param);
                 classBuilder.method(classDpvmTransformation.transform(
                         model,
                         model.getParameterList(),
@@ -430,6 +436,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformOverload(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
             if (Strategy.hasDefaultParameterOverload(param.getParameterModel())) {
+                at(null);
                 new DefaultedArgumentConstructor(classBuilder).makeOverload(model,
                         model.getParameterList(),
                         param.getParameterModel(),
@@ -449,6 +456,7 @@ public class ClassTransformer extends AbstractTransformer {
                 ClassDefinitionBuilder classBuilder) {
             super.transformPeripheral(def, classBuilder); 
             if (Decl.isAnnotationClass(def)) {
+                at(null);
                 transformAnnotationClassConstructor(def, classBuilder);
             }
         }
@@ -774,6 +782,7 @@ public class ClassTransformer extends AbstractTransformer {
             super(new LocalClassConstructor());
         }
         
+        @Override
         protected void transformModifiers(Class model,
                 ClassDefinitionBuilder classBuilder) {
             int mods = transformClassDeclFlags(model);
@@ -786,6 +795,11 @@ public class ClassTransformer extends AbstractTransformer {
         protected void transformTypeParameters(Tree.ClassDefinition def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
             outerTypeParameters(def.getDeclarationModel(), classBuilder);
             super.transformTypeParameters(def, typeParameters, classBuilder);
+        }
+        
+        @Override
+        protected String ceylonClassName(Tree.ClassDefinition tree) {
+            return tree.getIdentifier().getText() + "$" + naming.getLocalId(tree.getDeclarationModel().getContainer());
         }
         
     }
