@@ -58,8 +58,7 @@ import com.sun.tools.javac.util.Name;
  * @author Tako Schotanus
  */
 public class ClassDefinitionBuilder 
-        implements ParameterizedBuilder<ClassDefinitionBuilder> {
-    private final AbstractTransformer gen;
+        extends ParameterizedBuilder<ClassDefinitionBuilder> {
     
     private final String name;
     
@@ -122,7 +121,7 @@ public class ClassDefinitionBuilder
     private ClassDefinitionBuilder(AbstractTransformer gen,  
             String javaClassName, 
             String ceylonClassName) {
-        this.gen = gen;
+        super(gen);
         this.name = javaClassName;
         extending = getSuperclass(null);
         annotations(gen.makeAtCeylon());
@@ -163,7 +162,7 @@ public class ClassDefinitionBuilder
         if (!typeParamAnnotations.isEmpty() || typeParams.size() != typeParamAnnotations.size()) {
             annotations(gen.makeAtTypeParameters(typeParamAnnotations.toList()));
         }
-        
+        closeSubstitutions();
         JCTree.JCClassDecl klass = gen.make().ClassDef(
                 gen.make().Modifiers(modifiers, getAnnotations()),
                 gen.names().fromString(name),
@@ -337,6 +336,7 @@ public class ClassDefinitionBuilder
         return gen.make().TypeParameter(gen.names().fromString(name), bounds);
     }
 
+    @Override
     public ClassDefinitionBuilder typeParameter(TypeParameter declarationModel) {
         return typeParameter(declarationModel, true);
     }
@@ -427,7 +427,7 @@ public class ClassDefinitionBuilder
         params.append(pdb);
         return this;
     }
-
+    
     /**
      * Appends the attribute built by the given builder 
      * (the attribute is built without annotations if necessary).
