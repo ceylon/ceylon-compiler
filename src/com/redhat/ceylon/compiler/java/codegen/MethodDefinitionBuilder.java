@@ -64,8 +64,7 @@ import com.sun.tools.javac.util.Name;
  * @author Tako Schotanus
  */
 public class MethodDefinitionBuilder 
-        implements ParameterizedBuilder<MethodDefinitionBuilder> {
-    private final AbstractTransformer gen;
+        extends ParameterizedBuilder<MethodDefinitionBuilder> {
     
     private final String name;
     
@@ -139,7 +138,7 @@ public class MethodDefinitionBuilder
     }
     
     private MethodDefinitionBuilder(AbstractTransformer gen, boolean ignoreAnnotations, String name) {
-        this.gen = gen;
+        super(gen);
         this.name = name;
         if (ignoreAnnotations) {
             this.annotationFlags = Annotations.ignore(this.annotationFlags);
@@ -196,9 +195,7 @@ public class MethodDefinitionBuilder
             }
             params.append(pdb.build());
         }
-        for (Substitution subs : subsToClose) {
-            subs.close();
-        }
+        closeSubstitutions();
         return gen.make().MethodDef(
                 gen.make().Modifiers(modifiers, getAnnotations().toList()), 
                 makeName(name),
@@ -298,6 +295,7 @@ public class MethodDefinitionBuilder
         return this;
     }
 
+    @Override
     public MethodDefinitionBuilder typeParameter(TypeParameter param) {
         return typeParameter(gen.makeTypeParameter(param), gen.makeAtTypeParameter(param));
     }
@@ -313,61 +311,10 @@ public class MethodDefinitionBuilder
         return this;
     }
     
+    @Override
     public MethodDefinitionBuilder parameter(ParameterDefinitionBuilder pdb) {
         params.append(pdb);
         return this;
-    }
-    
-    private java.util.List<Substitution> subsToClose = new ArrayList<Substitution>();
-    
-    public MethodDefinitionBuilder capturedLocalParameter(TypedDeclaration declaration) {
-        if (declaration instanceof Method 
-                && Strategy.useStaticForFunction((Method)declaration)
-                && !declaration.isParameter()) {
-            return this;
-        }
-        String parameterName;
-        Scope scope = declaration.getScope();
-        /*if (Decl.isGetter(declaration)) {// TODO This is just wrong
-            parameterName = gen.naming.getLocalInstanceName(declaration, 0);
-        } else if (declaration instanceof Setter) {
-            parameterName = gen.naming.getAttrClassName(declaration, 0);
-        } else*/ {
-            parameterName = gen.naming.aliasName(declaration.getName()).toString();
-            subsToClose.add(gen.naming.addVariableSubst(declaration, parameterName));
-        } /* else {
-            parameterName = gen.naming.substitute(declaration);
-        //}
-        if (Decl.isGetter(declaration)) {// TODO This is just wrong
-            parameterName = gen.naming.getLocalInstanceName(declaration, 0);
-        } else if (declaration instanceof Setter) {
-            parameterName = Naming.getAttrClassName(declaration, 0);
-        }*/
-        
-        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(gen, 
-                parameterName);
-        pdb.ignored();
-        pdb.modifiers(FINAL/*| Flags.SYNTHETIC*/);
-        // TODO This futzing around how we use the getter needs better encapsulation
-        if (Decl.isGetter(declaration)) {
-            pdb.type(gen.makeJavaType(gen.getGetterInterfaceType((TypedDeclaration)declaration)), null);
-        } else if (declaration instanceof Setter) {
-            pdb.type(gen.naming.makeQuotedIdent(gen.naming.getAttrClassName(declaration, 0)), null);
-        } else if (declaration.isVariable()) {
-            pdb.type(gen.makeVariableBoxType(declaration), null);
-        } else if (declaration instanceof Value
-                && Decl.isLocal(declaration)
-                && ((Value)declaration).isTransient()) {
-            pdb.type(gen.naming.makeName((Value)declaration, Naming.NA_WRAPPER | Naming.NA_GETTER), null);
-        } else if (declaration instanceof Method 
-                && !Strategy.useStaticForFunction((Method)declaration)) {
-            pdb.type(gen.naming.makeName((Method)declaration, Naming.NA_WRAPPER), null);
-        } else if (declaration instanceof Method) {
-            pdb.type(gen.makeJavaType(declaration.getType().getFullType()), null);
-        } else {
-            pdb.type(gen.makeJavaType(declaration.getType()), null);
-        }
-        return parameter(pdb);
     }
     
     public MethodDefinitionBuilder parameter(long modifiers, 
@@ -571,6 +518,7 @@ public class MethodDefinitionBuilder
         return sb.toString();
     }
 
+    @Override
     public MethodDefinitionBuilder reifiedTypeParameters(java.util.List<TypeParameter> typeParams) {
         for(TypeParameter typeParam : typeParams)
             reifiedTypeParameter(typeParam);
