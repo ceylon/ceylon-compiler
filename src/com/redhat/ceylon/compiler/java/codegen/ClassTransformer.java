@@ -483,19 +483,26 @@ public class ClassTransformer extends AbstractTransformer {
                             && !((MethodOrValue)captured).isDeferred()) {
                         continue;
                     }
-                    String subsName = naming.substitute((TypedDeclaration)captured);
-                    classBuilder.field(PRIVATE | FINAL, 
-                            subsName,
-                            makeJavaType(((TypedDeclaration) captured).getType()),
-                            null, 
-                            false);
-                    classBuilder.init(make().Exec(make().Assign(
-                            naming.makeQualIdent(naming.makeThis(), subsName),
-                            naming.makeUnquotedIdent(subsName))));
-                    
+                    makeCapturedField((TypedDeclaration)captured, classBuilder);
                 }
             }
-
+        }
+        private void makeCapturedField(TypedDeclaration captured, ClassDefinitionBuilder classBuilder) {
+            String subsName = naming.substitute(captured);
+            JCExpression fieldType;
+            if (captured.isVariable()) {
+                fieldType = makeVariableBoxType(captured);
+            } else {
+                fieldType = makeJavaType(captured.getType());
+            }
+            classBuilder.field(PRIVATE | FINAL, 
+                    subsName,
+                    fieldType,
+                    null, 
+                    false);
+            classBuilder.init(make().Exec(make().Assign(
+                    naming.makeQualIdent(naming.makeThis(), subsName),
+                    naming.makeUnquotedIdent(subsName))));
         }
         @Override
         protected void transformDefaultParameterValueMethod(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
