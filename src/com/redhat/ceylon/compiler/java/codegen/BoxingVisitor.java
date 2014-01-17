@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.redhat.ceylon.compiler.typechecker.analyzer.Util;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
+import com.redhat.ceylon.compiler.typechecker.model.Generic;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedReference;
@@ -59,6 +60,7 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.PostfixOperatorExpressio
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.PowerOp;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.PrefixOperatorExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.QualifiedMemberExpression;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.QualifiedMemberOrTypeExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.StaticMemberOrTypeExpression;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.StringLiteral;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.StringTemplate;
@@ -186,6 +188,13 @@ public abstract class BoxingVisitor extends Visitor {
                         && hasErasedTypeParameter(expr.getTarget(), expr.getTypeArguments().getTypeModels())) {
                     CodegenUtil.markTypeErased(that);
                     CodegenUtil.markUntrustedType(that);
+                }
+                if (expr instanceof QualifiedMemberOrTypeExpression) {
+                    Declaration d2 = ((QualifiedMemberOrTypeExpression)expr).getDeclaration();
+                    if (d2 instanceof Generic) {
+                        hasErasedTypeParameter(expr.getTarget(), expr.getTypeArguments().getTypeModels());
+                        CodegenUtil.markTypeErased(that);
+                    }
                 }
             }
         }
