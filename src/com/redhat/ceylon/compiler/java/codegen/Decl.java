@@ -560,6 +560,11 @@ public class Decl {
         return (Declaration) decl;
     }
     
+    /**
+     * Find the first container of the declaration that is not 
+     * {@linkplain #isLocal(Declaration) }local}. 
+     * Returns null if there is no such
+     */
     public static Declaration getNonLocalDeclarationContainer(Declaration decl) {
         Declaration nonLocalContainer = Decl.getDeclarationContainer(decl);
         while (nonLocalContainer != null && Decl.isLocal(nonLocalContainer)) {
