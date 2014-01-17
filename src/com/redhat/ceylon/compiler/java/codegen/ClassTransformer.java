@@ -3302,7 +3302,7 @@ public class ClassTransformer extends AbstractTransformer {
             ProducedType type = klass.isAlias() ? klass.getExtendedType() : klass.getType();
             return make().NewClass(null, 
                     null, 
-                    makeJavaType(type, JT_CLASS_NEW | JT_NON_QUALIFIED),
+                    makeJavaType(type, JT_CLASS_NEW),
                     args.toList(),
                     null);
         }

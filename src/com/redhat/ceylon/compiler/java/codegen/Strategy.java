@@ -293,7 +293,7 @@ class Strategy {
      * return Object (so needs a typecast when invoked).
      */
     static boolean isInstantiatorUntyped(Declaration model) {
-        return generateInstantiator(model) && Decl.isAncestorLocal(model);
+        return false;
     }
     
     /** 
