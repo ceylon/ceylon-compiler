@@ -134,7 +134,6 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(T def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
-            //outerTypeParameters(def.getDeclarationModel(), classBuilder);
             for (TypeParameter param : typeParameters) {
                 classBuilder.typeParameter(param);
             }
@@ -428,25 +427,6 @@ public class ClassTransformer extends AbstractTransformer {
                 makeMethodForFunctionalParameter(classBuilder, def, param, annotations);
             }
         }
-        
-        protected void makeCapturedField(TypedDeclaration captured, ClassDefinitionBuilder classBuilder) {
-            String subsName = naming.substitute(captured);
-            JCExpression fieldType;
-            if (captured.isVariable()) {
-                fieldType = makeVariableBoxType(captured);
-            } else {
-                fieldType = makeJavaType(captured.getType());
-            }
-            classBuilder.field(PRIVATE | FINAL, 
-                    subsName,
-                    fieldType,
-                    null, 
-                    false);
-            classBuilder.init(make().Exec(make().Assign(
-                    naming.makeQualIdent(naming.makeThis(), subsName),
-                    naming.makeUnquotedIdent(subsName))));
-        }
-        
         @Override
         protected void transformDefaultParameterValueMethod(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
             if (Strategy.hasDefaultParameterValueMethod(param.getParameterModel())) {
@@ -507,7 +487,23 @@ public class ClassTransformer extends AbstractTransformer {
                 }
             }
         }
-        
+        private void makeCapturedField(TypedDeclaration captured, ClassDefinitionBuilder classBuilder) {
+            String subsName = naming.substitute(captured);
+            JCExpression fieldType;
+            if (captured.isVariable()) {
+                fieldType = makeVariableBoxType(captured);
+            } else {
+                fieldType = makeJavaType(captured.getType());
+            }
+            classBuilder.field(PRIVATE | FINAL, 
+                    subsName,
+                    fieldType,
+                    null, 
+                    false);
+            classBuilder.init(make().Exec(make().Assign(
+                    naming.makeQualIdent(naming.makeThis(), subsName),
+                    naming.makeUnquotedIdent(subsName))));
+        }
         @Override
         protected void transformDefaultParameterValueMethod(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
             // For local classes we currently generate a companion class to hold dpvms
@@ -521,30 +517,6 @@ public class ClassTransformer extends AbstractTransformer {
      * @see MemberClassInstantiator
      */
     class MemberClassConstructor extends Constructor {
-        @Override
-        protected void transformUltimate(AnyClass def,
-                ClassDefinitionBuilder classBuilder) {
-            boolean memberOfLocal = false;//Decl.isLocal((TypeDeclaration)def.getDeclarationModel().getContainer());
-            if (memberOfLocal) {
-                capturedLocalParameters(def.getDeclarationModel(), classBuilder);
-                outerReifiedTypeParameters(def.getDeclarationModel(), classBuilder);
-            }
-            super.transformUltimate(def, classBuilder);
-            if (memberOfLocal) {
-                for (Declaration captured : Decl.getCapturedLocals(def.getDeclarationModel())) {
-                    if (captured instanceof TypedDeclaration) {
-                        if ((captured instanceof MethodOrValue)
-                                && Decl.isLocal(captured)
-                                && ((MethodOrValue)captured).isTransient()
-                                && !((MethodOrValue)captured).isParameter()
-                                && !((MethodOrValue)captured).isDeferred()) {
-                            continue;
-                        }
-                        makeCapturedField((TypedDeclaration)captured, classBuilder);
-                    }
-                }
-            }
-        }
         @Override
         protected void transformOverload(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
             boolean generateInstantiator = Strategy.generateInstantiator(model);
@@ -831,7 +803,6 @@ public class ClassTransformer extends AbstractTransformer {
             classBuilder.modifiers(mods);
         }
         
-        @Override
         protected void transformTypeParameters(Tree.ClassDefinition def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
             outerTypeParameters(def.getDeclarationModel(), classBuilder);
             super.transformTypeParameters(def, typeParameters, classBuilder);
@@ -4081,11 +4052,6 @@ public class ClassTransformer extends AbstractTransformer {
     }
     private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
     
-    /** 
-     * Adds type parameters to the builder for all containing 
-     * declarations of the given declaration upto an including the first
-     * non-local containing declaration.
-     */
     static <B extends ParameterizedBuilder<B>> void outerTypeParameters(Declaration function, B builder) {
         Declaration container = Decl.getDeclarationContainer(function);
         if (container != null) {
