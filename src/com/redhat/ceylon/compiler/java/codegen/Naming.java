@@ -855,10 +855,10 @@ public class Naming implements LocalId {
                 return compoundName(((Method) decl).getName(), CodegenUtil.getTopmostRefinedDeclaration(param.getModel()).getName());
             }
         } else if (decl instanceof ClassOrInterface) {
-            if (decl.isToplevel() || Decl.isLocalNotInitializer(decl)) {
+            if (decl.isToplevel()) {
                 return prefixName(Prefix.$default$, param.getName());
             } else {
-                return prefixName(Prefix.$default$, decl.getName() , param.getName());
+                return prefixName(Prefix.$default$, declName((ClassOrInterface)decl) , param.getName());
             }
         } else if (decl == null) {
             return prefixName(Prefix.$default$, param.getName());

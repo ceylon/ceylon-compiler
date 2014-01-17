@@ -26,11 +26,14 @@ import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Element;
 import com.redhat.ceylon.compiler.typechecker.model.Functional;
+import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
+import com.redhat.ceylon.compiler.typechecker.model.Package;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
+import com.redhat.ceylon.compiler.typechecker.model.Scope;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Unit;
@@ -102,10 +105,9 @@ class Strategy {
             // Only top-level methods have static default value methods
             return DefaultParameterMethodOwner.STATIC;
         } else if ((decl instanceof Class) 
-                && !decl.isToplevel()
-                && !Decl.isLocalNotInitializer(decl)) {
+                && !decl.isToplevel()) {
             // Only inner classes have their default value methods on their outer
-            return Decl.getClassOrInterfaceContainer(decl, false) instanceof Class ? DefaultParameterMethodOwner.OUTER : DefaultParameterMethodOwner.OUTER_COMPANION;
+            return Decl.getClassOrInterfaceContainer(decl, false) instanceof Interface ? DefaultParameterMethodOwner.OUTER_COMPANION : DefaultParameterMethodOwner.OUTER;
         }
         
         return DefaultParameterMethodOwner.INIT_COMPANION;
@@ -124,6 +126,9 @@ class Strategy {
         }
         Declaration nonLocalContainer = null;
         if (decl instanceof Method) {
+            if (((Method) decl).isClassMember()) {
+                return false;
+            }
             nonLocalContainer = Decl.getNonLocalDeclarationContainer((Method)decl);
         }
         if (decl instanceof Method 
@@ -131,6 +136,13 @@ class Strategy {
                 && nonLocalContainer.isToplevel()) {
             return true;
         }
+        
+        if (decl instanceof Class
+                && Decl.isLocal((Class)decl)
+                && Decl.getNonLocalDeclarationContainer((Class)decl).isToplevel()) {
+            return true;
+        }
+        
         // Only top-level methods have static default value methods
         return ((decl instanceof Method && !((Method)decl).isParameter())
                 || decl instanceof Class) 
@@ -150,8 +162,7 @@ class Strategy {
         }
         // Only inner classes have their default value methods on their outer
         return (elem instanceof Class) 
-                && !((Class)elem).isToplevel()
-                && !Decl.isLocalNotInitializer((Class)elem);
+                && !((Class)elem).isToplevel();
     }
     
     public static boolean defaultParameterMethodOnSelf(Tree.Declaration decl) {

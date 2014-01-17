@@ -506,9 +506,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         @Override
         protected void transformDefaultParameterValueMethod(Class model, Tree.Parameter param, ClassDefinitionBuilder classBuilder) {
-            // For local classes we currently generate a companion class to hold dpvms
-            // Eventually we should put them on the containing class
-            super.transformDefaultParameterValueMethod(model, param, classBuilder.getCompanionBuilder(model));
+            super.transformDefaultParameterValueMethod(model, param, classBuilder.getContainingClassBuilder());
         }
     }
     
@@ -2835,7 +2833,7 @@ public class ClassTransformer extends AbstractTransformer {
                 transformResultType(functional, overloadBuilder);
                 transformTypeParameterList(functional, overloadBuilder);
                 
-                appendImplicitParameters(typeParameterList, overloadBuilder);
+                appendImplicitParameters(functional, typeParameterList, overloadBuilder);
                 transformParameterList(functional, parameterList, currentParameter, overloadBuilder);
                 
                 // Make the body
@@ -2847,7 +2845,7 @@ public class ClassTransformer extends AbstractTransformer {
                         currentParameter,
                         typeParameterList);
             }
-            
+            overloadBuilder.closeSubstitutions();
             return overloadBuilder;
         }
         
@@ -2876,7 +2874,7 @@ public class ClassTransformer extends AbstractTransformer {
             overloadBuilder.parameter(parameter, null, 0, false);
         }
         
-        protected final void appendImplicitParameters(java.util.List<TypeParameter> typeParameterList,
+        protected void appendImplicitParameters(D functional, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder) {
             if(typeParameterList != null){
                 overloadBuilder.reifiedTypeParameters(typeParameterList);
@@ -3109,7 +3107,7 @@ public class ClassTransformer extends AbstractTransformer {
                 transformResultType(method, canonicalBuilder);
                 transformTypeParameterList(method, canonicalBuilder);
 
-                appendImplicitParameters(typeParameterList, canonicalBuilder);
+                appendImplicitParameters(method, typeParameterList, canonicalBuilder);
                 transformParameterList(method, parameterList, currentParameter, canonicalBuilder);
                 
                 if (body != null) {
@@ -3179,6 +3177,13 @@ public class ClassTransformer extends AbstractTransformer {
             this.classBuilder = classBuilder;
         }
 
+        protected final void appendImplicitParameters(Class functional, java.util.List<TypeParameter> typeParameterList,
+                MethodDefinitionBuilder overloadBuilder) {
+            capturedLocalParameters(functional, overloadBuilder);
+            outerReifiedTypeParameters(functional, overloadBuilder);
+            super.appendImplicitParameters(functional, typeParameterList, overloadBuilder);
+        }
+        
         @Override
         protected long getModifiers(Class klass, DaoBody<Class> daoBody) {
             return transformClassDeclFlags(klass) & (PUBLIC | PRIVATE | PROTECTED);
@@ -3199,9 +3204,80 @@ public class ClassTransformer extends AbstractTransformer {
             // Constructor has type parameters
         }
         
+        protected void addCapturedLocalArguments(ListBuffer<JCExpression> result, Declaration primaryDeclaration){
+            // Add implementation argument for a deferred local function
+            if (primaryDeclaration instanceof Method
+                    && ((Method)primaryDeclaration).isDeferred()
+                    // If the deferred local function is in a class initializer we don't need the implementation argument
+                    && (!(primaryDeclaration.getContainer() instanceof Class) || !primaryDeclaration.isCaptured())) {
+                result.append(
+                        naming.makeUnquotedIdent(naming.selector((Method)primaryDeclaration, Naming.NA_MEMBER))
+                        );
+            }
+            if (primaryDeclaration.isClassMember()) { 
+                    ///&& Decl.isLocal((Class)primaryDeclaration.getScope())) {
+                // The class constructor captures, and the member accesses fields.
+                return;
+            }
+            
+            java.util.List<Declaration> cl = Decl.getCapturedLocals(primaryDeclaration);
+            if (cl != null) {
+                for (Declaration decl : cl) {
+                    if (decl instanceof Method 
+                            && Strategy.useStaticForFunction((Method)decl)
+                            && !decl.isParameter()) {
+                        continue;
+                    }
+                    if ((decl instanceof MethodOrValue)
+                            && Decl.isLocal(decl)
+                            && ((MethodOrValue)decl).isTransient()
+                            && !((MethodOrValue)decl).isParameter()
+                            && !((MethodOrValue)decl).isDeferred()) {
+                        continue;
+                    }
+                    /*result.append(new ExpressionAndType(
+                            gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
+                            gen.makeJavaType(((TypedDeclaration)decl).getType())));*/
+                    if (Decl.isGetter(decl)
+                            && Decl.isLocal(decl)){
+                        result.append(
+                                ((Value)decl).isTransient() ? naming.makeQuotedIdent(naming.getAttrClassName((Value)decl, 0)) : naming.makeName((TypedDeclaration)decl, Naming.NA_Q_LOCAL_INSTANCE)
+                                );
+                    } else if (decl instanceof Setter
+                            && Decl.isLocal(decl)){
+                        result.append(
+                                naming.makeQuotedIdent(naming.getAttrClassName((Setter)decl, 0))
+                                );
+                    } else {
+                        result.append(
+                                naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT)
+                                );
+                    }
+                }
+            }
+            addCapturedReifiedTypeParameters(primaryDeclaration, result);
+        }
+        
+        private void addCapturedReifiedTypeParameters(Declaration declaration, ListBuffer<JCExpression> result) {
+            Declaration container = Decl.getDeclarationContainer(declaration);
+            if (container != null) {
+                if (Decl.isLocal(container)) {
+                    addCapturedReifiedTypeParameters(container, result);
+                }
+                if (container instanceof Functional
+                        && !(container instanceof Class)) {
+                    for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+                        JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                        result.append(reifiedTypeArg);
+                    }
+                }
+            }
+        }
+        
         @Override
         protected void appendCanonicalImplicitArguments(Class klass, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
+            addCapturedLocalArguments(args, klass);
             if(typeParameterList != null){
                 // we pass the reified type parameters along
                 for(TypeParameter tp : typeParameterList){
@@ -3213,6 +3289,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void appendDpmImplicitArguments(Class klass, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
+            addCapturedLocalArguments(args, klass);
             if(typeParameterList != null){
                 // we pass the reified type parameters along
                 for(TypeParameter tp : typeParameterList){
@@ -3406,6 +3483,7 @@ public class ClassTransformer extends AbstractTransformer {
                 // static default parameter methods should be consistently public so that if non-shared class Top and
                 // shared class Bottom which extends Top both have the same default param name, we don't get an error
                 // if the Bottom class tries to "hide" a static public method with a private one
+                modifiers &= ~ PRIVATE;
                 modifiers |= STATIC | PUBLIC;
             }
             return modifiers;
@@ -3503,6 +3581,9 @@ public class ClassTransformer extends AbstractTransformer {
         protected void transformParameterList(Class cls,
                 ParameterList parameterList, Parameter parameter,
                 MethodDefinitionBuilder methodBuilder)  {
+            // XXX less than ideally we copy all the stuff captured by the class, rather than just the stuff captured by the defaulted expression
+            capturedLocalParameters(cls, methodBuilder);
+            outerReifiedTypeParameters(cls, methodBuilder);
             // make sure reified type parameters are accepted
             if(cls.getTypeParameters() != null)
                 methodBuilder.reifiedTypeParameters(cls.getTypeParameters());
@@ -3525,6 +3606,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     ClassDpvmTransformation classDpvmTransformation = new ClassDpvmTransformation();
+    ClassDpvmTransformation localClassDpvmTransformation = new ClassDpvmTransformation();
     ClassDpvmTransformation abstractClassDpvmTransformation = new ClassDpvmTransformation(){
         @Override
         protected int getModifiers(Class functional) {

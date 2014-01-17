@@ -93,11 +93,12 @@ abstract class ParameterizedBuilder<B extends ParameterizedBuilder<B>> {
      * Closes any substitutions that were introduced in 
      * {@link #capturedLocalParameter(TypedDeclaration)} 
      */
-    protected final void closeSubstitutions() {
+    public final void closeSubstitutions() {
         if (subsToClose != null) {
             for (Substitution subs : subsToClose) {
                 subs.close();
             }
+            subsToClose = null;
         }
     }
     public abstract B reifiedTypeParameters(java.util.List<TypeParameter> typeParams);

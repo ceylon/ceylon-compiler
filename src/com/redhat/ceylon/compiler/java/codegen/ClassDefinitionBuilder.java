@@ -223,7 +223,7 @@ public class ClassDefinitionBuilder
     private void appendDefinitionsTo(ListBuffer<JCTree> defs) {
         if ((modifiers & INTERFACE) == 0) {
             if (superCall != null && !isAlias) {
-                init.prepend(superCall);    
+                init.prepend(superCall);
             }
             if (!isCompanion) {
                 createConstructor(init.toList());
