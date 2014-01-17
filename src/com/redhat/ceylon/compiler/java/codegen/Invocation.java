@@ -175,8 +175,8 @@ abstract class Invocation {
                     gen.naming.makeUnquotedIdent(gen.naming.selector((Method)primaryDeclaration, Naming.NA_MEMBER)),
                     gen.makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
         }
-        if (primaryDeclaration.isClassMember() 
-                && Decl.isLocal((Class)primaryDeclaration.getScope())) {
+        if (primaryDeclaration.isClassMember()) { 
+                ///&& Decl.isLocal((Class)primaryDeclaration.getScope())) {
             // The class constructor captures, and the member accesses fields.
             return;
         }
