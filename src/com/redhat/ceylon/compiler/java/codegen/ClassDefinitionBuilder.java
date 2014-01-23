@@ -93,6 +93,7 @@ public class ClassDefinitionBuilder
     private boolean built = false;
     
     private boolean isCompanion = false;
+    private boolean isCompanionLocal = false;
 
     private ClassDefinitionBuilder containingClassBuilder;
 
@@ -227,6 +228,8 @@ public class ClassDefinitionBuilder
             }
             if (!isCompanion) {
                 createConstructor(init.toList());
+            } else if (isCompanion && isCompanionLocal) {
+                createConstructor(List.<JCStatement>nil());
             }
             for (MethodDefinitionBuilder builder : constructors) {
                 if (noAnnotations || ignoreAnnotations) {
@@ -501,6 +504,7 @@ public class ClassDefinitionBuilder
             concreteInterfaceMemberDefs = new ClassDefinitionBuilder(gen, className, decl.getName())
                 .ignoreAnnotations();
             concreteInterfaceMemberDefs.isCompanion = true;
+            concreteInterfaceMemberDefs.isCompanionLocal = Decl.isLocal(decl);
         }
         return concreteInterfaceMemberDefs;
     }

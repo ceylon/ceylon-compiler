@@ -4,14 +4,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
+import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
 
 /**
@@ -31,8 +32,9 @@ public class LocalCaptureVisitor extends Visitor {
         return declarationScopes.remove(declarationScopes.size()-1);
     }
     
-    public void visit(Tree.AnyClass that) {
+    public void visit(Tree.ClassOrInterface that) {
         pushScope(that.getDeclarationModel());
+        // A class declaration automatically captures whatever it's supertypes capture
         List<Declaration> cap = that.getDeclarationModel().getExtendedTypeDeclaration().getDirectlyCaptured();
         if (cap != null) {
             for (Declaration captured : cap) {
@@ -47,13 +49,20 @@ public class LocalCaptureVisitor extends Visitor {
                 }
             }
         }
+        // Figure out what the members capture
         super.visit(that);
-        popScope();
-    }
-    
-    public void visit(Tree.AnyInterface that) {
-        pushScope(that.getDeclarationModel());
-        super.visit(that);
+        // Now, for interfaces, we say the interface itself captures whatever 
+        // it's members capture
+        if (that.getDeclarationModel() instanceof Interface) {
+            for (Declaration member : that.getDeclarationModel().getMembers()) {
+                cap = member.getDirectlyCaptured();
+                if (cap != null) {
+                    for (Declaration captured : cap) {
+                        addCapture(that.getDeclarationModel(), captured);
+                    }
+                }
+            }
+        }
         popScope();
     }
     
@@ -103,7 +112,7 @@ public class LocalCaptureVisitor extends Visitor {
     }
     
     public static boolean isStaticDeclaration(Scope d) {
-        return d instanceof MethodOrValue| d instanceof Class;
+        return d instanceof MethodOrValue| d instanceof ClassOrInterface;
     }
     
     static void addCapture(Declaration capturer, Declaration captured) {
@@ -145,7 +154,7 @@ public class LocalCaptureVisitor extends Visitor {
                 if (scope == declScope) {
                     break;
                 }
-                if (isStaticDeclaration(scope) /*&& !(scope.getContainer() instanceof Class)*/) {
+                if (isStaticDeclaration(scope)) {
                     addCapture((Declaration)scope, that.getDeclaration());
                 }
             }

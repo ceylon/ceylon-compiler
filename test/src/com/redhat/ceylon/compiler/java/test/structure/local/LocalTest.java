@@ -131,6 +131,10 @@ public class LocalTest extends CompilerTest {
     public void testClassLocalToToplevelFunction() {
         compareWithJavaSource("ClassLocalToToplevelFunction");
     }
+    @Test
+    public void testInterfaceLocalToToplevelFunction() {
+        compareWithJavaSource("InterfaceLocalToToplevelFunction");
+    }
     /*
     @Test
     public void testClassLocalToToplevelValue() {
@@ -160,3 +164,4 @@ public class LocalTest extends CompilerTest {
     
     */
 }
+

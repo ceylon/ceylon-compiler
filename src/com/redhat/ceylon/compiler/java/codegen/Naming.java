@@ -632,6 +632,10 @@ public class Naming implements LocalId {
         } else if (scope instanceof Interface) {
             Interface iface = (Interface)scope;
             helper.append(iface.getName());
+            if (Decl.isLocal(iface)
+                    && flags.contains(DeclNameFlag.COMPANION)) {
+                helper.append("$" + getLocalId(iface.getContainer()));
+            }
             if (Decl.isCeylon(iface)
                 && ((decl instanceof Class || decl instanceof TypeAlias) 
                         || flags.contains(DeclNameFlag.COMPANION))) {

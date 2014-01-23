@@ -6,11 +6,15 @@ import java.util.ArrayList;
 
 import com.redhat.ceylon.compiler.java.codegen.Naming.Substitution;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
+import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
 import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.ListBuffer;
 
 /**
  * A baseclass for builders of methods and classes, which both deal with 
@@ -103,4 +107,6 @@ abstract class ParameterizedBuilder<B extends ParameterizedBuilder<B>> {
     }
     public abstract B reifiedTypeParameters(java.util.List<TypeParameter> typeParams);
     public abstract B typeParameter(TypeParameter param);
+    
+
 }

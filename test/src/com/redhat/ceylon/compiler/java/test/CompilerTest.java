@@ -383,7 +383,7 @@ public abstract class CompilerTest {
         if (r.ceylonState == CeylonState.ERROR) {
             Assert.assertEquals(collector.getAssertionFailureMessage(), expectedSrc, compiledSrc);
         } else {
-            //Assert.assertEquals("Differs", expectedSrc, compiledSrc);
+            Assert.assertEquals("Differs", expectedSrc, compiledSrc);
         }
     }
 

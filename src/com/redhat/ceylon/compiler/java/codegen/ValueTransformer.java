@@ -5,6 +5,7 @@ import static com.sun.tools.javac.code.Flags.*;
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Functional;
+import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Parameter;
@@ -369,7 +370,22 @@ public class ValueTransformer extends AbstractTransformer {
     private final InterfaceGetter interfaceGetter = new InterfaceGetter();
     
     class CompanionGetter extends GetterTransformation {
-
+        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            if (value.isInterfaceMember() && Decl.isLocal((Interface)value.getContainer())) {
+                ClassTransformer.outerTypeParameters(value, builder);
+            }
+        }
+        
+        
+        @Override
+        protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
+            if (value.isInterfaceMember() && Decl.isLocal((Interface)value.getContainer())) {
+                ClassTransformer.capturedThisParameter(value, builder);
+                ClassTransformer.capturedLocalParameters(value, builder);
+                ClassTransformer.outerReifiedTypeParameters(value, builder);
+            }
+        }
+        
         @Override
         public JCMethodDecl transform(Tree.AnyAttribute value) {
             if (value.getDeclarationModel().isFormal()) {
@@ -396,7 +412,7 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected boolean isStatic(Value value) {
-            return false;
+            return Decl.isLocal((Interface)value.getContainer());
         }
         
         @Override
