@@ -8,7 +8,7 @@ class BoxedLocalVariable<T> implements .com.redhat.ceylon.compiler.java.runtime.
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
     
     public .java.lang.Object m2(final T t) {
-        final VariableBox<T> t2 = new VariableBox<T>();
+        final VariableBox<T> t2 = new VariableBox<T>(null);
         t2.ref = t;
         t2.ref = t2.ref;
         
@@ -43,7 +43,7 @@ class BoxedLocalVariable_sub extends .com.redhat.ceylon.compiler.java.test.expre
     
     @.java.lang.Override
     public final .java.lang.Object m2(final .ceylon.language.String t) {
-        final VariableBox<.java.lang.String> t2 = new VariableBox<.java.lang.String>();
+        final VariableBox<.java.lang.String> t2 = new VariableBox<.java.lang.String>(null);
         t2.ref = t.toString();
         t2.ref = t2.ref;
         
