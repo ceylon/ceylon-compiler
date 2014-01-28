@@ -1401,7 +1401,7 @@ public class ExpressionTransformer extends AbstractTransformer {
     
     public JCExpression comprehensionAsSequential(Tree.Comprehension comprehension, ProducedType expectedType) {
         JCExpression sequential = iterableToSequential(transformComprehension(comprehension));
-        ProducedType elementType = comprehension.getForComprehensionClause().getTypeModel();
+        ProducedType elementType = comprehension.getInitialComprehensionClause().getTypeModel();
         ProducedType sequentialType = typeFact().getSequentialType(elementType);
         return sequentialEmptiness(sequential, expectedType, sequentialType);
     }
@@ -1435,7 +1435,7 @@ public class ExpressionTransformer extends AbstractTransformer {
             } else if (expr instanceof Tree.Comprehension) {
                 Tree.Comprehension comp = (Tree.Comprehension) expr;
                 ProducedType elementType = expr.getTypeModel(); 
-                ProducedType expectedType = comp.getForComprehensionClause().getPossiblyEmpty() 
+                ProducedType expectedType = comp.getInitialComprehensionClause().getPossiblyEmpty() 
                         ? typeFact().getSequentialType(elementType)
                         : typeFact().getSequenceType(elementType);
                 tail = comprehensionAsSequential(comp, expectedType);
@@ -4399,7 +4399,7 @@ public class ExpressionTransformer extends AbstractTransformer {
     }
 
     JCExpression transformComprehension(Tree.Comprehension comp, ProducedType expectedType) {
-        ProducedType elementType = comp.getForComprehensionClause().getTypeModel();
+        ProducedType elementType = comp.getInitialComprehensionClause().getTypeModel();
         // get rid of anonymous types
         elementType = typeFact().denotableType(elementType);
         elementType = wrapInOptionalForInterop(elementType, expectedType);
@@ -4440,7 +4440,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         public ComprehensionTransformation(final Tree.Comprehension comp, ProducedType elementType) {
             this.comp = comp;
             targetIterType = typeFact().getIterableType(elementType);
-            absentIterType = comp.getForComprehensionClause().getFirstTypeModel();
+            absentIterType = comp.getInitialComprehensionClause().getFirstTypeModel();
         }
     
         public JCExpression transformComprehension() {
@@ -4448,7 +4448,7 @@ public class ExpressionTransformer extends AbstractTransformer {
             // make sure "this" will be qualified since we're introducing a new surrounding class
             boolean oldWithinSyntheticClassBody = withinSyntheticClassBody(true);
             try{
-                Tree.ComprehensionClause clause = comp.getForComprehensionClause();
+                Tree.ComprehensionClause clause = comp.getInitialComprehensionClause();
                 while (clause != null) {
                     final Naming.SyntheticName iterVar = naming.synthetic(Prefix.$iterator$, idx);
                     Naming.SyntheticName itemVar = null;
@@ -4472,7 +4472,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                         at(excc);
                         clause = null;
                     } else {
-                        return makeErroneous(clause, "compiler bug: comprehension clausees of type " + clause.getClass().getName() + " are not yet supported");
+                        return makeErroneous(clause, "compiler bug: comprehension clauses of type " + clause.getClass().getName() + " are not yet supported");
                     }
                     idx++;
                     if (itemVar != null) prevItemVar = itemVar;
@@ -4499,9 +4499,6 @@ public class ExpressionTransformer extends AbstractTransformer {
          * Builds the {@code next()} method of the {@code AbstractIterator}
          */
         private JCMethodDecl makeNextMethod(ProducedType iteratedType) {
-            if (valueCaptures.isEmpty()) {
-                valueCaptures.append(make().Exec(makeErroneous(this.comp, "compiler bug: nothing captured")));
-            }
             List<JCStatement> of = valueCaptures.append(make().Return(transformExpression(excc.getExpression(), BoxingStrategy.BOXED, iteratedType))).toList();
             JCStatement stmt = make().If(
                     make().Apply(null,
@@ -4529,7 +4526,8 @@ public class ExpressionTransformer extends AbstractTransformer {
                     List.<JCExpression>of(makeReifiedTypeArgument(iteratedType)), 
                     make().AnonymousClassDef(make().Modifiers(0), 
                             fields.toList().prepend(
-                                    make().Block(0L, List.<JCStatement>of(initIterator)) 
+                                    make().Block(0L,
+                                            initIterator == null ? List.<JCStatement>nil() : List.<JCStatement>of(initIterator)) 
                                     )));
             JCBlock iteratorBlock = make().Block(0, List.<JCStatement>of(
                     make().Return(iterator)));
@@ -4562,12 +4560,49 @@ public class ExpressionTransformer extends AbstractTransformer {
         class IfComprehensionCondList extends CondList {
 
             private final ListBuffer<JCStatement> varDecls = ListBuffer.lb();
-            private final JCExpression condExpr;
+            /**
+             * A list of statements that are placed in the main body, before the conditions.
+             */
+            private final List<JCStatement> preCheck;
+            /**
+             * A list of statements that are placed in the innermost condition's body.
+             */
+            private final List<JCStatement> insideCheck;
+            /**
+             * A list of statements that are placed in the main body, after the conditions.
+             */
+            private final List<JCStatement> postCheck;
             
+            /**
+             * An IfComprehensionCondList suitable for "inner" if comprehension clauses.
+             * Checks {@code condExpr} before checking the {@code conditions}, and {@code break;}s if the conditions apply.
+             * Intended to be placed in a {@code while (true) } loop, to keep checking the conditions until they apply
+             * or {@code condExpr} doesn't.
+             */
             public IfComprehensionCondList(java.util.List<Tree.Condition> conditions, JCExpression condExpr) {
+                this(conditions,
+                    // check condExpr before the conditions
+                    List.<JCStatement>of(make().If(make().Unary(JCTree.NOT, condExpr), make().Break(null), null)),
+                    // break if a condition matches
+                    List.<JCStatement>of(make().Break(null)),
+                    null);
+            }
+            
+            /**
+             * General-purpose constructor. Places {@code precheck} before the conditions and their variable declarations,
+             * {@code insideCheck} in the body of the innermost condition (executed only if all {@code conditions} apply), and
+             * {@code postCheck} after the conditions.
+             */
+            public IfComprehensionCondList(java.util.List<Tree.Condition> conditions,
+                    List<JCStatement> preCheck, List<JCStatement> insideCheck, List<JCStatement> postCheck) {
                 statementGen().super(conditions, null);
-                this.condExpr = condExpr;
-            }     
+                if(preCheck == null) preCheck = List.<JCStatement>nil();
+                if(insideCheck == null) insideCheck = List.<JCStatement>nil();
+                if(postCheck == null) postCheck = List.<JCStatement>nil();
+                this.preCheck = preCheck;
+                this.insideCheck = insideCheck;
+                this.postCheck = postCheck;
+            }
 
             @Override
             protected List<JCStatement> transformInnermost(Tree.Condition condition) {
@@ -4579,7 +4614,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 SyntheticName resultVarName = addVarSubs(transformedCond);
                 return transformCommon(transformedCond,
                         test,
-                        List.<JCStatement>of(make().Break(null)),
+                        insideCheck,
                         resultVarName);
             }
             
@@ -4610,6 +4645,8 @@ public class ExpressionTransformer extends AbstractTransformer {
                 if (transformedCond.hasResultDecl()) {
                     fields.add(make().VarDef(make().Modifiers(Flags.PRIVATE), 
                             resultVarName.asName(), transformedCond.makeTypeExpr(), null));
+                    valueCaptures.add(make().VarDef(make().Modifiers(Flags.FINAL),
+                            resultVarName.asName(), transformedCond.makeTypeExpr(), resultVarName.makeIdentWithThis()));
                     stmts = stmts.prepend(make().Exec(make().Assign(resultVarName.makeIdent(), transformedCond.makeResultExpr())));
                 }
                 stmts = List.<JCStatement>of(make().If(
@@ -4622,29 +4659,75 @@ public class ExpressionTransformer extends AbstractTransformer {
             public List<JCStatement> getResult() {
                 List<JCStatement> stmts = transformList(conditions);
                 ListBuffer<JCStatement> result = ListBuffer.lb();
-                result.append(make().If(make().Unary(JCTree.NOT, condExpr), make().Break(null), null));
+                result.appendList(preCheck);
                 result.appendList(varDecls);
                 result.appendList(stmts);
+                result.appendList(postCheck);
                 return result.toList();   
             }
 
         }
         
         private void transformIfClause(Tree.IfComprehensionClause clause) {
-            //Filter contexts need to check if the previous context applies and then check the condition
-            JCExpression condExpr = make().Apply(null,
-                ctxtName.makeIdentWithThis(), List.<JCExpression>nil());
-            ctxtName = naming.synthetic(Prefix.$next$, idx);
-            
-            IfComprehensionCondList ifComprehensionCondList = new IfComprehensionCondList(clause.getConditionList().getConditions(), condExpr);
-            List<JCStatement> ifs = ifComprehensionCondList.getResult();
-            JCStatement loop = make().WhileLoop(makeBoolean(true), make().Block(0, ifs));
+            List<JCStatement> body;
+            if (prevItemVar == null) {
+            	List<JCStatement> initBlock;
+            	if (clause == comp.getInitialComprehensionClause()) {
+            		//No previous context
+            		assert (ctxtName == null);
+            		ctxtName = naming.synthetic(Prefix.$next$, idx);
+            		//define a variable that records if the expression was already evaluated
+            		SyntheticName exhaustedName = ctxtName.suffixedBy(Suffix.$exhausted$);
+                    JCVariableDecl exhaustedDef = make().VarDef(make().Modifiers(Flags.PRIVATE),
+                            exhaustedName.asName(), makeJavaType(typeFact().getBooleanDeclaration().getType()), null);
+                    fields.add(exhaustedDef);
+                    JCStatement returnIfExhausted = make().If(exhaustedName.makeIdent(), make().Return(makeBoolean(false)), null);
+                    JCStatement setExhaustedTrue = make().Exec(make().Assign(exhaustedName.makeIdent(), makeBoolean(true)));
+                    initBlock =  List.<JCStatement>of(
+                    		//if we already evaluated the expression, return
+                    		returnIfExhausted,
+                            //record that we will have evaluated the expression
+                            setExhaustedTrue);
+            	} else {
+            		assert (ctxtName != null);
+            		JCStatement returnIfExhausted = make().If(
+            				//if the previous comprehension is false or was already evaluated...
+            				make().Unary(JCTree.NOT, make().Apply(null,
+            						ctxtName.makeIdentWithThis(), List.<JCExpression>nil())),
+            				//return false
+                    		make().Return(makeBoolean(false)), null);
+            		ctxtName = naming.synthetic(Prefix.$next$, idx);
+            		initBlock = List.<JCStatement>of(returnIfExhausted);
+            	}
+                
+                JCStatement returnTrue = make().Return(makeBoolean(true));
+                JCStatement returnFalse = make().Return(makeBoolean(false));
+                
+                body = new IfComprehensionCondList(clause.getConditionList().getConditions(),
+                    initBlock,
+                    List.<JCStatement>of(
+                        //if the conditions apply: return true
+                        returnTrue),
+                    List.<JCStatement>of(
+                        //the conditions did not apply: return false
+                        returnFalse)).getResult();
+            } else {
+                //Filter contexts need to check if the previous context applies and then check the condition
+                JCExpression condExpr = make().Apply(null,
+                    ctxtName.makeIdentWithThis(), List.<JCExpression>nil());
+                ctxtName = naming.synthetic(Prefix.$next$, idx);
+                
+                IfComprehensionCondList ifComprehensionCondList = new IfComprehensionCondList(clause.getConditionList().getConditions(), condExpr);
+                List<JCStatement> ifs = ifComprehensionCondList.getResult();
+                JCStatement loop = make().WhileLoop(makeBoolean(true), make().Block(0, ifs));
+                body = List.<JCStatement>of(loop,
+                    make().Return(make().Unary(JCTree.NOT, prevItemVar.suffixedBy(Suffix.$exhausted$).makeIdent())));
+        	}
             MethodDefinitionBuilder mb = MethodDefinitionBuilder.systemMethod(ExpressionTransformer.this, ctxtName.getName())
                 .ignoreModelAnnotations()
                 .modifiers(Flags.PRIVATE | Flags.FINAL)
                 .resultType(null, makeJavaType(typeFact().getBooleanDeclaration().getType()))
-                .body(loop)
-                .body(make().Return(make().Unary(JCTree.NOT, prevItemVar.suffixedBy(Suffix.$exhausted$).makeIdent())));
+                .body(body);
             fields.add(mb.build());
         }
 
@@ -4658,7 +4741,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                     typeFact().getIteratedType(iterType)));
             ProducedType iterableType = iterType.getSupertype(typeFact().getIterableDeclaration());
             JCExpression iterableExpr = transformExpression(specexpr.getExpression(), BoxingStrategy.BOXED, iterableType);
-            if (clause == comp.getForComprehensionClause()) {
+            if (clause == comp.getInitialComprehensionClause()) {
                 //The first iterator can be initialized as a field
                 fields.add(make().VarDef(make().Modifiers(Flags.PRIVATE | Flags.FINAL), iterVar.asName(), iterTypeExpr,
                     null));
@@ -4670,22 +4753,26 @@ public class ExpressionTransformer extends AbstractTransformer {
                 //in case they depend on the current element of the previous iterator
                 fields.add(make().VarDef(make().Modifiers(Flags.PRIVATE), iterVar.asName(), iterTypeExpr, null));
                 fieldNames.add(iterVar.getName());
-                JCBlock body = make().Block(0l, List.<JCStatement>of(
-                        make().If(lastIteratorCtxtName.suffixedBy(Suffix.$exhausted$).makeIdent(),
-                                  make().Return(makeBoolean(false)),
-                                  null),
+                List<JCStatement> block = List.<JCStatement>nil();
+                if (lastIteratorCtxtName != null) {
+                    block = block.append(make().If(lastIteratorCtxtName.suffixedBy(Suffix.$exhausted$).makeIdent(),
+                            make().Return(makeBoolean(false)),
+                            null));
+                }
+                block = block.appendList(List.<JCStatement>of(
                         make().If(make().Binary(JCTree.NE, iterVar.makeIdent(), makeNull()),
-                                  make().Return(makeBoolean(true)),
-                                  null),
+                                make().Return(makeBoolean(true)),
+                                null),
                         make().If(make().Unary(JCTree.NOT, make().Apply(null, ctxtName.makeIdentWithThis(), List.<JCExpression>nil())),
-                                  make().Return(makeBoolean(false)),
-                                  null),
+                                make().Return(makeBoolean(false)),
+                                null),
                         make().Exec(make().Assign(iterVar.makeIdent(), 
                                                   make().Apply(null,
                                                                makeSelect(iterableExpr, "iterator"), 
                                                                List.<JCExpression>nil()))),
                         make().Return(makeBoolean(true))
                 ));
+                JCBlock body = make().Block(0l, block);
                 fields.add(make().MethodDef(make().Modifiers(Flags.PRIVATE | Flags.FINAL),
                         iterVar.asName(), makeJavaType(typeFact().getBooleanDeclaration().getType()), 
                         List.<JCTree.JCTypeParameter>nil(),
@@ -4716,7 +4803,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 fieldNames.add(kdec.getName());
                 fieldNames.add(vdec.getName());
             } else {
-                error = makeErroneous(fcl, "compiler bug: iterators of type " + fcl.getForIterator().getNodeType() + " not yet suuported");
+                error = makeErroneous(fcl, "compiler bug: iterators of type " + fcl.getForIterator().getNodeType() + " not yet supported");
                 return null;
             }
             fields.add(make().VarDef(make().Modifiers(Flags.PRIVATE), itemVar.suffixedBy(Suffix.$exhausted$).asName(),
@@ -4790,15 +4877,16 @@ public class ExpressionTransformer extends AbstractTransformer {
             List<JCTree.JCStatement> methodBody;
             if (idx>0) {
                 //Subsequent iterators may depend on the item from the previous loop so we make sure we have one
-                methodBody = List.of(
-                        make().WhileLoop(make().Apply(null, iterVar.makeIdentWithThis(), List.<JCExpression>nil()),
-                                         make().Block(0, contextBody.toList())),
-                        // It can happen that we never get into the body because the outer iterator is exhausted, if so, mark
-                        // this one exhausted too
-                        make().If(lastIteratorCtxtName.suffixedBy(Suffix.$exhausted$).makeIdent(), 
-                                make().Exec(make().Assign(itemVar.suffixedBy(Suffix.$exhausted$).makeIdent(), makeBoolean(true))), 
-                                null),
-                        make().Return(makeBoolean(false)));
+                methodBody = List.<JCStatement>of(make().WhileLoop(make().Apply(null, iterVar.makeIdentWithThis(), List.<JCExpression>nil()),
+                        make().Block(0, contextBody.toList())));
+                if (lastIteratorCtxtName != null) {
+                    // It can happen that we never get into the body because the outer iterator is exhausted, if so, mark
+                    // this one exhausted too
+                    methodBody = methodBody.append(make().If(lastIteratorCtxtName.suffixedBy(Suffix.$exhausted$).makeIdent(), 
+                            make().Exec(make().Assign(itemVar.suffixedBy(Suffix.$exhausted$).makeIdent(), makeBoolean(true))), 
+                            null));
+                }
+                methodBody = methodBody.append(make().Return(makeBoolean(false)));
             }else
                 methodBody = contextBody.toList();
             //Create the context method that returns the next item for this iterator
