@@ -16,8 +16,6 @@ Integer valueLocalToToplevelFunction<T>()
         Integer k = local;
         local = k;
     }
-    // TODO Test with a => getter
-    // TODO Retest variations of this onces gavin's fixed #887
     Integer localCapture { 
         return  x+1; 
     }
@@ -85,10 +83,23 @@ Integer valueLocalToToplevelFunction<T>()
     }
     result = nesting;
     nesting = result;
-    // TODO Retest variations of this onces gavin's fixed #885
+    
     Integer deferred;
     deferred => nesting;
     result = deferred;
+    
+    Integer localCapture2 => x+1;
+    result = localCapture2;
+    assign localCapture2 => print(result+=x);
+    localCapture2 = result;
+    
+    Integer localCapture3;
+    localCapture3 => x+1;
+    result = localCapture3;
+    
+    value transitiveCapture2 => localVariableCapture + localCapture2;
+    result = transitiveCapture2;
+    assign transitiveCapture2 => print(result+=x);
     
     return 0;
 }

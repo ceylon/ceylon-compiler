@@ -44,6 +44,27 @@ class ValueLocalToToplevelClass<T> implements .com.redhat.ceylon.compiler.java.r
             returning new deferred$getter$_();
         );
         setResult$priv$(getDeferred$2(deferred$getter$_));
+        setResult$priv$(getLocalCapture2$priv$());
+        setLocalCapture2$priv$(getResult$priv$());
+        .com.redhat.ceylon.compiler.java.language.GetterLong localCapture3$getter$_;
+        localCapture3$getter$_ = (
+            let
+            {
+                
+                final class localCapture3$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                    
+                    private localCapture3$getter$_() {
+                    }
+                    
+                    public long get_() {
+                        return getX$priv$() + 1L;
+                    }
+                }
+            }
+            returning new localCapture3$getter$_();
+        );
+        setResult$priv$(getLocalCapture3$2(localCapture3$getter$_));
+        setResult$priv$(getTransitiveCapture2$2());
     }
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
     
@@ -213,6 +234,40 @@ class ValueLocalToToplevelClass<T> implements .com.redhat.ceylon.compiler.java.r
     
     private final long getDeferred$2(final .com.redhat.ceylon.compiler.java.language.GetterLong getDeferred$2) {
         return getDeferred$2.get_();
+    }
+    
+    private final long getLocalCapture2$priv$() {
+        return getX$priv$() + 1L;
+    }
+    
+    private final void setLocalCapture2$priv$(final long localCapture2) {
+        .ceylon.language.print_.print(.ceylon.language.Integer.instance((
+            let
+            {
+                long $ceylontmp$op$10 = getResult$priv$() + getX$priv$();
+                setResult$priv$($ceylontmp$op$10);
+            }
+            returning $ceylontmp$op$10;
+        )));
+    }
+    
+    private final long getLocalCapture3$2(final .com.redhat.ceylon.compiler.java.language.GetterLong getLocalCapture3$2) {
+        return getLocalCapture3$2.get_();
+    }
+    
+    private final long getTransitiveCapture2$2() {
+        return getLocalVariableCapture$priv$() + getLocalCapture2$priv$();
+    }
+    
+    private final void setTransitiveCapture2$2(final long transitiveCapture2) {
+        .ceylon.language.print_.print(.ceylon.language.Integer.instance((
+            let
+            {
+                long $ceylontmp$op$12 = getResult$priv$() + getX$priv$();
+                setResult$priv$($ceylontmp$op$12);
+            }
+            returning $ceylontmp$op$12;
+        )));
     }
     
     @.java.lang.Override

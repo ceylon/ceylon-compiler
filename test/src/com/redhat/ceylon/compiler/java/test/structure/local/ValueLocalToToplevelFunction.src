@@ -131,6 +131,40 @@ final class valueLocalToToplevelFunction_ {
         return getDeferred$2.get_();
     }
     
+    private static final <T>long getLocalCapture2$2(final long x$23, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return x$23 + 1L;
+    }
+    
+    private static final <T>void setLocalCapture2$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$24, final long x$25, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long localCapture2) {
+        .ceylon.language.print_.print(.ceylon.language.Integer.instance((
+            let
+            {
+                long $ceylontmp$op$26 = result$24.ref + x$25;
+                result$24.ref = $ceylontmp$op$26;
+            }
+            returning $ceylontmp$op$26;
+        )));
+    }
+    
+    private static final <T>long getLocalCapture3$2(final .com.redhat.ceylon.compiler.java.language.GetterLong getLocalCapture3$2, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return getLocalCapture3$2.get_();
+    }
+    
+    private static final <T>long getTransitiveCapture2$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$28, final long x$29, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$30, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return getLocalVariableCapture$2(y$28, $reified$T) + getLocalCapture2$2(x$29, $reified$T);
+    }
+    
+    private static final <T>void setTransitiveCapture2$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$31, final long x$32, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long transitiveCapture2) {
+        .ceylon.language.print_.print(.ceylon.language.Integer.instance((
+            let
+            {
+                long $ceylontmp$op$33 = result$31.ref + x$32;
+                result$31.ref = $ceylontmp$op$33;
+            }
+            returning $ceylontmp$op$33;
+        )));
+    }
+    
     static <T>long valueLocalToToplevelFunction(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
         final long x = 0L;
         final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
@@ -170,6 +204,27 @@ final class valueLocalToToplevelFunction_ {
             returning new deferred$getter$_();
         );
         result.ref = getDeferred$2(deferred$getter$_, $reified$T);
+        result.ref = getLocalCapture2$2(x, $reified$T);
+        setLocalCapture2$2(result, x, $reified$T, result.ref);
+        .com.redhat.ceylon.compiler.java.language.GetterLong localCapture3$getter$_;
+        localCapture3$getter$_ = (
+            let
+            {
+                
+                final class localCapture3$getter$_ implements .com.redhat.ceylon.compiler.java.language.GetterLong {
+                    
+                    private localCapture3$getter$_() {
+                    }
+                    
+                    public long get_() {
+                        return x + 1L;
+                    }
+                }
+            }
+            returning new localCapture3$getter$_();
+        );
+        result.ref = getLocalCapture3$2(localCapture3$getter$_, $reified$T);
+        result.ref = getTransitiveCapture2$2(y, x, result, $reified$T);
         return 0L;
     }
     

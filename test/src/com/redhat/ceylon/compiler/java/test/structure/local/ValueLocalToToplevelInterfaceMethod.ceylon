@@ -128,6 +128,18 @@ interface ValueLocalToToplevelInterfaceMethod
         deferred => nesting;
         result = deferred;
         
+        Integer localCapture2 => x+1;
+        result = localCapture2;
+        assign localCapture2 => print(result+=x);
+        localCapture2 = result;
+        
+        Integer localCapture3;
+        localCapture3 => x+1;
+        result = localCapture3;
+        
+        value transitiveCapture2 => localVariableCapture + localCapture2;
+        result = transitiveCapture2;
+        assign transitiveCapture2 => print(result+=x);
     }
 }
 
