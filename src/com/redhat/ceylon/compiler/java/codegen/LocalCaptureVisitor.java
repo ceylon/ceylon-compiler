@@ -33,6 +33,20 @@ public class LocalCaptureVisitor extends Visitor {
     
     public void visit(Tree.AnyClass that) {
         pushScope(that.getDeclarationModel());
+        List<Declaration> cap = that.getDeclarationModel().getExtendedTypeDeclaration().getDirectlyCaptured();
+        if (cap != null) {
+            for (Declaration captured : cap) {
+                addCapture(that.getDeclarationModel(), captured);
+            }
+        }
+        for (TypeDeclaration superType : that.getDeclarationModel().getSatisfiedTypeDeclarations()) {
+            cap = superType.getDirectlyCaptured();
+            if (cap != null) {
+                for (Declaration captured : cap) {
+                    addCapture(that.getDeclarationModel(), captured);
+                }
+            }
+        }
         super.visit(that);
         popScope();
     }
@@ -115,26 +129,6 @@ public class LocalCaptureVisitor extends Visitor {
             addCapture(capturer, ((Value)captured).getSetter());
         }
     }
-    
-    public void visit(Tree.AnyClass that) {
-        
-        List<Declaration> cap = that.getDeclarationModel().getExtendedTypeDeclaration().getDirectlyCaptured();
-        if (cap != null) {
-            for (Declaration captured : cap) {
-                addCapture(that.getDeclarationModel(), captured);
-            }
-        }
-        for (TypeDeclaration superType : that.getDeclarationModel().getSatisfiedTypeDeclarations()) {
-            cap = superType.getDirectlyCaptured();
-            if (cap != null) {
-                for (Declaration captured : cap) {
-                    addCapture(that.getDeclarationModel(), captured);
-                }
-            }
-        }
-        super.visit(that);
-    }
-    
     
     public void visit(Tree.BaseMemberExpression that) {
         if (noErrors(that)
