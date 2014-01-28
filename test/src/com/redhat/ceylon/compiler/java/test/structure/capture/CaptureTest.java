@@ -43,7 +43,7 @@ public class CaptureTest {
             Unit unit = pu.getUnit();
             for (Declaration d: unit.getDeclarations()) {
                 if (d instanceof TypedDeclaration && !(d instanceof Setter)) {
-                    compilationUnit.visit(new MethodOrValueReferenceVisitor(compilationUnit, (TypedDeclaration) d));
+                    compilationUnit.visit(new MethodOrValueReferenceVisitor((TypedDeclaration) d));
                 }
             }
             // Assert the unit isn't broken 
