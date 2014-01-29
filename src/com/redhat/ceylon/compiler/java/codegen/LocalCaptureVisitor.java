@@ -6,8 +6,10 @@ import java.util.List;
 
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
+import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
+import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
@@ -80,6 +82,19 @@ public class LocalCaptureVisitor extends Visitor {
     
     public void visit(Tree.AttributeSetterDefinition that) {
         pushScope(that.getDeclarationModel());
+        super.visit(that);
+        popScope();
+    }
+    
+    public void visit(Tree.ParameterDeclaration that) {
+        MethodOrValue model = that.getParameterModel().getModel();
+        if (model instanceof Method) {
+            pushScope((Method)model);
+        } else if (model instanceof Value) {
+            pushScope((Value)model);
+        } else if (model instanceof Setter) {
+            pushScope((Setter)model);
+        } 
         super.visit(that);
         popScope();
     }

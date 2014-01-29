@@ -1705,7 +1705,12 @@ public class ClassTransformer extends AbstractTransformer {
         ListBuffer<JCExpression> arguments = ListBuffer.<JCExpression>lb();
         if (Decl.isLocal(iface)) {
             arguments.add(naming.makeThis());
-            addCapturedLocalArguments(arguments, member);
+            
+            if (member.isParameter()) {
+                addCapturedLocalArguments(arguments, Decl.getDeclarationContainer(member).getRefinedDeclaration());
+            } else {
+                addCapturedLocalArguments(arguments, member);
+            }
         }
         
         if(typeParameters != null){
@@ -3008,6 +3013,10 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void appendCanonicalImplicitArguments(Method method, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
+            if (method.isInterfaceMember()) {
+                args.append(naming.makeQuotedThis());
+                addCapturedLocalArguments(args, method);
+            }
             if(typeParameterList != null){
                 // we pass the reified type parameters along
                 for(TypeParameter tp : typeParameterList){
@@ -3049,13 +3058,25 @@ public class ClassTransformer extends AbstractTransformer {
         }*/
         
         @Override
+        JCExpression makeDefaultedParamMethod(Method method, Parameter parameterModel, DaoBody<Method> body) {
+            return naming.makeUnquotedIdent(naming.getDefaultedParamMethodName(method, parameterModel));
+        }
+        
+        /** Returns the name of the method that the overload delegates to */
+        @Override
+        protected JCExpression makeMethodName(Method method, DaoBody<Method> daoBody) {
+            return naming.makeName(method, Naming.NA_MEMBER | Naming.NA_CANONICAL_METHOD);
+        }
+        
+        @Override
         protected void appendCanonicalImplicitArguments(Method method, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
-            if (method.isInterfaceMember()) {
-                args.add(naming.makeQuotedThis());
-                addCapturedLocalArguments(args, method);
+            if(typeParameterList != null){
+                // we pass the reified type parameters along
+                for(TypeParameter tp : typeParameterList){
+                    args.append(makeUnquotedIdent(naming.getTypeArgumentDescriptorName(tp.getName())));
+                }
             }
-            super.appendCanonicalImplicitArguments(method, typeParameterList, overloadBuilder, args);
         }
 
         @Override
@@ -3146,7 +3167,23 @@ public class ClassTransformer extends AbstractTransformer {
             if (useBody) {
                 mods = mods & ~PUBLIC & ~FINAL | PRIVATE;
             }
+            if (method.isInterfaceMember()) {
+                mods |= STATIC;
+            }
             return mods;
+        }
+        
+        @Override
+        protected void transformParameterList(Method method, 
+                ParameterList parameterList, 
+                Parameter currentParameter, 
+                MethodDefinitionBuilder overloadBuilder) {
+            if (method.isInterfaceMember()) {
+                capturedThisParameter(method, overloadBuilder);
+                capturedLocalParameters(method, overloadBuilder);
+                outerReifiedTypeParameters(method, overloadBuilder);
+            }
+            super.transformParameterList(method, parameterList, currentParameter, overloadBuilder);
         }
         
         /**
@@ -3661,6 +3698,7 @@ public class ClassTransformer extends AbstractTransformer {
             return modifiers;
         }
     };
+    
     class ClassDpvmTransformation extends DefaultParameterValueMethodTransformation<Class> {
         @Override
         protected void transformTypeParameterList(Class cls,

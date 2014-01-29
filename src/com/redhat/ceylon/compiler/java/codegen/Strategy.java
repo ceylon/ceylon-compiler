@@ -100,6 +100,10 @@ class Strategy {
             return DefaultParameterMethodOwner.SELF;
         }
         
+        if (decl instanceof Method && decl.isInterfaceMember() && Decl.isLocal((Interface)decl.getContainer())) {
+            return DefaultParameterMethodOwner.OUTER_COMPANION;
+        }
+        
         if ((decl instanceof Method || decl instanceof Class) 
                 && decl.isToplevel()) {
             // Only top-level methods have static default value methods
@@ -130,11 +134,6 @@ class Strategy {
                 return false;
             }
             nonLocalContainer = Decl.getNonLocalDeclarationContainer((Method)decl);
-        }
-        if (decl instanceof Method 
-                && nonLocalContainer instanceof TypedDeclaration 
-                && nonLocalContainer.isToplevel()) {
-            return true;
         }
         
         if (decl instanceof Class
