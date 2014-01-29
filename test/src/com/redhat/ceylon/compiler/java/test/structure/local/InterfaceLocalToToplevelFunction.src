@@ -32,11 +32,31 @@ interface interfaceLocalToToplevelFunction$0$DefaultedParameter_<T> {
     
     public long getZ();
     
-    public long m(final long b);
+    public long sharedMethod(final long b);
     
-    public abstract long m$y(final long b);
+    public abstract long sharedMethod$y(final long b);
     
-    public long m(final long b, final long y);
+    public long sharedMethod(final long b, final long y);
+    
+    public abstract long formalMethod(final long b);
+    
+    public abstract long formalMethod$y(final long b);
+    
+    public abstract long formalMethod(final long b, final long y);
+    
+    public long defaultMethod(final long b);
+    
+    public abstract long defaultMethod$y(final long b);
+    
+    public long defaultMethod(final long b, final long y);
+}
+interface interfaceLocalToToplevelFunction$0$Top_<T> {
+    
+    public long getTop();
+    
+    public abstract long getFormalAttribute();
+    
+    public long getDefaultAttribute();
 }
 final class interfaceLocalToToplevelFunction_ {
     
@@ -260,22 +280,150 @@ final class interfaceLocalToToplevelFunction_ {
             return result$15.ref;
         }
         
-        public static long m(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$16, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
+        private static long nonSharedMethod$priv$(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$16, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
             return (
                 let
                 {
-                    long $ceylontmp$y$17 = DefaultedParameter$0$impl.m$y($this, result$16, $reified$T, b);
+                    long $ceylontmp$y$17 = DefaultedParameter$0$impl.nonSharedMethod$y($this, result$16, $reified$T, b);
                 }
-                returning m($this, result$16, $reified$T, b, $ceylontmp$y$17);
+                returning nonSharedMethod$priv$($this, result$16, $reified$T, b, $ceylontmp$y$17);
             );
         }
         
-        public static final long m$y(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$18, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
+        private static final long nonSharedMethod$y(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$18, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
             return result$18.ref;
         }
         
-        static <T>long m(final .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$19, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b, final long y) {
+        static <T>long nonSharedMethod$priv$(final .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$19, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b, final long y) {
             return b + y + $this.getZ();
+        }
+        
+        public static final long sharedMethod$y(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$20, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
+            return result$20.ref;
+        }
+        
+        static <T>long sharedMethod(final .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$21, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b, final long y) {
+            return b + y + $this.getZ();
+        }
+        
+        public static final long formalMethod$y(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$22, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
+            return result$22.ref;
+        }
+        
+        public static final long defaultMethod$y(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$23, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b) {
+            return result$23.ref;
+        }
+        
+        private static long defaultMethod$canonical$(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$24, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b, final long y) {
+            return b + y + $this.getZ();
+        }
+        
+        static <T>long defaultMethod(final .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$25, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final long b, final long y) {
+            return defaultMethod$canonical$($this, result$25, $reified$T, b, y);
+        }
+    }
+    
+    static class DefaultedParameterClass$0<T> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType, .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ {
+        
+        DefaultedParameterClass$0(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$26, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+            this.$reified$T = $reified$T;
+            this.result$26 = result$26;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
+        private final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$26;
+        
+        @.java.lang.Override
+        public long getZ() {
+            return DefaultedParameter$0$impl.getZ(this, result$26, $reified$T);
+        }
+        
+        @.java.lang.Override
+        public final long sharedMethod$y(final long b) {
+            return DefaultedParameter$0$impl.sharedMethod$y(this, result$26, $reified$T, b);
+        }
+        
+        @.java.lang.Override
+        public long sharedMethod(final long b) {
+            return (
+                let
+                {
+                    long $ceylontmp$y$27 = sharedMethod$y(b);
+                }
+                returning sharedMethod$canonical$(b, $ceylontmp$y$27);
+            );
+        }
+        
+        @.java.lang.Override
+        public final long sharedMethod(final long b, final long y) {
+            return DefaultedParameter$0$impl.sharedMethod(this, result$26, $reified$T, b, y);
+        }
+        
+        private long sharedMethod$canonical$(final long b, final long y) {
+            return DefaultedParameter$0$impl.sharedMethod(this, result$26, $reified$T, b, y);
+        }
+        
+        @.java.lang.Override
+        public final long formalMethod$y(final long b) {
+            return DefaultedParameter$0$impl.formalMethod$y(this, result$26, $reified$T, b);
+        }
+        
+        @.java.lang.Override
+        public final long defaultMethod$y(final long b) {
+            return DefaultedParameter$0$impl.defaultMethod$y(this, result$26, $reified$T, b);
+        }
+        
+        @.java.lang.Override
+        public long defaultMethod(final long b) {
+            return (
+                let
+                {
+                    long $ceylontmp$y$28 = defaultMethod$y(b);
+                }
+                returning defaultMethod$canonical$(b, $ceylontmp$y$28);
+            );
+        }
+        
+        @.java.lang.Override
+        public long defaultMethod(final long b, final long y) {
+            return DefaultedParameter$0$impl.defaultMethod(this, result$26, $reified$T, b, y);
+        }
+        
+        private long defaultMethod$canonical$(final long b, final long y) {
+            return DefaultedParameter$0$impl.defaultMethod(this, result$26, $reified$T, b, y);
+        }
+        
+        public final long formalMethod(final long b) {
+            return (
+                let
+                {
+                    long $ceylontmp$y$29 = formalMethod$y(b);
+                }
+                returning formalMethod(b, $ceylontmp$y$29);
+            );
+        }
+        
+        @.java.lang.Override
+        public final long formalMethod(final long b, final long y) {
+            return b + y;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(DefaultedParameterClass$0.class);
+        }
+    }
+    
+    final class Top$0$impl {
+        
+        private Top$0$impl() {
+        }
+        
+        public static final <T>long getTop(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$Top_ $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+            return 1L;
+        }
+        
+        public static final <T>long getDefaultAttribute(.com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$Top_ $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+            return $this.getTop();
         }
     }
     
@@ -308,5 +456,38 @@ final class interfaceLocalToToplevelFunction_ {
         )).longValue();
         result.ref = new TpCaptureClass$0(t, $reified$T).getT1().hashCode();
         new VariableCaptureClass$0(result, $reified$T).mutate();
+        result.ref = new DefaultedParameterClass$0(result, $reified$T).sharedMethod(2L);
+        result.ref = new DefaultedParameterClass$0(result, $reified$T).formalMethod(2L);
+        result.ref = new DefaultedParameterClass$0(result, $reified$T).defaultMethod(2L);
+        result.ref = (
+            let
+            {
+                .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ arg$30$callable$ = new DefaultedParameterClass$0(result, $reified$T);
+                .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ arg$30$argthis$ = arg$30$callable$;
+                long arg$30$0 = 2L;
+                long arg$30$1 = arg$30$callable$.sharedMethod$y(arg$30$0);
+            }
+            returning arg$30$callable$.sharedMethod(arg$30$0, arg$30$1);
+        );
+        result.ref = (
+            let
+            {
+                DefaultedParameterClass$0 arg$32$callable$ = new DefaultedParameterClass$0(result, $reified$T);
+                DefaultedParameterClass$0 arg$32$argthis$ = arg$32$callable$;
+                long arg$32$0 = 2L;
+                long arg$32$1 = arg$32$argthis$.formalMethod$y(arg$32$0);
+            }
+            returning arg$32$callable$.formalMethod(arg$32$0, arg$32$1);
+        );
+        result.ref = (
+            let
+            {
+                .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ arg$34$callable$ = new DefaultedParameterClass$0(result, $reified$T);
+                .com.redhat.ceylon.compiler.java.test.structure.local.interfaceLocalToToplevelFunction$0$DefaultedParameter_ arg$34$argthis$ = arg$34$callable$;
+                long arg$34$0 = 2L;
+                long arg$34$1 = arg$34$callable$.defaultMethod$y(arg$34$0);
+            }
+            returning arg$34$callable$.defaultMethod(arg$34$0, arg$34$1);
+        );
     }
 }

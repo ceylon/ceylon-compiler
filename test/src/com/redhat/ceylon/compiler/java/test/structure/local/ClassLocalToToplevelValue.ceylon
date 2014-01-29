@@ -1,13 +1,12 @@
 @noanno
-void classLocalToToplevelFunction<T>(T t) 
-        given T satisfies Object {
+Integer functionLocalToToplevelValue {
     Integer i = 0;
     variable value result = 0;
     variable Anything ref;
     variable Anything staticRef;
     class Capture(Integer k) {
         shared default Integer capture() {
-            return t.hash ^ i + k;
+            return i + k;
         }
         shared Integer transitiveCapture() {
             return capture();
@@ -38,14 +37,14 @@ void classLocalToToplevelFunction<T>(T t)
     class Nesting() {
         class NestedLocalClass() {
             shared Integer m() {
-                return i + t.hash;
+                return i;
             }
         }
         value nlc = NestedLocalClass();
         value h = nlc.m();
         shared class NestedMemberClass() {
             shared Integer m() {
-                return i + t.hash;
+                return i;
             }
         }
         shared Integer k = NestedMemberClass().m();
@@ -62,12 +61,6 @@ void classLocalToToplevelFunction<T>(T t)
         u=result;
     };
     ref = GenericMethod;
-    
-    class TpCapture() {
-        shared T t1 => t;
-    }
-    result = TpCapture().t1.hash;
-    ref = TpCapture;
     
     class VariableCapture() {
         result = 0;
@@ -119,12 +112,13 @@ void classLocalToToplevelFunction<T>(T t)
     
     
     /* TODO
-    // issues todo with locality within the initializer
-    
-    // transitive type parameter capture: Nothing to test here ATM because we always
-         copy down all the reified TPs that are in scope. We should fix that XXX
-    // object declarations
-    // static references
-    // TODO object o extends ClassLocalToToplevelFunction(){}
-    */
+     // issues todo with locality within the initializer
+     
+     // transitive type parameter capture: Nothing to test here ATM because we always
+     copy down all the reified TPs that are in scope. We should fix that XXX
+     // object declarations
+     // static references
+     // TODO object o extends ClassLocalToToplevelFunction(){}
+     */
+    return result;
 }

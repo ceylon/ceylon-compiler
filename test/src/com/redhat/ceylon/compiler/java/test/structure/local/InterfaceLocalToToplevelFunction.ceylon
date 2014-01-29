@@ -123,30 +123,66 @@ void interfaceLocalToToplevelFunction<T>(T t)
         b=2;
     };
     
-    /*
-    interface SuperclassCapture satisfies Capture {
-        // TODO We should only generate fields for captured stuff if we 
-        // capture it directly ouselves
-    }
-    result = SuperclassCapture().hash;
-    ref = SuperclassCapture;
-    
-    /*interface Interface { TODO
-        shared Integer x => i;
-    }
-    class SuperinterfaceCapture() satisfies Interface {
+    interface Top {
+        shared Integer top => 1;
         
+        shared variable formal Integer formalAttribute;
+        
+        shared default Integer defaultAttribute => this.top;
+        assign defaultAttribute {}
+        
+        
+        shared formal Integer formalMethod();
+        shared default Integer defaultMethod() => top;
     }
-    result = SuperinterfaceCapture().x;*/
-    
-    interface SelfRef satisfies Capture {
-        shared actual Integer capture() {
-            return super.capture() + this.capture();
+    interface Left satisfies Top {
+        shared default Integer left => 2;
+        
+        shared actual default Integer formalAttribute 
+                => this.left + this.top + super.top;
+        assign formalAttribute { 
+            super.defaultAttribute++;
+            this.defaultAttribute+=1;
+            this.formalAttribute=1;
+        }
+        shared actual default Integer defaultAttribute 
+                => super.defaultAttribute + this.formalAttribute;
+        assign defaultAttribute { }
+        
+        shared actual default Integer formalMethod()
+                => this.left + this.top + super.top;
+        
+        shared actual default Integer defaultMethod()
+                => super.defaultAttribute + this.formalAttribute;
+        
+        void ref() {
+            value x = super.defaultMethod;
+            Integer y = x();
         }
     }
+    /*interface Right satisfies Top {
+        shared default Integer right => 4;
+        shared actual default Integer defaultAttribute 
+                => this.right + this.top + super.top;
+        
+    }
+    class TopClass() satisfies Top {
+        shared default Integer topClass => 8;
+        shared actual default Integer formalAttribute 
+                => this.topClass + this.top + super.top;
+    }
+    class SelfRef() extends TopClass() satisfies Left & Right {
+        shared formal Integer formalAttribute 
+                => super.left + super.right + super.top 
+                    + (super of Left).formalAttribute 
+                    + (super of Right).formalAttribute 
+                    + (super of TopClass).formalAttribute;
+    }
+    class SelfRefClass() satisfies SelfRef {
+        
+    }
     result = SelfRef().capture();
-    
-    
+    */
     /* TODO
     // issues todo with locality within the initializer
     
@@ -156,5 +192,4 @@ void interfaceLocalToToplevelFunction<T>(T t)
     // static references
     // TODO object o extends ClassLocalToToplevelFunction(){}
     */
-     */
 }

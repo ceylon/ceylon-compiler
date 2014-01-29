@@ -131,11 +131,7 @@ public class LocalTest extends CompilerTest {
     public void testClassLocalToToplevelFunction() {
         compareWithJavaSource("ClassLocalToToplevelFunction");
     }
-    @Test
-    public void testInterfaceLocalToToplevelFunction() {
-        compareWithJavaSource("InterfaceLocalToToplevelFunction");
-    }
-    /*
+    
     @Test
     public void testClassLocalToToplevelValue() {
         compareWithJavaSource("ClassLocalToToplevelValue");
@@ -145,7 +141,7 @@ public class LocalTest extends CompilerTest {
     public void testClassLocalToToplevelClass() {
         compareWithJavaSource("ClassLocalToToplevelClass");
     }
-    
+    /*
     @Test
     public void testClassLocalToToplevelClassMethod() {
         compareWithJavaSource("ClassLocalToToplevelClassMethod");
@@ -159,9 +155,12 @@ public class LocalTest extends CompilerTest {
         // TODO also InterfaceGetterSetter
         // in fact change this test for ...Member
     }
-    // Then the same for local interfaces
-    
-    
     */
+    
+    // Then the same for local interfaces
+    @Test
+    public void testInterfaceLocalToToplevelFunction() {
+        compareWithJavaSource("InterfaceLocalToToplevelFunction");
+    }
 }
 

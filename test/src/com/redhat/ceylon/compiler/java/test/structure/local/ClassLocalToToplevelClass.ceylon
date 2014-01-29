@@ -1,10 +1,10 @@
 @noanno
-void classLocalToToplevelFunction<T>(T t) 
+class FunctionLocalToToplevelClass<T>(Integer i, T t) 
         given T satisfies Object {
-    Integer i = 0;
-    variable value result = 0;
-    variable Anything ref;
-    variable Anything staticRef;
+    shared actual String string => "";
+    variable Anything ref = null;
+    variable Anything staticRef = null;
+    variable Integer result;
     class Capture(Integer k) {
         shared default Integer capture() {
             return t.hash ^ i + k;
@@ -119,12 +119,12 @@ void classLocalToToplevelFunction<T>(T t)
     
     
     /* TODO
-    // issues todo with locality within the initializer
-    
-    // transitive type parameter capture: Nothing to test here ATM because we always
-         copy down all the reified TPs that are in scope. We should fix that XXX
-    // object declarations
-    // static references
-    // TODO object o extends ClassLocalToToplevelFunction(){}
-    */
+     // issues todo with locality within the initializer
+     
+     // transitive type parameter capture: Nothing to test here ATM because we always
+     copy down all the reified TPs that are in scope. We should fix that XXX
+     // object declarations
+     // static references
+     // TODO object o extends ClassLocalToToplevelFunction(){}
+     */
 }
