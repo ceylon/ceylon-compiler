@@ -3,7 +3,7 @@ void interfaceLocalToToplevelFunction<T>(T t)
         given T satisfies Object {
     Integer i = 0;
     variable value result = 0;
-    /*
+
     interface Capture{
         shared formal Integer k;
         shared default Integer capture() {
@@ -89,32 +89,41 @@ void interfaceLocalToToplevelFunction<T>(T t)
     }
     class VariableCaptureClass() satisfies VariableCapture {}
     VariableCaptureClass().mutate();
-    */
+
     interface DefaultedParameter {
         shared default Integer z {
             return result;
         }
-        /*Integer nonSharedMethod(Integer b, Integer y = result) {
+        Integer nonSharedMethod(Integer b, Integer y = result) {
             return b + y + z;
-        }*/
-        //shared Integer sharedMethod(Integer b, Integer y = result) {
-        //    return b + y + z;
-        //}
-        //shared formal Integer formalMethod(Integer b, Integer y = result);
+        }
+        shared Integer sharedMethod(Integer b, Integer y = result) {
+            return b + y + z;
+        }
+        shared formal Integer formalMethod(Integer b, Integer y = result);
         shared default Integer defaultMethod(Integer b, Integer y = result) {
             return b + y + z;
         }
     }
-    /*
+    
     class DefaultedParameterClass() satisfies DefaultedParameter {
+        shared actual Integer formalMethod(Integer b, Integer y) => b+y;
     }
     
-    result = DefaultedParameterClass().m(2);
-    result = DefaultedParameterClass{}.m{
+    result = DefaultedParameterClass().sharedMethod(2);
+    result = DefaultedParameterClass().formalMethod(2);
+    result = DefaultedParameterClass().defaultMethod(2);
+    result = DefaultedParameterClass{}.sharedMethod{
+        b=2;
+    };
+    result = DefaultedParameterClass{}.formalMethod{
+        b=2;
+    };
+    result = DefaultedParameterClass{}.defaultMethod{
         b=2;
     };
     
-    
+    /*
     interface SuperclassCapture satisfies Capture {
         // TODO We should only generate fields for captured stuff if we 
         // capture it directly ouselves
