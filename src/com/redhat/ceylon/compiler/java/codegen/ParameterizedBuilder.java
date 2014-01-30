@@ -5,10 +5,12 @@ import static com.sun.tools.javac.code.Flags.FINAL;
 import java.util.ArrayList;
 
 import com.redhat.ceylon.compiler.java.codegen.Naming.Substitution;
+import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
 import com.redhat.ceylon.compiler.typechecker.model.Setter;
+import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
@@ -39,7 +41,7 @@ abstract class ParameterizedBuilder<B extends ParameterizedBuilder<B>> {
      * 
      * @see #closeSubstitutions()
      */
-    public final B capturedLocalParameter(TypedDeclaration declaration) {
+    public final B capturedLocalParameter(Declaration declaration) {
         // TODO This is a copy of what's in MDB: We need to refactor it
         if (declaration instanceof Method 
                 && Strategy.useStaticForFunction((Method)declaration)
@@ -47,48 +49,48 @@ abstract class ParameterizedBuilder<B extends ParameterizedBuilder<B>> {
             return (B)this;
         }
         String parameterName;
-        Scope scope = declaration.getScope();
-        /*if (Decl.isGetter(declaration)) {// TODO This is just wrong
-            parameterName = gen.naming.getLocalInstanceName(declaration, 0);
-        } else if (declaration instanceof Setter) {
-            parameterName = gen.naming.getAttrClassName(declaration, 0);
-        } else*/ {
+        
+        if (declaration instanceof TypedDeclaration) {
             parameterName = gen.naming.aliasName(declaration.getName()).toString();
             if (subsToClose == null) {
                 subsToClose = new ArrayList<Naming.Substitution>(5);
             }
-            subsToClose.add(gen.naming.addVariableSubst(declaration, parameterName));
-        } /* else {
-            parameterName = gen.naming.substitute(declaration);
-        //}
-        if (Decl.isGetter(declaration)) {// TODO This is just wrong
-            parameterName = gen.naming.getLocalInstanceName(declaration, 0);
-        } else if (declaration instanceof Setter) {
-            parameterName = Naming.getAttrClassName(declaration, 0);
-        }*/
+            subsToClose.add(gen.naming.addVariableSubst((TypedDeclaration)declaration, parameterName));
+        } else if (declaration instanceof TypeDeclaration) {
+            parameterName = gen.naming.getOuterParameterName((TypeDeclaration)declaration);
+        } else {
+            throw Assert.fail();
+        }
         
         ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(gen, 
                 parameterName);
         pdb.ignored();
         pdb.modifiers(FINAL/*| Flags.SYNTHETIC*/);
         // TODO This futzing around how we use the getter needs better encapsulation
-        if (Decl.isGetter(declaration)) {
-            pdb.type(gen.makeJavaType(gen.getGetterInterfaceType((TypedDeclaration)declaration)), null);
-        } else if (declaration instanceof Setter) {
-            pdb.type(gen.naming.makeQuotedIdent(gen.naming.getAttrClassName(declaration, 0)), null);
-        } else if (declaration.isVariable()) {
-            pdb.type(gen.makeVariableBoxType(declaration), null);
-        } else if (declaration instanceof Value
-                && Decl.isLocal(declaration)
-                && ((Value)declaration).isTransient()) {
-            pdb.type(gen.naming.makeName((Value)declaration, Naming.NA_WRAPPER | Naming.NA_GETTER), null);
-        } else if (declaration instanceof Method 
-                && !Strategy.useStaticForFunction((Method)declaration)) {
-            pdb.type(gen.naming.makeName((Method)declaration, Naming.NA_WRAPPER), null);
-        } else if (declaration instanceof Method) {
-            pdb.type(gen.makeJavaType(declaration.getType().getFullType()), null);
+        if (declaration instanceof TypedDeclaration) {
+            TypedDeclaration typedDeclaration = (TypedDeclaration)declaration;
+            if (Decl.isGetter(typedDeclaration)) {
+                pdb.type(gen.makeJavaType(gen.getGetterInterfaceType(typedDeclaration)), null);
+            } else if (typedDeclaration instanceof Setter) {
+                pdb.type(gen.naming.makeQuotedIdent(gen.naming.getAttrClassName(typedDeclaration, 0)), null);
+            } else if (typedDeclaration.isVariable()) {
+                pdb.type(gen.makeVariableBoxType(typedDeclaration), null);
+            } else if (typedDeclaration instanceof Value
+                    && Decl.isLocal(typedDeclaration)
+                    && ((Value)typedDeclaration).isTransient()) {
+                pdb.type(gen.naming.makeName((Value)typedDeclaration, Naming.NA_WRAPPER | Naming.NA_GETTER), null);
+            } else if (declaration instanceof Method 
+                    && !Strategy.useStaticForFunction((Method)typedDeclaration)) {
+                pdb.type(gen.naming.makeName((Method)typedDeclaration, Naming.NA_WRAPPER), null);
+            } else if (declaration instanceof Method) {
+                pdb.type(gen.makeJavaType(typedDeclaration.getType().getFullType()), null);
+            } else {
+                pdb.type(gen.makeJavaType(typedDeclaration.getType()), null);
+            }
+        } else if (declaration instanceof TypeDeclaration) {
+            pdb.type(gen.makeJavaType(((TypeDeclaration)declaration).getType()), null);
         } else {
-            pdb.type(gen.makeJavaType(declaration.getType()), null);
+            Assert.fail();
         }
         return parameter(pdb);
     }

@@ -131,6 +131,18 @@ public class LocalCaptureVisitor extends Visitor {
     }
     
     static void addCapture(Declaration capturer, Declaration captured) {
+        if (capturer instanceof Interface) {
+            // interfaces don't have initializers, so they don't themsevles capture anything
+            // (though their member might)
+            return;
+        }
+        if (capturer.isInterfaceMember() && captured.isMember()) {
+            // If an interface member captures an out class member we say is 
+            // actually captures the class instance -- because for example
+            // we want the companion to access a value via it's getter, not by 
+            // copying the field.
+            captured = (Declaration)captured.getContainer();
+        }
         List<Declaration> c = capturer.getDirectlyCaptured();
         if (c == null) {
             c = new ArrayList<Declaration>(3);

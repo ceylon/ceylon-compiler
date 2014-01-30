@@ -882,9 +882,14 @@ public class Decl {
     }
     
     private static boolean isCapturedLocal(Declaration decl, Declaration captured) {
+        if (decl.isInterfaceMember()) {
+            return true;
+        }
         if (captured.isToplevel()
                 || (captured.isMember()
-                && !(Decl.isLocalToInitializer(captured) && Decl.isLocalToInitializer(decl)))) {
+                        && !decl.isInterfaceMember()
+                        && !(Decl.isLocalToInitializer(captured) 
+                        && Decl.isLocalToInitializer(decl)))) {
             return false;
         } else if ((decl instanceof MethodOrValue || decl instanceof Class)
                 && ((captured instanceof Value  && Decl.isLocal(captured))
@@ -894,7 +899,10 @@ public class Decl {
                         || (captured instanceof Method && Decl.isLocal(captured)
                         && ! Strategy.useStaticForFunction((Method)captured)))) {
             return true;
-        } 
+        } else if (decl.isInterfaceMember() && Decl.isLocal((Interface)decl.getContainer())) {
+            // Since companion methods are always static they capture outer members as well as locals
+            return true;
+        }
         return false;
     }
     

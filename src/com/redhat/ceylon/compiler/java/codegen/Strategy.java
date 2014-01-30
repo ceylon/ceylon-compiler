@@ -138,7 +138,8 @@ class Strategy {
         
         if (decl instanceof Class
                 && Decl.isLocal((Class)decl)
-                && Decl.getNonLocalDeclarationContainer((Class)decl).isToplevel()) {
+                && Decl.getNonLocalDeclarationContainer((Class)decl).isToplevel()
+                && Decl.getNonLocalDeclarationContainer((Class)decl) instanceof TypedDeclaration) {
             return true;
         }
         

@@ -3382,10 +3382,14 @@ public class ClassTransformer extends AbstractTransformer {
                     result.append(
                             naming.makeQuotedIdent(naming.getAttrClassName((Setter)decl, 0))
                             );
-                } else {
+                } else if (decl instanceof TypedDeclaration) {
                     result.append(
                             naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT)
                             );
+                } else if (decl instanceof TypeDeclaration) {
+                    result.append(naming.makeQualifiedThis(makeJavaType(((TypeDeclaration)decl).getType(), JT_RAW)));
+                } else {
+                    Assert.fail();
                 }
             }
         }
@@ -4285,7 +4289,7 @@ public class ClassTransformer extends AbstractTransformer {
                 outerTypeParameters(container, builder);
             }
             if (container instanceof Functional
-                    && !(container instanceof Class)) {
+                    && (!(container instanceof Class) || function instanceof Interface)) {
                 copyTypeParameters((Functional)container, builder);
             }
         }
@@ -4330,6 +4334,8 @@ public class ClassTransformer extends AbstractTransformer {
                     continue;
                 }
                 builder.capturedLocalParameter((TypedDeclaration)captured);
+            } else if (decl.isInterfaceMember()) {
+                builder.capturedLocalParameter((TypeDeclaration)captured);
             }
         }
     }
@@ -4349,18 +4355,18 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     
+    static void deferredSpecificationArgument(AbstractTransformer gen, MethodOrValue function, ListBuffer<JCExpression> args) {
+        if (function.isDeferred() && !function.isParameter()) {
+            args.add(gen.naming.makeUnquotedIdent(gen.naming.selector(function, Naming.NA_MEMBER)));
+        }
+    }
+    
     /** 
      * Transformation of a local function: We transform to a static 
      * method declared on the same class as contains the method/getter
      * that contains the local function. 
      */
     class LocalFunctionTransformation extends MethodOrFunctionTransformation {
-        
-        private void deferredSpecificationArgument(Method function, ListBuffer<JCExpression> args) {
-            if (function.isDeferred() && !function.isParameter()) {
-                args.add(naming.makeUnquotedIdent(naming.selector(function, Naming.NA_MEMBER)));
-            }
-        }
         
         private void capturedLocalArguments(Method function, ListBuffer<JCExpression> args) {
             for (Declaration captured : Decl.getCapturedLocals(function)) {
@@ -4410,7 +4416,7 @@ public class ClassTransformer extends AbstractTransformer {
                 protected void appendCanonicalImplicitArguments(Method method, 
                         java.util.List<TypeParameter> typeParameterList,
                         MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
-                    deferredSpecificationArgument(method, args);
+                    deferredSpecificationArgument(ClassTransformer.this, method, args);
                     capturedLocalArguments(method, args);
                     outerReifiedTypeArguments(ClassTransformer.this, method, args);
                     super.appendCanonicalImplicitArguments(method, typeParameterList, overloadBuilder, args);
@@ -4719,6 +4725,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         @Override
         public List<JCTree> transform(Tree.AnyMethod method) {
+            boolean prev = expressionGen().withinCompanion(true);
             Method m = method.getDeclarationModel();
             // We only transform if there's code
             ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
@@ -4726,6 +4733,7 @@ public class ClassTransformer extends AbstractTransformer {
             if (!m.isFormal()) {
                 transformUltimate(method, lb);
             }
+            expressionGen().withinCompanion(prev);
             return lb.toList();
         }
         

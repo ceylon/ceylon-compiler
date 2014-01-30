@@ -388,10 +388,13 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         public JCMethodDecl transform(Tree.AnyAttribute value) {
+            boolean prev = expressionGen().withinCompanion(true);
             if (value.getDeclarationModel().isFormal()) {
                 return null;
             }
-            return super.transform(value);
+            JCMethodDecl result = super.transform(value);
+            expressionGen().withinCompanion(prev);
+            return result;
         }
         
         @Override

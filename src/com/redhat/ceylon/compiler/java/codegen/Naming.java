@@ -141,6 +141,7 @@ public class Naming implements LocalId {
         $init$,
         $iterator$,
         $kv$, 
+        $outer$,
         $reified$,
         $superarg$
     }
@@ -1418,7 +1419,9 @@ public class Naming implements LocalId {
                     } else {
                         name = getGetterName(decl.getName()) + "$" + getLocalId(decl.getContainer());
                     }
-                } else {
+                } /*else if (gen().expressionGen().isWithinCompanion()) {
+                    name = substitute(decl);
+                } */else {
                     name = getGetterName(decl);
                 }
             }
@@ -1509,9 +1512,13 @@ public class Naming implements LocalId {
     }
     
     JCExpression makeCompanionAccessorCall(JCExpression qualExpr, Interface def) {
-        return make().Apply(null, 
-                makeCompanionAccessorName(qualExpr, def), 
-                com.sun.tools.javac.util.List.<JCExpression>nil());
+        if (Decl.isLocal(def)) {
+            return this.gen().makeJavaType(def.getType(), AbstractTransformer.JT_COMPANION);
+        } else {
+            return make().Apply(null, 
+                    makeCompanionAccessorName(qualExpr, def), 
+                    com.sun.tools.javac.util.List.<JCExpression>nil());
+        }
     }
     
     /** Generates an ident for the getter method of a Value */
@@ -2177,6 +2184,14 @@ public class Naming implements LocalId {
 
     public String getAnnotationSequenceMethodName() {
         return name(Unfix.$annotationSequence$);
+    }
+
+    public String getOuterParameterName(TypeDeclaration declaration) {
+        return prefixName(Prefix.$outer$, declaration.getName());
+    }
+    
+    public JCExpression makeOuterParameterName(TypeDeclaration declaration) {
+        return makeUnquotedIdent(getOuterParameterName(declaration));
     }
     
 }

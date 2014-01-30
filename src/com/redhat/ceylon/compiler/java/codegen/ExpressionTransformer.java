@@ -139,6 +139,7 @@ public class ExpressionTransformer extends AbstractTransformer {
     private boolean withinSyntheticClassBody = false;
     private Tree.ClassOrInterface withinSuperInvocation = null;
     private ClassOrInterface withinDefaultParameterExpression = null;
+    private boolean withinCompanion = false;
     
     /** 
      * Whether there is an uninitialized object reference on the operand stack. 
@@ -3764,6 +3765,10 @@ public class ExpressionTransformer extends AbstractTransformer {
         boolean mustUseField = false;
         // true for default parameter methods
         boolean mustUseParameter = false;
+        if (isWithinCompanion()
+                && decl.isMember()) {
+            qualExpr = naming.makeOuterParameterName((TypeDeclaration)decl.getContainer());
+        }
         if (decl instanceof Functional
                 && (!(decl instanceof Method) || !decl.isParameter() 
                         || functionalParameterRequiresCallable((Method)decl, expr)) 
@@ -3771,7 +3776,15 @@ public class ExpressionTransformer extends AbstractTransformer {
             result = transformFunctional(expr, (Functional)decl);
         } else if (Decl.isGetter(decl)) {
             // invoke the getter
-            if (decl.isToplevel()) {
+            /*if (isWithinCompanion()) {
+                if  (decl.isDefault()) {
+                    qualExpr = naming.makeUnquotedIdent(naming.selector((TypedDeclaration)decl));
+                    selector = "get_";
+                } else {
+                    selector = naming.selector((TypedDeclaration)decl);
+                    mustUseParameter = true;
+                }
+            } else*/ if (decl.isToplevel()) {
                 primaryExpr = null;
                 qualExpr = naming.makeName((Value)decl, Naming.NA_FQ | Naming.NA_WRAPPER | Naming.NA_MEMBER);
                 selector = null;
@@ -3832,11 +3845,21 @@ public class ExpressionTransformer extends AbstractTransformer {
                     } else {
                         selector = decl.getName();
                     }
-                } else {
+                } /*else if (isWithinCompanion()) {
+                    if  (decl.isDefault()) {
+                        qualExpr = naming.makeUnquotedIdent(naming.selector((TypedDeclaration)decl));
+                        selector = "get_";
+                    } else {
+                        selector = naming.selector((TypedDeclaration)decl);
+                        mustUseParameter = true;
+                    }
+                } */else {
                     // invoke the getter, using the Java interop form of Util.getGetterName because this is the only case
                     // (Value inside a Class) where we might refer to JavaBean properties
                     selector = naming.selector((TypedDeclaration)decl);
                 }
+                
+                
             } else if (decl.isCaptured() || decl.isShared()) {
                 TypedDeclaration typedDecl = ((TypedDeclaration)decl);
                 TypeDeclaration typeDecl = typedDecl.getType().getDeclaration();
@@ -5043,6 +5066,16 @@ public class ExpressionTransformer extends AbstractTransformer {
 
     void withinDefaultParameterExpression(ClassOrInterface forDefinition) {
         this.withinDefaultParameterExpression = forDefinition;
+    }
+    
+    boolean withinCompanion(boolean withinCompanion) {
+        boolean result = this.withinCompanion;
+        this.withinCompanion = withinCompanion;
+        return result;
+    }
+    
+    boolean isWithinCompanion() {
+        return withinCompanion;
     }
 
     //
