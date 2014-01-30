@@ -68,6 +68,38 @@ public class LocalCaptureVisitor extends Visitor {
         popScope();
     }
     
+    /*public void visit(Tree.AnyInterface that) {
+        pushScope(that.getDeclarationModel());
+        super.visit(that);
+        // Now, for interfaces, we say the interface itself captures whatever 
+        // it's members capture
+        List<Declaration> cap;
+        if (that.getDeclarationModel() instanceof Interface) {
+            for (Declaration member : that.getDeclarationModel().getMembers()) {
+                cap = member.getDirectlyCaptured();
+                if (cap != null) {
+                    for (Declaration captured : cap) {
+                        addCapture(that.getDeclarationModel(), captured);
+                    }
+                }
+            }
+        }
+        popScope();
+    }*/
+    
+    /*public void visit(Tree.Declaration that) {
+        if (that.getDeclarationModel().isInterfaceMember()) {
+            List<Declaration> cap = that.getDeclarationModel().getRefinedDeclaration().getDirectlyCaptured();
+            if (cap != null) {
+                for (Declaration captured : cap) {
+                    addCapture(that.getDeclarationModel(), captured);
+                }
+            }
+        }
+        super.visit(that);
+        
+    }*/
+    
     public void visit(Tree.AnyMethod that) {
         pushScope(that.getDeclarationModel());
         super.visit(that);
@@ -131,12 +163,14 @@ public class LocalCaptureVisitor extends Visitor {
     }
     
     static void addCapture(Declaration capturer, Declaration captured) {
-        if (capturer instanceof Interface) {
+        /*if (capturer instanceof Interface) {
             // interfaces don't have initializers, so they don't themsevles capture anything
             // (though their member might)
             return;
-        }
-        if (capturer.isInterfaceMember() && captured.isMember()) {
+        }*/
+        if (capturer.isInterfaceMember() 
+                && captured.isMember()
+                && captured.getContainer() != capturer.getContainer()) {
             // If an interface member captures an out class member we say is 
             // actually captures the class instance -- because for example
             // we want the companion to access a value via it's getter, not by 

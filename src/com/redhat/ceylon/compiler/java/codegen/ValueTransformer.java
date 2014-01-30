@@ -388,7 +388,7 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         public JCMethodDecl transform(Tree.AnyAttribute value) {
-            boolean prev = expressionGen().withinCompanion(true);
+            Interface prev = expressionGen().withinCompanion((Interface)value.getDeclarationModel().getContainer());
             if (value.getDeclarationModel().isFormal()) {
                 return null;
             }
@@ -706,6 +706,10 @@ public class ValueTransformer extends AbstractTransformer {
         
         protected void transformBody(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
             builder.noBody();
+        }
+        
+        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            //ClassTransformer.outerTypeParameters(value, builder);
         }
     }
     private final InterfaceSetter interfaceSetter = new InterfaceSetter();

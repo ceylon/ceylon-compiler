@@ -3940,7 +3940,7 @@ public class ClassTransformer extends AbstractTransformer {
         return methbuilder;
     }
     
-    static <B extends ParameterizedBuilder<B>> void copyTypeParameters(Functional def, B methodBuilder) {
+    static <B extends ParameterizedBuilder<B>> void copyTypeParameters(Generic def, B methodBuilder) {
         if (def.getTypeParameters() != null) {
             for (TypeParameter t : def.getTypeParameters()) {
                 methodBuilder.typeParameter(t);
@@ -4282,21 +4282,26 @@ public class ClassTransformer extends AbstractTransformer {
         builder.parameter(pdb);
     }
     
-    static <B extends ParameterizedBuilder<B>> void outerTypeParameters(Declaration function, B builder) {
-        Declaration container = Decl.getDeclarationContainer(function);
+    static <B extends ParameterizedBuilder<B>> void outerTypeParameters(Declaration declaration, B builder) {
+        outerTypeParameters2(declaration, declaration, builder);
+    }
+    
+    static <B extends ParameterizedBuilder<B>> void outerTypeParameters2(Declaration origin, Declaration declaration, B builder) {
+        Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
-            if (Decl.isLocal(container)) {
-                outerTypeParameters(container, builder);
+            if (Decl.isLocal(container) || origin.isInterfaceMember()) {
+                outerTypeParameters2(origin, container, builder);
             }
-            if (container instanceof Functional
-                    && (!(container instanceof Class) || function instanceof Interface)) {
-                copyTypeParameters((Functional)container, builder);
+            if (origin.isInterfaceMember() || 
+                    (container instanceof Generic
+                    && (!(container instanceof Class) || declaration instanceof Interface))) {
+                copyTypeParameters((Generic)container, builder);
             }
         }
     }
     
-    static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParameters(Declaration function, B builder) {
-        Declaration container = Decl.getDeclarationContainer(function);
+    static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParameters(Declaration declaration, B builder) {
+        Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
             if (Decl.isLocal(container)) {
                 outerReifiedTypeParameters(container, builder);
@@ -4725,7 +4730,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         @Override
         public List<JCTree> transform(Tree.AnyMethod method) {
-            boolean prev = expressionGen().withinCompanion(true);
+            Interface prev = expressionGen().withinCompanion((Interface)method.getDeclarationModel().getContainer());
             Method m = method.getDeclarationModel();
             // We only transform if there's code
             ListBuffer<JCTree> lb = ListBuffer.<JCTree>lb();
