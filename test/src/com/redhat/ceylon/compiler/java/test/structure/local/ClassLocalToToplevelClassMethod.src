@@ -1,0 +1,531 @@
+package com.redhat.ceylon.compiler.java.test.structure.local;
+
+interface FunctionLocalToToplevelClassMethod$method$0$Interface<T, U> {
+    
+    public long x();
+    
+    public long getY();
+}
+class FunctionLocalToToplevelClassMethod<T> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+    
+    FunctionLocalToToplevelClassMethod(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final T t) {
+        this.$reified$T = $reified$T;
+        this.t = t;
+    }
+    private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
+    private final T t;
+    
+    private final T getT$priv$() {
+        return t;
+    }
+    
+    public final long getAttr() {
+        return 0L;
+    }
+    
+    public final long meth() {
+        return 0L;
+    }
+    
+    class Capture$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        Capture$0(final long i$0, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long k) {
+            this.$reified$U = $reified$U;
+            this.k = k;
+            this.i$0 = i$0;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final long k;
+        
+        private final long getK$priv$() {
+            return k;
+        }
+        private final long i$0;
+        
+        public long capture() {
+            return .ceylon.language.Integer.instance(getT$priv$().hashCode()).power(.ceylon.language.Integer.instance(i$0)).plus(.ceylon.language.Integer.instance(getK$priv$())).longValue();
+        }
+        
+        public final long transitiveCapture() {
+            return capture();
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Capture$0.class);
+        }
+    }
+    
+    class LocalClass$4<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        LocalClass$4(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        
+        public final long getNum() {
+            return 1L;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(LocalClass$4.class);
+        }
+    }
+    
+    class LocalClass$3<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        LocalClass$3(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        
+        public final long getNum() {
+            return 0L;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(LocalClass$3.class);
+        }
+    }
+    
+    class Nesting$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        Nesting$0(final long i$3, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+            this.i$3 = i$3;
+            final Nesting$0.NestedLocalClass$5 nlc = new Nesting$0.NestedLocalClass$5();
+            final long h = nlc.m();
+            this.k = NestedMemberClass$new$().m();
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final long i$3;
+        
+        class NestedLocalClass$5 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+            
+            NestedLocalClass$5() {
+            }
+            
+            public final long m() {
+                return i$3 + getT$priv$().hashCode();
+            }
+            
+            @.java.lang.Override
+            public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+                return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.member(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Nesting$0.class), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Nesting$0.NestedLocalClass$5.class));
+            }
+        }
+        
+        Nesting$0.NestedMemberClass NestedMemberClass$new$() {
+            return new Nesting$0.NestedMemberClass();
+        }
+        
+        class NestedMemberClass implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+            
+            protected NestedMemberClass() {
+            }
+            
+            public final long m() {
+                return i$3 + getT$priv$().hashCode();
+            }
+            
+            @.java.lang.Override
+            public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+                return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.member(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Nesting$0.class), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Nesting$0.NestedMemberClass.class));
+            }
+        }
+        private final long k;
+        
+        public final long getK() {
+            return k;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Nesting$0.class);
+        }
+    }
+    
+    class GenericMethod$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        GenericMethod$0(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        
+        public final <U>U m(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final U u) {
+            return u;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(GenericMethod$0.class);
+        }
+    }
+    
+    class TpCapture$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        TpCapture$0(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        
+        public final T getT1() {
+            return getT$priv$();
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(TpCapture$0.class);
+        }
+    }
+    
+    class VariableCapture$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        VariableCapture$0(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$5, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+            this.result$5 = result$5;
+            result$5.ref = 0L;
+            (
+                let
+                {
+                    long $ceylontmp$op$6 = result$5.ref;
+                    result$5.ref = $ceylontmp$op$6 + 1;
+                }
+                returning $ceylontmp$op$6;
+            );
+            (
+                let
+                {
+                    long $ceylontmp$op$7 = result$5.ref + 1L;
+                    result$5.ref = $ceylontmp$op$7;
+                }
+                returning $ceylontmp$op$7;
+            );
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$5;
+        
+        public final void mutate() {
+            result$5.ref = 0L;
+            (
+                let
+                {
+                    long $ceylontmp$op$8 = result$5.ref;
+                    result$5.ref = $ceylontmp$op$8 + 1;
+                }
+                returning $ceylontmp$op$8;
+            );
+            (
+                let
+                {
+                    long $ceylontmp$op$9 = result$5.ref + 1L;
+                    result$5.ref = $ceylontmp$op$9;
+                }
+                returning $ceylontmp$op$9;
+            );
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(VariableCapture$0.class);
+        }
+    }
+    
+    private final long $default$DefaultedParameter$0$x(final long i$15, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$16, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long a) {
+        return i$15 + 5L;
+    }
+    
+    class DefaultedParameter$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        DefaultedParameter$0(final long i$12, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$13, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long a) {
+            (
+                let
+                {
+                    long $ceylontmp$x$14 = $default$DefaultedParameter$0$x(i$12, result$13, $reified$U, a);
+                    this(i$12, result$13, $reified$U, a, $ceylontmp$x$14);
+                }
+                returning null;
+            );
+        }
+        
+        DefaultedParameter$0(final long i$10, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$11, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long a, final long x) {
+            this.$reified$U = $reified$U;
+            this.x = x;
+            this.i$10 = i$10;
+            this.result$11 = result$11;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final long x;
+        
+        private final long getX$priv$() {
+            return x;
+        }
+        private final long i$10;
+        private final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$11;
+        
+        public final long m(final long b) {
+            return (
+                let
+                {
+                    long $ceylontmp$y$17 = m$y(b);
+                }
+                returning m(b, $ceylontmp$y$17);
+            );
+        }
+        
+        public final long m$y(final long b) {
+            return result$11.ref;
+        }
+        
+        public final long m(final long b, final long y) {
+            return getX$priv$() + y;
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(DefaultedParameter$0.class);
+        }
+    }
+    
+    class SuperclassCapture$0<U> extends Capture$0 {
+        
+        SuperclassCapture$0(final long i$20, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            super(i$20, $reified$U, 1L);
+            this.$reified$U = $reified$U;
+            this.i$20 = i$20;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final long i$20;
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(SuperclassCapture$0.class);
+        }
+    }
+    
+    final class Interface$0$impl {
+        
+        private Interface$0$impl() {
+        }
+        
+        static <T, U>long x(final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClassMethod$method$0$Interface<T, U> $this, final long i$21, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            return i$21;
+        }
+        
+        public static final <T, U>long getY(.com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClassMethod$method$0$Interface<T, U> $this, final long i$22, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            return i$22;
+        }
+    }
+    
+    class SuperinterfaceCapture$0<U> implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType, .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClassMethod$method$0$Interface<T, U> {
+        
+        SuperinterfaceCapture$0(final long i$23, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            this.$reified$U = $reified$U;
+            this.i$23 = i$23;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final long i$23;
+        
+        @.java.lang.Override
+        public final long x() {
+            return Interface$0$impl.x(this, i$23, $reified$U);
+        }
+        
+        @.java.lang.Override
+        public final long getY() {
+            return Interface$0$impl.getY(this, i$23, $reified$U);
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(SuperinterfaceCapture$0.class);
+        }
+    }
+    
+    class SelfRef$0<U> extends Capture$0 {
+        
+        SelfRef$0(final long i$24, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+            super(i$24, $reified$U, 1L);
+            this.$reified$U = $reified$U;
+            this.i$24 = i$24;
+        }
+        private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
+        private final long i$24;
+        
+        @.java.lang.Override
+        public final long capture() {
+            return super.capture() + this.capture();
+        }
+        
+        public final long outerCapture() {
+            return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClassMethod<T>.this.getAttr() + .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClassMethod<T>.this.meth();
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(SelfRef$0.class);
+        }
+    }
+    
+    public final <U>void method(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final U u) {
+        final long i = 0L;
+        .java.lang.Object ref = null;
+        .java.lang.Object staticRef = null;
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong();
+        result.ref = new Capture$0(i, $reified$U, 0L).capture();
+        result.ref = (
+            let
+            {
+                long arg$1$0 = 1L;
+            }
+            returning new Capture$0(i, $reified$U, arg$1$0);
+        ).transitiveCapture();
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<Capture$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Capture$0.class), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), "Capture(Integer)", (short)-1){
+            
+            @.java.lang.Override
+            public Capture$0 $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$k = ((.ceylon.language.Integer)$param$0).longValue();
+                return new Capture$0(i, $reified$U, $ceylontmp$k);
+            }
+        };
+        staticRef = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Callable<? extends .ceylon.language.Integer>>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Callable.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Capture$0.class), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Capture$0.class), .ceylon.language.Empty.$TypeDescriptor$), "Integer()(Capture)", (short)-1){
+            
+            @.java.lang.Override
+            public .ceylon.language.Callable<? extends .ceylon.language.Integer> $call$(final .java.lang.Object $param$0) {
+                final Capture$0 $instance$ = (Capture$0)$param$0;
+                return new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
+                    
+                    @.java.lang.Override
+                    public .ceylon.language.Integer $call$() {
+                        return .ceylon.language.Integer.instance($instance$.capture());
+                    }
+                };
+            }
+        };
+        staticRef = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Callable<? extends .ceylon.language.Integer>>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Callable.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Capture$0.class), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Capture$0.class), .ceylon.language.Empty.$TypeDescriptor$), "Integer()(Capture)", (short)-1){
+            
+            @.java.lang.Override
+            public .ceylon.language.Callable<? extends .ceylon.language.Integer> $call$(final .java.lang.Object $param$0) {
+                final Capture$0 $instance$ = (Capture$0)$param$0;
+                return new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.ceylon.language.Integer>(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$, "Integer()", (short)-1){
+                    
+                    @.java.lang.Override
+                    public .ceylon.language.Integer $call$() {
+                        return .ceylon.language.Integer.instance($instance$.transitiveCapture());
+                    }
+                };
+            }
+        };
+        if (i == 0L) {
+            result.ref = new LocalClass$3($reified$U).getNum();
+            ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<LocalClass$3>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(LocalClass$3.class), .ceylon.language.Empty.$TypeDescriptor$, "LocalClass()", (short)-1){
+                
+                @.java.lang.Override
+                public LocalClass$3 $call$() {
+                    return new LocalClass$3($reified$U);
+                }
+            };
+        } else {
+            result.ref = new LocalClass$4($reified$U).getNum();
+            ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<LocalClass$4>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(LocalClass$4.class), .ceylon.language.Empty.$TypeDescriptor$, "LocalClass()", (short)-1){
+                
+                @.java.lang.Override
+                public LocalClass$4 $call$() {
+                    return new LocalClass$4($reified$U);
+                }
+            };
+        }
+        result.ref = new Nesting$0(i, $reified$U).getK();
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<Nesting$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(Nesting$0.class), .ceylon.language.Empty.$TypeDescriptor$, "Nesting()", (short)-1){
+            
+            @.java.lang.Override
+            public Nesting$0 $call$() {
+                return new Nesting$0(i, $reified$U);
+            }
+        };
+        final GenericMethod$0 x = new GenericMethod$0($reified$U);
+        result.ref = ((.ceylon.language.Integer)x.m(.ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.instance(result.ref))).longValue();
+        result.ref = ((.ceylon.language.Integer)(
+            let
+            {
+                GenericMethod$0 arg$4$callable$ = new GenericMethod$0($reified$U);
+                .ceylon.language.Integer arg$4$0 = .ceylon.language.Integer.instance(result.ref);
+                .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor arg$4$reified$0 = .ceylon.language.Integer.$TypeDescriptor$;
+            }
+            returning arg$4$callable$.m(arg$4$reified$0, arg$4$0);
+        )).longValue();
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<GenericMethod$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(GenericMethod$0.class), .ceylon.language.Empty.$TypeDescriptor$, "GenericMethod()", (short)-1){
+            
+            @.java.lang.Override
+            public GenericMethod$0 $call$() {
+                return new GenericMethod$0($reified$U);
+            }
+        };
+        result.ref = new TpCapture$0($reified$U).getT1().hashCode();
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<TpCapture$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(TpCapture$0.class), .ceylon.language.Empty.$TypeDescriptor$, "TpCapture()", (short)-1){
+            
+            @.java.lang.Override
+            public TpCapture$0 $call$() {
+                return new TpCapture$0($reified$U);
+            }
+        };
+        new VariableCapture$0(result, $reified$U).mutate();
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<VariableCapture$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(VariableCapture$0.class), .ceylon.language.Empty.$TypeDescriptor$, "VariableCapture()", (short)-1){
+            
+            @.java.lang.Override
+            public VariableCapture$0 $call$() {
+                return new VariableCapture$0(result, $reified$U);
+            }
+        };
+        result.ref = new DefaultedParameter$0(i, result, $reified$U, 1L).m(2L);
+        result.ref = (
+            let
+            {
+                DefaultedParameter$0 arg$18$callable$ = (
+                    let
+                    {
+                        long arg$19$0 = 1L;
+                        long arg$19$1 = $default$DefaultedParameter$0$x(i, result, $reified$U, arg$19$0);
+                    }
+                    returning new DefaultedParameter$0(i, result, $reified$U, arg$19$0, arg$19$1);
+                );
+                DefaultedParameter$0 arg$18$argthis$ = arg$18$callable$;
+                long arg$18$0 = 2L;
+                long arg$18$1 = arg$18$argthis$.m$y(arg$18$0);
+            }
+            returning arg$18$callable$.m(arg$18$0, arg$18$1);
+        );
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<DefaultedParameter$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(DefaultedParameter$0.class), .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Integer.$TypeDescriptor$, .ceylon.language.Empty.$TypeDescriptor$))), "DefaultedParameter(Integer, Integer=)", (short)-1){
+            
+            @.java.lang.Override
+            public DefaultedParameter$0 $call$(final .java.lang.Object $param$0) {
+                final long $ceylontmp$a = ((.ceylon.language.Integer)$param$0).longValue();
+                return new DefaultedParameter$0(i, result, $reified$U, $ceylontmp$a);
+            }
+            
+            @.java.lang.Override
+            public DefaultedParameter$0 $call$(final .java.lang.Object $param$0, final .java.lang.Object $param$1) {
+                final long $ceylontmp$a = ((.ceylon.language.Integer)$param$0).longValue();
+                final long $ceylontmp$x = ((.ceylon.language.Integer)$param$1).longValue();
+                return new DefaultedParameter$0(i, result, $reified$U, $ceylontmp$a, $ceylontmp$x);
+            }
+        };
+        result.ref = new SuperclassCapture$0(i, $reified$U).hashCode();
+        ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<SuperclassCapture$0>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(SuperclassCapture$0.class), .ceylon.language.Empty.$TypeDescriptor$, "SuperclassCapture()", (short)-1){
+            
+            @.java.lang.Override
+            public SuperclassCapture$0 $call$() {
+                return new SuperclassCapture$0(i, $reified$U);
+            }
+        };
+        result.ref = new SuperinterfaceCapture$0(i, $reified$U).x() + new SuperinterfaceCapture$0(i, $reified$U).getY();
+        result.ref = new SelfRef$0(i, $reified$U).capture();
+    }
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+        return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClassMethod.class, $reified$T);
+    }
+}

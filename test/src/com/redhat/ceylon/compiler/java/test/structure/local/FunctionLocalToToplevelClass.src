@@ -173,7 +173,9 @@ class FunctionLocalToToplevelClass<U> implements .com.redhat.ceylon.compiler.jav
                 return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this.mpl$priv$($ceylontmp$first);
             }
         };
-        this.deferred$priv$ = null;
+        final .ceylon.language.Callable<? extends .java.lang.Object> deferred$priv$;
+        this.deferredCaptured$priv$ = null;
+        this.ref2 = null;
         if (1L + 1L == 2L) {
             deferred$priv$ = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<U>($reified$U, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, $reified$U, $reified$U, .ceylon.language.Empty.$TypeDescriptor$), "U(U)", (short)-1){
                 
@@ -183,26 +185,19 @@ class FunctionLocalToToplevelClass<U> implements .com.redhat.ceylon.compiler.jav
                     return i;
                 }
             };
-            
-            class X implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+            deferredCaptured$priv$ = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, $reified$U, $reified$U, .ceylon.language.Empty.$TypeDescriptor$)), "Anything(U=)", (short)-1){
                 
-                X() {
-                    deferred$priv$(getU$priv$());
-                    deferred$priv$();
-                    (
-                        let
-                        {
-                            U arg$15$0 = getU$priv$();
-                        }
-                        returning deferred$priv$(arg$15$0);
-                    );
+                @.java.lang.Override
+                public .java.lang.Object $call$() {
+                    return deferred$priv$(deferred$priv$);
                 }
                 
                 @.java.lang.Override
-                public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
-                    return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(X.class);
+                public .java.lang.Object $call$(final .java.lang.Object $param$0) {
+                    final U $ceylontmp$i = (U)$param$0;
+                    return deferred$priv$(deferred$priv$, $ceylontmp$i);
                 }
-            }
+            };
         } else {
             deferred$priv$ = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<U>($reified$U, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, $reified$U, $reified$U, .ceylon.language.Empty.$TypeDescriptor$), "U(U)", (short)-1){
                 
@@ -212,27 +207,40 @@ class FunctionLocalToToplevelClass<U> implements .com.redhat.ceylon.compiler.jav
                     return i;
                 }
             };
+            deferredCaptured$priv$ = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, $reified$U, $reified$U, .ceylon.language.Empty.$TypeDescriptor$)), "Anything(U=)", (short)-1){
+                
+                @.java.lang.Override
+                public .java.lang.Object $call$() {
+                    return deferred$priv$(deferred$priv$);
+                }
+                
+                @.java.lang.Override
+                public .java.lang.Object $call$(final .java.lang.Object $param$0) {
+                    final U $ceylontmp$i = (U)$param$0;
+                    return deferred$priv$(deferred$priv$, $ceylontmp$i);
+                }
+            };
         }
-        deferred$priv$(getU$priv$());
-        deferred$priv$();
+        deferred$priv$(deferred$priv$, getU$priv$());
+        deferred$priv$(deferred$priv$);
         (
             let
             {
-                U arg$16$0 = getU$priv$();
+                U arg$17$0 = getU$priv$();
             }
-            returning deferred$priv$(arg$16$0);
+            returning deferred$priv$(deferred$priv$, arg$17$0);
         );
         ref = new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, $reified$U, $reified$U, .ceylon.language.Empty.$TypeDescriptor$)), "Anything(U=)", (short)-1){
             
             @.java.lang.Override
             public .java.lang.Object $call$() {
-                return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this.deferred$priv$();
+                return deferred$priv$(deferred$priv$);
             }
             
             @.java.lang.Override
             public .java.lang.Object $call$(final .java.lang.Object $param$0) {
                 final U $ceylontmp$i = (U)$param$0;
-                return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this.deferred$priv$($ceylontmp$i);
+                return deferred$priv$(deferred$priv$, $ceylontmp$i);
             }
         };
     }
@@ -379,24 +387,84 @@ class FunctionLocalToToplevelClass<U> implements .com.redhat.ceylon.compiler.jav
             }
         };
     }
-    private .ceylon.language.Callable<? extends .java.lang.Object> deferred$priv$;
     
-    private final .java.lang.Object deferred$priv$() {
+    private final .java.lang.Object deferred$priv$(final .ceylon.language.Callable<? extends .java.lang.Object> deferred$priv$) {
         return (
             let
             {
-                U $ceylontmp$i$13 = deferred$i();
+                U $ceylontmp$i$13 = deferred$priv$$i();
             }
-            returning deferred$priv$($ceylontmp$i$13);
+            returning deferred$priv$(deferred$priv$, $ceylontmp$i$13);
         );
     }
     
-    private final U deferred$i() {
+    private final U deferred$priv$$i() {
         return getU$priv$();
     }
     
-    private final .java.lang.Object deferred$priv$(final U i) {
+    private final .java.lang.Object deferred$priv$(final .ceylon.language.Callable<? extends .java.lang.Object> deferred$priv$, final U i) {
         if (deferred$priv$ == null) throw new .com.redhat.ceylon.compiler.java.language.UninitializedMethodError(); else return deferred$priv$.$call$(i);
+    }
+    private .ceylon.language.Callable<? extends .java.lang.Object> deferredCaptured$priv$;
+    
+    private final .java.lang.Object deferredCaptured$priv$() {
+        return (
+            let
+            {
+                U $ceylontmp$i$14 = deferredCaptured$i();
+            }
+            returning deferredCaptured$priv$($ceylontmp$i$14);
+        );
+    }
+    
+    private final U deferredCaptured$i() {
+        return getU$priv$();
+    }
+    
+    private final .java.lang.Object deferredCaptured$priv$(final U i) {
+        if (deferredCaptured$priv$ == null) throw new .com.redhat.ceylon.compiler.java.language.UninitializedMethodError(); else return deferredCaptured$priv$.$call$(i);
+    }
+    private .java.lang.Object ref2;
+    
+    private final .java.lang.Object getRef2$priv$() {
+        return ref2;
+    }
+    
+    private final void setRef2$priv$(final .java.lang.Object ref2) {
+        this.ref2 = ref2;
+    }
+    
+    class X$7 implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+        
+        X$7() {
+            deferredCaptured$priv$(getU$priv$());
+            deferredCaptured$priv$();
+            (
+                let
+                {
+                    U arg$16$0 = getU$priv$();
+                }
+                returning deferredCaptured$priv$(arg$16$0);
+            );
+            setRef2$priv$(new .com.redhat.ceylon.compiler.java.language.AbstractCallable<.java.lang.Object>(.ceylon.language.Anything.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.union(.ceylon.language.Empty.$TypeDescriptor$, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.ceylon.language.Tuple.class, $reified$U, $reified$U, .ceylon.language.Empty.$TypeDescriptor$)), "Anything(U=)", (short)-1){
+                
+                @.java.lang.Override
+                public .java.lang.Object $call$() {
+                    return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this.deferredCaptured$priv$();
+                }
+                
+                @.java.lang.Override
+                public .java.lang.Object $call$(final .java.lang.Object $param$0) {
+                    final U $ceylontmp$i = (U)$param$0;
+                    return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this.deferredCaptured$priv$($ceylontmp$i);
+                }
+            });
+        }
+        
+        @.java.lang.Override
+        public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+            return .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(X$7.class);
+        }
     }
     
     @.java.lang.Override

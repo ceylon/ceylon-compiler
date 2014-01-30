@@ -87,6 +87,7 @@ class FunctionLocalToToplevelClass<T>(Integer i, T t)
             return x+y;
         }
     }
+    
     result = DefaultedParameter(1).m(2);
     result = DefaultedParameter{
         a=1;
@@ -103,20 +104,27 @@ class FunctionLocalToToplevelClass<T>(Integer i, T t)
     ref = SuperclassCapture;
     
     interface Interface {
-        shared Integer x => i;
+        shared Integer x() => i;
+        shared Integer y => i;
     }
+    
     class SuperinterfaceCapture() satisfies Interface {
         
     }
-    result = SuperinterfaceCapture().x;
+    result = SuperinterfaceCapture().x() + SuperinterfaceCapture().y;
+    
+    shared Integer attr => 0;
+    shared Integer meth() => 0;
     
     class SelfRef() extends Capture(1) {
         shared actual Integer capture() {
             return super.capture() + this.capture();
         }
+        shared Integer outerCapture() {
+            return outer.attr + outer.meth();
+        }
     }
     result = SelfRef().capture();
-    
     
     /* TODO
      // issues todo with locality within the initializer

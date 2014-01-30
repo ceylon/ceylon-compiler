@@ -1,0 +1,152 @@
+package com.redhat.ceylon.compiler.java.test.structure.local;
+
+interface InterfaceCapture$CapturingInterface {
+    
+    public long getValues();
+    
+    public long getGetters();
+    
+    public long getVariables();
+    
+    public long getGetterSetters();
+    
+    public long getMethods();
+}
+abstract class InterfaceCapture implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+    
+    InterfaceCapture() {
+        this.nonsharedValue = 0L;
+        this.sharedValue = 0L;
+        this.defaultValue = 0L;
+        this.nonsharedVariable = 0L;
+        this.sharedVariable = 0L;
+        this.defaultVariable = 0L;
+    }
+    private final long nonsharedValue;
+    
+    private final long getNonsharedValue$priv$() {
+        return nonsharedValue;
+    }
+    
+    private final long getNonsharedGetter$priv$() {
+        return 0L;
+    }
+    private final long sharedValue;
+    
+    public final long getSharedValue() {
+        return sharedValue;
+    }
+    
+    public final long getSharedGetter() {
+        return 0L;
+    }
+    private final long defaultValue;
+    
+    public long getDefaultValue() {
+        return defaultValue;
+    }
+    
+    public long getDefaultGetter() {
+        return 0L;
+    }
+    
+    public abstract long getFormalValue();
+    private long nonsharedVariable;
+    
+    private final long getNonsharedVariable$priv$() {
+        return nonsharedVariable;
+    }
+    
+    private final void setNonsharedVariable$priv$(final long nonsharedVariable) {
+        this.nonsharedVariable = nonsharedVariable;
+    }
+    
+    private final long getNonsharedGetterSetter$priv$() {
+        return 0L;
+    }
+    
+    private final void setNonsharedGetterSetter$priv$(final long nonsharedGetterSetter) {
+    }
+    private long sharedVariable;
+    
+    public final long getSharedVariable() {
+        return sharedVariable;
+    }
+    
+    public final void setSharedVariable(final long sharedVariable) {
+        this.sharedVariable = sharedVariable;
+    }
+    
+    public final long getSharedGetterSetter() {
+        return 0L;
+    }
+    
+    public final void setSharedGetterSetter(final long sharedGetterSetter) {
+    }
+    private long defaultVariable;
+    
+    public long getDefaultVariable() {
+        return defaultVariable;
+    }
+    
+    public void setDefaultVariable(final long defaultVariable) {
+        this.defaultVariable = defaultVariable;
+    }
+    
+    public long getDefaultGetterSetter() {
+        return 0L;
+    }
+    
+    public void setDefaultGetterSetter(final long defaultGetterSetter) {
+    }
+    
+    public abstract long getFormalVariable();
+    
+    public abstract void setFormalVariable(final long formalVariable);
+    
+    private final long nonsharedMethod$priv$() {
+        return 0L;
+    }
+    
+    public final long sharedMethod() {
+        return 0L;
+    }
+    
+    public long defaultMethod() {
+        return 0L;
+    }
+    
+    public abstract long formalMethod();
+    
+    final class CapturingInterface$0$impl {
+        
+        private CapturingInterface$0$impl() {
+        }
+        
+        public static final long getValues(.com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture$CapturingInterface $this, final .com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture $outer$InterfaceCapture) {
+            return $outer$InterfaceCapture.getNonsharedValue$priv$() + $outer$InterfaceCapture.getSharedValue() + $outer$InterfaceCapture.getDefaultValue() + $outer$InterfaceCapture.getFormalValue();
+        }
+        
+        public static final long getGetters(.com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture$CapturingInterface $this, final .com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture $outer$InterfaceCapture) {
+            return $outer$InterfaceCapture.getNonsharedGetter$priv$() + $outer$InterfaceCapture.getSharedGetter() + $outer$InterfaceCapture.getDefaultGetter();
+        }
+        
+        public static final long getVariables(.com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture$CapturingInterface $this, final .com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture $outer$InterfaceCapture) {
+            return $outer$InterfaceCapture.getNonsharedVariable$priv$() + $outer$InterfaceCapture.getSharedVariable() + $outer$InterfaceCapture.getDefaultVariable() + $outer$InterfaceCapture.getFormalVariable();
+        }
+        
+        public static final long getGetterSetters(.com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture$CapturingInterface $this, final .com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture $outer$InterfaceCapture) {
+            return $outer$InterfaceCapture.getNonsharedGetterSetter$priv$() + $outer$InterfaceCapture.getSharedGetterSetter() + $outer$InterfaceCapture.getDefaultGetterSetter();
+        }
+        
+        public static final long getMethods(.com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture$CapturingInterface $this, final .com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture $outer$InterfaceCapture) {
+            return $outer$InterfaceCapture.nonsharedMethod$priv$() + $outer$InterfaceCapture.sharedMethod() + $outer$InterfaceCapture.defaultMethod() + $outer$InterfaceCapture.formalMethod();
+        }
+    }
+    
+    @.java.lang.Override
+    public .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $getType$() {
+        return .com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture.$TypeDescriptor$;
+    }
+    public static final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $TypeDescriptor$ = .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.InterfaceCapture.class);
+}
