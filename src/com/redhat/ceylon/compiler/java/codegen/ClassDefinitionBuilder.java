@@ -228,8 +228,12 @@ public class ClassDefinitionBuilder
             }
             if (!isCompanion) {
                 createConstructor(init.toList());
-            } else if (isCompanion && isCompanionLocal) {
-                createConstructor(List.<JCStatement>nil());
+            } else if (isCompanion) {
+                if (isCompanionLocal) {
+                    createConstructor(List.<JCStatement>nil());
+                } else {
+                    createConstructor(init.toList());
+                }
             }
             for (MethodDefinitionBuilder builder : constructors) {
                 if (noAnnotations || ignoreAnnotations) {

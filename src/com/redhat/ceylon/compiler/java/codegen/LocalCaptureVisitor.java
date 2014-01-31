@@ -176,6 +176,11 @@ public class LocalCaptureVisitor extends Visitor {
             // we want the companion to access a value via it's getter, not by 
             // copying the field.
             captured = (Declaration)captured.getContainer();
+        } else if (capturer.isInterfaceMember() 
+                && captured.isInterfaceMember()
+                && captured.getContainer() == capturer.getContainer()) {
+            // One interface member can't capture another member of the same interface.
+            return;
         }
         List<Declaration> c = capturer.getDirectlyCaptured();
         if (c == null) {

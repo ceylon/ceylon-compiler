@@ -71,6 +71,7 @@ import com.redhat.ceylon.compiler.typechecker.model.UnionType;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
+import com.sun.org.apache.xml.internal.security.algorithms.JCEMapper;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.TypeTags;
 import com.sun.tools.javac.tree.JCTree;
@@ -3761,7 +3762,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         
         JCExpression qualExpr = null;
         String selector = null;
-        List<JCExpression> getterArgs = null;
+        ListBuffer<JCExpression> getterArgs = ListBuffer.<JCExpression>lb();
         // true for Java interop using fields, and for super constructor parameters, which must use
         // parameters rather than getter methods
         boolean mustUseField = false;
@@ -3772,6 +3773,10 @@ public class ExpressionTransformer extends AbstractTransformer {
                 && isCompanionWithin((TypeDeclaration)decl.getContainer())
                 && primaryExpr == null) {
             qualExpr = naming.makeOuterParameterName((TypeDeclaration)decl.getContainer());
+        } else if (
+                decl.isInterfaceMember()
+                && isWithinCompanionOf((Interface)decl.getContainer())) {
+            getterArgs.add(naming.makeQuotedThis());
         }
         if (decl instanceof Functional
                 && (!(decl instanceof Method) || !decl.isParameter() 
@@ -3800,9 +3805,8 @@ public class ExpressionTransformer extends AbstractTransformer {
                     //primaryExpr = naming.makeQualifiedName(primaryExpr, (Value)decl, Naming.NA_Q_LOCAL_INSTANCE);
                 }
                 selector = naming.selector((Value)decl);
-                ListBuffer<JCExpression> args = ListBuffer.lb();
                 if (((Value)decl).isDeferred()) {
-                    args.add(naming.makeUnquotedIdent(naming.getAttrClassName((Value)decl, 0)));
+                    getterArgs.add(naming.makeUnquotedIdent(naming.getAttrClassName((Value)decl, 0)));
                 }
                 for (Declaration captured : Decl.getCapturedLocals(decl)) {
                     if (captured instanceof TypedDeclaration) {
@@ -3812,11 +3816,10 @@ public class ExpressionTransformer extends AbstractTransformer {
                                 && !((MethodOrValue)captured).isDeferred()) {
                             continue;
                         }
-                        args.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
+                        getterArgs.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                     } 
                 }
-                ClassTransformer.outerReifiedTypeArguments(this, decl, args);
-                getterArgs = args.toList();
+                ClassTransformer.outerReifiedTypeArguments(this, decl, getterArgs);
             }
         } else if (Decl.isValueOrSharedOrCapturedParam(decl)) {
             if (decl.isToplevel()) {
@@ -3975,7 +3978,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                     if (useGetter) {
                         result = make().Apply(List.<JCTree.JCExpression>nil(),
                                 result,
-                                getterArgs != null ? getterArgs : List.<JCTree.JCExpression>nil());
+                                getterArgs.toList());
                     }
                 }
             }

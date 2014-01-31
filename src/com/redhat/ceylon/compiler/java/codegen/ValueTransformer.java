@@ -371,28 +371,26 @@ public class ValueTransformer extends AbstractTransformer {
     
     class CompanionGetter extends GetterTransformation {
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            if (value.isInterfaceMember() && Decl.isLocal((Interface)value.getContainer())) {
-                ClassTransformer.outerTypeParameters(value, builder);
-            }
+            ClassTransformer.outerTypeParameters(value, builder);
         }
         
         
         @Override
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
-            if (value.isInterfaceMember() && Decl.isLocal((Interface)value.getContainer())) {
-                ClassTransformer.capturedThisParameter(value, builder);
-                ClassTransformer.capturedLocalParameters(value, builder);
-                ClassTransformer.outerReifiedTypeParameters(value, builder);
-            }
+            ClassTransformer.capturedThisParameter(value, builder);
+            ClassTransformer.capturedLocalParameters(value, builder);
+            ClassTransformer.outerReifiedTypeParameters(value, builder);
         }
         
         @Override
         public JCMethodDecl transform(Tree.AnyAttribute value) {
             Interface prev = expressionGen().withinCompanion((Interface)value.getDeclarationModel().getContainer());
+            JCMethodDecl result;
             if (value.getDeclarationModel().isFormal()) {
-                return null;
+                result = null;
+            } else {
+                result = super.transform(value);
             }
-            JCMethodDecl result = super.transform(value);
             expressionGen().withinCompanion(prev);
             return result;
         }
@@ -415,7 +413,7 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected boolean isStatic(Value value) {
-            return Decl.isLocal((Interface)value.getContainer());
+            return true;
         }
         
         @Override
