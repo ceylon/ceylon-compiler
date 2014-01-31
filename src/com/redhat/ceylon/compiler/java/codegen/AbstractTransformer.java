@@ -1247,8 +1247,13 @@ public abstract class AbstractTransformer implements Transformation {
     static final int JT_SMALL = 1 << 5;
     /** For use in {@code new} expressions. */
     static final int JT_CLASS_NEW = 1 << 6;
-    /** Generates the Java type of the companion class of the given type */
-    static final int JT_COMPANION = 1 << 7;
+    static final int __JT_COMPANION = 1 << 7;
+    /** 
+     * Generates the Java type of the companion class of the given type. 
+     * This is implictly raw because a companion class never has type parameters
+     * even when the interface does.
+     */
+    static final int JT_COMPANION = __JT_COMPANION | JT_RAW;
     static final int JT_NON_QUALIFIED = 1 << 8;
     
     private static final int __JT_RAW_TP_BOUND = 1 << 9;
@@ -1393,7 +1398,7 @@ public abstract class AbstractTransformer implements Transformation {
                 Decl.isCeylon(simpleType.getDeclaration())
                 && simpleType.getDeclaration() instanceof Interface
                 // this is only valid for interfaces, not for their companion which stay where they are
-                && (flags & JT_COMPANION) == 0;
+                && (flags & __JT_COMPANION) == 0;
         
         java.util.List<ProducedType> qualifyingTypes = null;
         ProducedType qType = simpleType;
@@ -1449,7 +1454,7 @@ public abstract class AbstractTransformer implements Transformation {
                     && qualifyingTypes.size() > 1
                     && simpleType.getDeclaration() instanceof Interface
                     // this is only valid for interfaces, not for their companion which stay where they are
-                    && (flags & JT_COMPANION) == 0){
+                    && (flags & __JT_COMPANION) == 0){
                 JCExpression baseType;
                 TypeDeclaration tdecl = simpleType.getDeclaration();
                 // collect all the qualifying type args we'd normally have
@@ -1659,7 +1664,7 @@ public abstract class AbstractTransformer implements Transformation {
             baseType = naming.makeDeclName(qualifyingExpression, tdecl, 
                     jtFlagsToDeclNameOpts(flags 
                             | JT_NON_QUALIFIED 
-                            | (type.getDeclaration() instanceof Interface ? JT_COMPANION : 0)));
+                            | (type.getDeclaration() instanceof Interface ? __JT_COMPANION : 0)));
         }
 
         if (typeArgs != null && typeArgs.size() > 0) {
@@ -1890,7 +1895,7 @@ public abstract class AbstractTransformer implements Transformation {
 
     private DeclNameFlag[] jtFlagsToDeclNameOpts(int flags) {
         java.util.List<DeclNameFlag> args = new LinkedList<DeclNameFlag>();
-        if ((flags & JT_COMPANION) != 0) {
+        if ((flags & __JT_COMPANION) != 0) {
             args.add(DeclNameFlag.COMPANION);
         }
         if ((flags & JT_ANNOTATION) != 0) {
@@ -3460,13 +3465,6 @@ public abstract class AbstractTransformer implements Transformation {
             }
         }
         return typeArgs.toList();
-    }
-    /**
-     * Returns the name of the field in classes which holds the companion 
-     * instance.
-     */
-    final String getCompanionFieldName(Interface def) {
-        return naming.getCompanionFieldName(def);
     }
     
     protected int getPosition(Node node) {

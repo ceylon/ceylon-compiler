@@ -212,7 +212,6 @@ public class ClassTransformer extends AbstractTransformer {
             }
             for (TypeParameter param : typeParameters) {
                 classBuilder.typeParameter(param);
-                classBuilder.getCompanionBuilder(def.getDeclarationModel()).typeParameter(param);
             }
         }
         
@@ -225,9 +224,6 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformMembers(Tree.InterfaceDefinition def, ClassDefinitionBuilder classBuilder) {
             Interface model = def.getDeclarationModel();
-            if (!Decl.isLocal(model)) {
-                classBuilder.method(makeCompanionAccessor(model, model.getType(), null, false));
-            }
             super.transformMembers(def, classBuilder);
             transformGetTypeMethod(model, classBuilder);
         }
@@ -1379,7 +1375,7 @@ public class ClassTransformer extends AbstractTransformer {
                 collectInterfaces((Interface) interfaceDecl, satisfiedInterfaces);
             }
             // now see if we refined them
-            for(Interface iface : satisfiedInterfaces){
+            /*for(Interface iface : satisfiedInterfaces){
                 // skip those we can't do anything about
                 if(!supportsReified(iface))
                     continue;
@@ -1392,7 +1388,7 @@ public class ClassTransformer extends AbstractTransformer {
                     // we're refining it
                     classBuilder.refineReifiedType(thisType);
                 }
-            }
+            }*/
         }
     }
 
@@ -1424,8 +1420,8 @@ public class ClassTransformer extends AbstractTransformer {
             // instantiate an instance of the 
             // companion class in the constructor and assign it to a
             // $Interface$impl field
-            transformInstantiateCompanions(classBuilder,
-                    model, iface, satisfiedType);
+            //transformInstantiateCompanions(classBuilder,
+            //        model, iface, satisfiedType);
         }
         
         if(!Decl.isCeylon(iface)){
@@ -1703,15 +1699,15 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         ListBuffer<JCExpression> arguments = ListBuffer.<JCExpression>lb();
-        if (Decl.isLocal(iface)) {
-            arguments.add(naming.makeThis());
-            
-            if (member.isParameter()) {
-                addCapturedLocalArguments(arguments, Decl.getDeclarationContainer(member).getRefinedDeclaration());
-            } else {
-                addCapturedLocalArguments(arguments, member);
-            }
+        
+        arguments.add(naming.makeThis());
+        
+        if (member.isParameter()) {
+            addCapturedLocalArguments(arguments, Decl.getDeclarationContainer(member).getRefinedDeclaration());
+        } else {
+            addCapturedLocalArguments(arguments, member);
         }
+        
         
         if(typeParameters != null){
             for(TypeParameter tp : typeParameters){
@@ -1729,7 +1725,7 @@ public class ClassTransformer extends AbstractTransformer {
             concreteWrapper.parameter(param, type, FINAL, Decl.isLocal(iface)? JT_RAW_TP_BOUND : 0, true);
             arguments.add(naming.makeName(param.getModel(), Naming.NA_MEMBER));
         }
-        JCExpression qualifierThis = makeUnquotedIdent(getCompanionFieldName(iface));
+        JCExpression qualifierThis = makeJavaType(iface.getType(), JT_COMPANION);
         // if the best satisfied type is not the one we think we implement, we may need to cast
         // our impl accessor to get the expected bounds of the qualifying type
         if(explicitReturn){
@@ -1743,10 +1739,6 @@ public class ClassTransformer extends AbstractTransformer {
                 qualifierThis = expressionGen().applyErasureAndBoxing(qualifierThis, currentType, 
                         false, true, BoxingStrategy.BOXED, ceylonType,
                         ExpressionTransformer.EXPR_WANTS_COMPANION);
-        }
-        
-        if (Decl.isLocal(iface)) {
-            qualifierThis = makeJavaType(iface.getType(), JT_COMPANION);
         }
         JCExpression expr = make().Apply(
                 null,  // TODO Type args
@@ -1790,104 +1782,6 @@ public class ClassTransformer extends AbstractTransformer {
         return true;
     }
 
-    private void transformInstantiateCompanions(
-            ClassDefinitionBuilder classBuilder, 
-            Class model, Interface iface, ProducedType satisfiedType) {
-        if (Decl.isLocal(iface)) {
-            return;
-        }
-        at(null);
-        List<JCExpression> state = List.nil();
-        
-        // pass all reified type info to the constructor
-        for(JCExpression t : makeReifiedTypeArguments(satisfiedType)){
-            state = state.append(t);
-        }
-
-        // make sure we get the first type that java will find when it looks up
-        satisfiedType = getBestSatisfiedType(model.getType(), iface);
-
-        // pass the instance of this
-        state = state.append( expressionGen().applyErasureAndBoxing(naming.makeThis(), 
-                model.getType(), false, true, BoxingStrategy.BOXED, 
-                satisfiedType, ExpressionTransformer.EXPR_FOR_COMPANION));
-
-        JCExpression containerInstance = null;
-        JCExpression ifaceImplType = null;
-        if(!Decl.isToplevel(iface) && !Decl.isLocal(iface)){
-            // if it's a member type we need to qualify the new instance with its $impl container
-            ClassOrInterface interfaceContainer = Decl.getClassOrInterfaceContainer(iface, false);
-            if(interfaceContainer instanceof Interface){
-                ClassOrInterface modelContainer = model;
-                while((modelContainer = Decl.getClassOrInterfaceContainer(modelContainer, false)) != null
-                        && modelContainer.getType().getSupertype(interfaceContainer) == null){
-                    // keep searching
-                }
-                Assert.that(modelContainer != null, "Could not find container that satisfies interface "
-                        + iface.getQualifiedNameString() + " to find qualifying instance for companion instance for "
-                        + model.getQualifiedNameString());
-                // if it's an interface we just qualify it properly
-                if(modelContainer instanceof Interface){
-                    JCExpression containerType = makeJavaType(modelContainer.getType(), JT_COMPANION | JT_SATISFIES);
-                    containerInstance = makeSelect(containerType, "this");
-                    ifaceImplType = makeJavaType(satisfiedType, JT_COMPANION | JT_SATISFIES | JT_NON_QUALIFIED);
-                }else{
-                    // it's a class: find the right field used for the interface container impl
-                    String containerFieldName = getCompanionFieldName((Interface)interfaceContainer);
-                    JCExpression containerType = makeJavaType(modelContainer.getType(), JT_SATISFIES);
-                    containerInstance = makeSelect(makeSelect(containerType, "this"), containerFieldName);
-                    ifaceImplType = makeJavaType(satisfiedType, JT_COMPANION | JT_SATISFIES | JT_NON_QUALIFIED);
-                }
-            }
-        }
-        if(ifaceImplType == null){
-            ifaceImplType = makeJavaType(satisfiedType, JT_COMPANION | JT_SATISFIES);
-        }
-        JCExpression newInstance = make().NewClass(containerInstance, 
-                null,
-                ifaceImplType,
-                state,
-                null);
-        
-        final String fieldName = getCompanionFieldName(iface);
-        classBuilder.init(make().Exec(make().Assign(
-                makeSelect("this", fieldName),// TODO Use qualified name for quoting? 
-                newInstance)));
-        
-        classBuilder.field(PROTECTED | FINAL, fieldName, 
-                makeJavaType(satisfiedType, AbstractTransformer.JT_COMPANION), null, false,
-                makeAtIgnore());
-
-        classBuilder.method(makeCompanionAccessor(iface, satisfiedType, model, true));
-    }
-    
-    private MethodDefinitionBuilder makeCompanionAccessor(Interface iface, ProducedType satisfiedType, 
-            Class currentType, boolean forImplementor) {
-        MethodDefinitionBuilder thisMethod = MethodDefinitionBuilder.systemMethod(
-                this, naming.getCompanionAccessorName(iface));
-        thisMethod.noModelAnnotations();
-        if (!forImplementor && Decl.isAncestorLocal(iface)) {
-            // For a local interface the return type cannot be a local
-            // companion class, because that won't be visible at the 
-            // top level, so use Object instead
-            thisMethod.resultType(null, make().Type(syms().objectType));
-        } else {
-            thisMethod.resultType(null, makeJavaType(satisfiedType, JT_COMPANION));
-        }
-        if (forImplementor) {
-            thisMethod.isOverride(true);
-        } else {
-            thisMethod.ignoreModelAnnotations();
-        }
-        thisMethod.modifiers(PUBLIC);
-        if (forImplementor) {
-            thisMethod.body(make().Return(naming.makeCompanionFieldName(iface)));
-        } else {
-            thisMethod.noBody();
-        }
-        return thisMethod;
-    }
-
     private ProducedType getBestSatisfiedType(ProducedType currentType, Interface iface) {
         ProducedType refinedSuperType = currentType.getSupertype(iface);
         ProducedType firstSatisfiedType = getFirstSatisfiedType(currentType, iface);
@@ -1928,41 +1822,9 @@ public class ClassTransformer extends AbstractTransformer {
             final Interface model, ClassDefinitionBuilder classBuilder,
             Tree.TypeParameterList typeParameterList) {
         at(def);
-        // Give the $impl companion a $this field...
         ClassDefinitionBuilder companionBuilder = classBuilder.getCompanionBuilder(model);
-
-        // make sure we get fields and init code for reified params
-        if(typeParameterList != null)
-            companionBuilder.reifiedTypeParameters(typeParameterList);
-        ProducedType thisType = model.getType();
-        if (!Decl.isLocal(model)) {
-            companionBuilder.field(PRIVATE | FINAL, 
-                    "$this", 
-                    makeJavaType(thisType), 
-                    null, false);
-        }
-        if (Decl.isLocal(model)) {
-            companionBuilder.constructorModifiers(PRIVATE);
-        } else {
-            MethodDefinitionBuilder ctor = companionBuilder.addConstructorWithInitCode();
-            ctor.noModelAnnotations();
-            if(typeParameterList != null)
-                ctor.reifiedTypeParameters(typeParameterListModel(typeParameterList));
-            ctor.modifiers(model.isShared() ? PUBLIC : 0);
-            ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(this, "$this");
-            pdb.type(makeJavaType(thisType), null);
-            // ...initialize the $this field from a ctor parameter...
-            ctor.parameter(pdb);
-            ListBuffer<JCStatement> bodyStatements = ListBuffer.<JCStatement>of(
-                    make().Exec(
-                            make().Assign(
-                                    makeSelect(naming.makeThis(), "$this"), 
-                                    naming.makeQuotedThis())));
-            ctor.body(bodyStatements.toList());
-        }
-        
-        if(typeParameterList != null)
-            companionBuilder.addRefineReifiedTypeParametersMethod(typeParameterList);
+        // Make the constructor private
+        companionBuilder.constructorModifiers(PRIVATE);
     }
 
     public List<JCStatement> transformRefinementSpecifierStatement(SpecifierStatement op, ClassDefinitionBuilder classBuilder) {
@@ -3162,6 +3024,14 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
+        protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
+            if (method.isInterfaceMember()) {
+                outerTypeParameters(method, overloadBuilder);
+            }
+            super.transformTypeParameterList(method, overloadBuilder);
+        }
+        
+        @Override
         protected long getModifiers(Method method, DaoBody<Method> daoBody) {
             long mods = super.getModifiers(method, daoBody);
             if (useBody) {
@@ -3667,21 +3537,29 @@ public class ClassTransformer extends AbstractTransformer {
     class CompanionMethodDpvmTransformation extends MethodDpvmTransformation {
         
         @Override
+        protected void transformTypeParameterList(Method method,
+                MethodDefinitionBuilder methodBuilder) {
+            outerTypeParameters(method, methodBuilder);
+            super.transformTypeParameterList(method, methodBuilder);
+        }
+        
+        @Override
         protected void transformParameterList(Method method,
                 ParameterList parameterList, Parameter parameter,
                 MethodDefinitionBuilder methodBuilder)  {
-            if (method.isInterfaceMember()) {
-                capturedThisParameter(method, methodBuilder);
-                capturedLocalParameters(method, methodBuilder);
-                outerReifiedTypeParameters(method, methodBuilder);
-            }
+            capturedThisParameter(method, methodBuilder);
+            capturedLocalParameters(method, methodBuilder);
+            outerReifiedTypeParameters(method, methodBuilder);
             super.transformParameterList(method, parameterList, parameter, methodBuilder);
         }
         
-        
         @Override
         protected int getModifiers(Method method) {
-            return STATIC | super.getModifiers(method);
+            int mods = STATIC | (transformClassDeclFlags((Interface)method.getContainer()) & ~INTERFACE);
+            if (!method.isShared()) {
+                mods |= PRIVATE;
+            }
+            return mods;
         }
     }
     
@@ -4672,28 +4550,21 @@ public class ClassTransformer extends AbstractTransformer {
                 Method method, 
                 Parameter parameter) {
             class CompanionDefaultedArgumentMethod extends DefaultedArgumentMethod {
+                
+                @Override
+                protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
+                    outerTypeParameters(method, overloadBuilder);
+                    super.transformTypeParameterList(method, overloadBuilder);
+                }
+                
                 JCExpression makeDefaultedParamMethod(Method model, Parameter parameterModel, DaoBody<Method> body) {
                     String methodName = naming.getDefaultedParamMethodName(model, parameterModel);
-                    
                     return naming.makeQualIdent(makeJavaType(((Interface)model.getContainer()).getType(), JT_COMPANION), methodName);
-                    
-                    //return naming.makeDefaultedParamMethod(makeDefaultArgumentValueMethodQualifier(model, body), parameterModel);
                 }
                 @Override
                 protected final JCExpression makeDefaultArgumentValueMethodQualifier(Method method, DaoBody<Method> daoBody) {
                     return makeJavaType(((Interface)method.getContainer()).getType(), JT_COMPANION);//naming.getDefaultedParamMethodName(method, param);
                 }
-                /*@Override
-                protected JCExpression makeMethodName(Method method, DaoBody<Method> daoBody) {
-                    // TODO WTF This is never called
-                    int flags = Naming.NA_MEMBER;
-                    if (Decl.withinClassOrInterface(method)
-                            && method.isDefault()) {
-                        flags |= Naming.NA_CANONICAL_METHOD;
-                    }
-                    return naming.makeQualifiedName(makeJavaType(((Interface)method.getContainer()).getType(), JT_COMPANION), 
-                            method, flags);
-                }*/
                 @Override
                 protected void appendImplicitParameters(Method functional, java.util.List<TypeParameter> typeParameterList,
                         MethodDefinitionBuilder overloadBuilder) {
@@ -4716,6 +4587,11 @@ public class ClassTransformer extends AbstractTransformer {
                     args.add(naming.makeQuotedThis());
                     addCapturedLocalArguments(args, method);
                     super.appendDpmImplicitArguments(method, typeParameterList, overloadBuilder, args);
+                }
+                @Override
+                protected void appendCanonicalImplicitArguments(Method method, java.util.List<TypeParameter> typeParameterList,
+                        MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
+                    super.appendCanonicalImplicitArguments(method, typeParameterList, overloadBuilder, args);
                 }
             }
             return new CompanionDefaultedArgumentMethod();
@@ -4765,33 +4641,33 @@ public class ClassTransformer extends AbstractTransformer {
         }
         @Override
         protected void transformUltimateTypeParameterList(Method method, MethodDefinitionBuilder builder) {
-            if (Decl.isLocal((Interface)method.getContainer())) {
-                outerTypeParameters(method, builder);
-            }
+            // TPs from outer
+            outerTypeParameters(method, builder);
+            // TPs from method itself
             super.transformUltimateTypeParameterList(method, builder);
         }
         
         @Override
         protected void transformUltimateParameterList(Tree.AnyMethod methodOrFunction, MethodDefinitionBuilder builder) {
             Method model = methodOrFunction.getDeclarationModel();
-            if (Decl.isLocal((Interface)model.getContainer())) {
-                Interface iface = (Interface)model.getContainer();
-                ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ClassTransformer.this, "$this");
-                pdb.type(makeJavaType(iface.getType()), null);
-                pdb.modifiers(FINAL);
-                builder.parameter(pdb);
-                capturedLocalParameters(model, builder);
-                outerReifiedTypeParameters(model, builder);
-            }
+            // The $this parameter
+            Interface iface = (Interface)model.getContainer();
+            ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ClassTransformer.this, "$this");
+            pdb.type(makeJavaType(iface.getType()), null);
+            pdb.modifiers(FINAL);
+            builder.parameter(pdb);
+            // parameters for captured local environment
+            capturedLocalParameters(model, builder);
+            // parameters for reified type arguments
+            outerReifiedTypeParameters(model, builder);
+            // the explicit parameter list
             super.transformUltimateParameterList(methodOrFunction, builder);
         }
         
         @Override
         protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
-            super.transformUltimateModifiers(methodOrFunction, builder);
-            if (Decl.isLocal((Interface)methodOrFunction.getContainer())) {
-                builder.modifiers(STATIC);
-            }
+            builder.modifiers(transformMethodDeclFlags(methodOrFunction)&~PRIVATE);
+            builder.modifiers(STATIC);
         }
     }
     private CompanionMethodTransformation companionMethodTransformation = new CompanionMethodTransformation();

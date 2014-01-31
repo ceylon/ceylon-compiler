@@ -644,8 +644,7 @@ public class ClassDefinitionBuilder
         return this;
     }
 
-
-    public ClassDefinitionBuilder refineReifiedType(ProducedType thisType) {
+    /*public ClassDefinitionBuilder refineReifiedType(ProducedType thisType) {
         // init: $type$impl.$refine(tp1, tp2...)
         Interface iface = (Interface) thisType.getDeclaration();
         String companion = gen.naming.getCompanionFieldName(iface);
@@ -656,7 +655,7 @@ public class ClassDefinitionBuilder
         JCExpression refine = gen.make().Apply(null, gen.makeSelect(companion, gen.naming.getRefineTypeParametersMethodName()), typeParameters.toList());
         init(gen.make().Exec(refine));
         return this;
-    }
+    }*/
 
 
     public void reifiedAlias(ProducedType type) {

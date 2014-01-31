@@ -1479,26 +1479,7 @@ public class Naming implements LocalId {
     Name getSyntheticInstanceName(Declaration decl) {
         return names.fromString(decl.getName());
     }
-    
-    /**
-     * Returns the name of the field in classes which holds the companion 
-     * instance.
-     */
-    final String getCompanionFieldName(Interface def) {
-        // resolve aliases
-        if(def.isAlias())
-            def = (Interface) def.getExtendedTypeDeclaration();
-        return suffixName(Suffix.$this$, "$" + Decl.className(def).replace('.', '$'));
-    }
 
-    /**
-     * Returns the name of the field in classes which holds the companion 
-     * instance.
-     */
-    JCExpression makeCompanionFieldName(Interface def) {
-        return makeUnquotedIdent(getCompanionFieldName(def));
-    }
-    
     /** 
      * Returns the name of the method in interfaces and classes used to get 
      * the companion instance.

@@ -3086,13 +3086,14 @@ public class ExpressionTransformer extends AbstractTransformer {
                         }
                         outer = outer.getContainer();
                     }
-                    if (expr == null) {                    
+                    if (expr == null) {
                         Interface iface = (Interface)builder.getPrimaryDeclaration().getContainer();
                         JCExpression superQual;
                         if (Decl.getClassOrInterfaceContainer(classBuilder.getForDefinition().getDeclarationModel(), false) instanceof Interface) {
                             superQual = naming.makeCompanionAccessorCall(naming.makeQuotedThis(), iface);
                         } else {
-                            superQual = naming.makeCompanionFieldName(iface);
+                            throw new RuntimeException("TODO");
+                            //superQual = naming.makeCompanionFieldName(iface);
                         }
                         expr = naming.makeQualifiedSuper(superQual);
                     }
@@ -3657,7 +3658,8 @@ public class ExpressionTransformer extends AbstractTransformer {
                 if (iface.equals(typeFact().getIdentifiableDeclaration())) {
                     result = naming.makeQualifiedSuper(qualifier);
                 } else {
-                    result = naming.makeCompanionFieldName(iface);
+                    //result = naming.makeCompanionFieldName(iface);
+                    throw new RuntimeException("TODO");
                 }
             }
         } else {
@@ -5078,6 +5080,10 @@ public class ExpressionTransformer extends AbstractTransformer {
     
     boolean isWithinCompanion() {
         return withinCompanion != null;
+    }
+    
+    boolean isWithinCompanionOf(Declaration decl) {
+        return withinCompanion == decl;
     }
     
     boolean isCompanionWithin(Declaration decl) {
