@@ -423,7 +423,8 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected long getVisibility(Value value) {
-            return value.isShared() ? PUBLIC : PRIVATE;
+            return ((Interface)value.getContainer()).isShared() ? PUBLIC : 
+                value.isShared() ? 0 : PRIVATE;
         }
         
         @Override
@@ -714,6 +715,7 @@ public class ValueTransformer extends AbstractTransformer {
     
     class CompanionSetter extends SetterTransformation{
 
+        
         @Override
         public GetterTransformation getter() {
             return companionGetter;
@@ -723,7 +725,10 @@ public class ValueTransformer extends AbstractTransformer {
             if (value.isFormal()) {
                 return null;
             }
-            return super.transform(value, setter);
+            Interface prev = expressionGen().withinCompanion((Interface)value.getContainer());
+            JCMethodDecl result = super.transform(value, setter);
+            expressionGen().withinCompanion(prev);
+            return result;
         }
         
         protected boolean isOverride(Value value) {
@@ -733,6 +738,30 @@ public class ValueTransformer extends AbstractTransformer {
         protected void transformAnnotations(Value value, Tree.AttributeSetterDefinition setter, MethodDefinitionBuilder builder) {
             builder.noModelAnnotations();
             super.transformAnnotations(value, setter, builder);
+        }
+        
+        protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
+            ClassTransformer.outerTypeParameters(value, builder);
+        }
+        
+        
+        @Override
+        protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
+            ClassTransformer.capturedThisParameter(value, builder);
+            ClassTransformer.capturedLocalParameters(value, builder);
+            ClassTransformer.outerReifiedTypeParameters(value, builder);
+            super.transformParameters(value, setter, builder);
+        }
+        
+        @Override
+        protected boolean isStatic(Value value) {
+            return true;
+        }
+        
+        @Override
+        protected long getVisibility(Value value) {
+            return ((Interface)value.getContainer()).isShared() ? PUBLIC : 
+                value.isShared() ? 0 : PRIVATE;
         }
     }
     private final CompanionSetter companionSetter = new CompanionSetter();

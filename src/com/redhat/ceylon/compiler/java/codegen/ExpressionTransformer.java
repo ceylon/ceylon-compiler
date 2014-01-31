@@ -1477,13 +1477,16 @@ public class ExpressionTransformer extends AbstractTransformer {
 
     public JCTree transform(Tree.Outer expr) {
         at(expr);
-        
-        ProducedType outerClass = com.redhat.ceylon.compiler.typechecker.model.Util.getOuterClassOrInterface(expr.getScope());
-        final TypeDeclaration outerDeclaration = outerClass.getDeclaration();
-        if (outerDeclaration instanceof Interface) {
-            return makeQualifiedDollarThis(outerClass);
+        if (isWithinCompanion()) {
+            return naming.makeOuterParameterName(Decl.getClassOrInterfaceContainer(this.withinCompanion, false));
+        } else {
+            ProducedType outerClass = com.redhat.ceylon.compiler.typechecker.model.Util.getOuterClassOrInterface(expr.getScope());
+            final TypeDeclaration outerDeclaration = outerClass.getDeclaration();
+            if (outerDeclaration instanceof Interface) {
+                return makeQualifiedDollarThis(outerClass);
+            }
+            return naming.makeQualifiedThis(makeJavaType(outerClass));
         }
-        return naming.makeQualifiedThis(makeJavaType(outerClass));
     }
 
     //
@@ -3775,6 +3778,7 @@ public class ExpressionTransformer extends AbstractTransformer {
             qualExpr = naming.makeOuterParameterName((TypeDeclaration)decl.getContainer());
         } else if (
                 decl.isInterfaceMember()
+                && !decl.isShared()
                 && isWithinCompanionOf((Interface)decl.getContainer())) {
             getterArgs.add(naming.makeQuotedThis());
         }
