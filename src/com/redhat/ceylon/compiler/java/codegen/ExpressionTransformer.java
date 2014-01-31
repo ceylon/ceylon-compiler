@@ -3767,7 +3767,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         boolean mustUseParameter = false;
         if (isWithinCompanion()
                 && decl.isMember()
-                && (!decl.isInterfaceMember() || !isWithinCompanionOf((Interface)decl.getContainer()))
+                && isCompanionWithin((TypeDeclaration)decl.getContainer())
                 && primaryExpr == null) {
             qualExpr = naming.makeOuterParameterName((TypeDeclaration)decl.getContainer());
         }
@@ -5080,8 +5080,17 @@ public class ExpressionTransformer extends AbstractTransformer {
         return withinCompanion != null;
     }
     
-    boolean isWithinCompanionOf(Interface iface) {
-        return withinCompanion == iface;
+    boolean isCompanionWithin(Declaration decl) {
+        if (this.withinCompanion != null) {
+            Scope s = this.withinCompanion.getContainer();
+            while (s != null) {
+                if (s == decl) {
+                    return true;
+                }
+                s = s.getContainer();
+            }
+        }
+        return false;
     }
 
     //
