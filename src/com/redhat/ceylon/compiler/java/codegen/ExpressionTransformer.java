@@ -3666,18 +3666,11 @@ public class ExpressionTransformer extends AbstractTransformer {
             JCExpression qualifier = null;
             if (needDollarThis(superOfQualifiedExpr.getScope())) {
                 qualifier = naming.makeQuotedThis();
-                if (iface.equals(typeFact().getIdentifiableDeclaration())) {
-                    result = naming.makeQualifiedSuper(qualifier);
-                } else {
-                    result = naming.makeCompanionAccessorCall(qualifier, iface);
-                }
+            }
+            if (iface.equals(typeFact().getIdentifiableDeclaration())) {
+                result = naming.makeQualifiedSuper(qualifier);
             } else {
-                if (iface.equals(typeFact().getIdentifiableDeclaration())) {
-                    result = naming.makeQualifiedSuper(qualifier);
-                } else {
-                    //result = naming.makeCompanionFieldName(iface);
-                    throw new RuntimeException("TODO");
-                }
+                result = makeJavaType(inheritedFrom.getType(), JT_COMPANION);
             }
         } else {
             result = makeErroneous(superOfQualifiedExpr, "compiler bug: " + (inheritedFrom == null ? "null" : inheritedFrom.getClass().getName()) + " is an unhandled case in widen()");
@@ -3794,6 +3787,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 && isWithinCompanionOf((Interface)decl.getContainer())) {
             getterArgs.add(naming.makeQuotedThis());
         }
+        
         if (decl instanceof Functional
                 && (!(decl instanceof Method) || !decl.isParameter() 
                         || functionalParameterRequiresCallable((Method)decl, expr)) 
@@ -3971,6 +3965,16 @@ public class ExpressionTransformer extends AbstractTransformer {
             if (transformer != null) {
                 result = transformer.transform(qualExpr, selector);
             } else {
+                if (expr instanceof Tree.QualifiedMemberOrTypeExpression
+                        && isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary())) {
+                    TypeDeclaration from = superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)expr);
+                    if (from instanceof Interface) {
+                        // We're actually calling the static method on the companion
+                        // so we need to pass $this etc.
+                        getterArgs.prepend(naming.makeThis());
+                        // TODO plus captured and reified arguments
+                    }
+                }
                 Tree.Primary qmePrimary = null;
                 if (expr instanceof Tree.QualifiedMemberOrTypeExpression) {
                     qmePrimary = ((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary();

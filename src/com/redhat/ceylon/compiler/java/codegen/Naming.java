@@ -1492,6 +1492,7 @@ public class Naming implements LocalId {
         return makeQualIdent(qualExpr, getCompanionAccessorName(def));
     }
     
+    @Deprecated
     JCExpression makeCompanionAccessorCall(JCExpression qualExpr, Interface def) {
         if (Decl.isLocal(def)) {
             return this.gen().makeJavaType(def.getType(), AbstractTransformer.JT_COMPANION);

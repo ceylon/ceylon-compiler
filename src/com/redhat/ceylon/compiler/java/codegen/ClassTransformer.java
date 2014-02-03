@@ -1703,9 +1703,9 @@ public class ClassTransformer extends AbstractTransformer {
         arguments.add(naming.makeThis());
         
         if (member.isParameter()) {
-            addCapturedLocalArguments(arguments, Decl.getDeclarationContainer(member).getRefinedDeclaration());
+            addCapturedLocalArguments(new ExpressionOnlyBuffer(arguments), null, Decl.getDeclarationContainer(member).getRefinedDeclaration(), typedMember);
         } else {
-            addCapturedLocalArguments(arguments, member);
+            addCapturedLocalArguments(new ExpressionOnlyBuffer(arguments), null, member, typedMember);
         }
         
         
@@ -2876,8 +2876,8 @@ public class ClassTransformer extends AbstractTransformer {
         protected void appendCanonicalImplicitArguments(Method method, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
             if (method.isInterfaceMember()) {
-                args.append(naming.makeQuotedThis());
-                addCapturedLocalArguments(args, method);
+                //args.append(naming.makeQuotedThis());
+                addCapturedLocalArguments(new ExpressionOnlyBuffer(args), null, method, null);
             }
             if(typeParameterList != null){
                 // we pass the reified type parameters along
@@ -3181,7 +3181,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void appendCanonicalImplicitArguments(Class klass, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
-            addCapturedLocalArguments(args, klass);
+            addCapturedLocalArguments(new ExpressionOnlyBuffer(args), null, klass, null);
             if(typeParameterList != null){
                 // we pass the reified type parameters along
                 for(TypeParameter tp : typeParameterList){
@@ -3193,7 +3193,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void appendDpmImplicitArguments(Class klass, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
-            addCapturedLocalArguments(args, klass);
+            addCapturedLocalArguments(new ExpressionOnlyBuffer(args), null, klass, null);
             if(typeParameterList != null){
                 // we pass the reified type parameters along
                 for(TypeParameter tp : typeParameterList){
@@ -3208,7 +3208,9 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     
-    protected void addCapturedLocalArguments(ListBuffer<JCExpression> result, Declaration primaryDeclaration){
+    //////////////vvv this shit is identical to the same shit in ClassTransformer vvv
+    /*
+    protected void addCapturedLocalArguments(ListBuffer<JCExpression> result, ProducedReference typedMember, Declaration primaryDeclaration){
         // Add implementation argument for a deferred local function
         if (primaryDeclaration instanceof Method
                 && ((Method)primaryDeclaration).isDeferred()
@@ -3239,9 +3241,9 @@ public class ClassTransformer extends AbstractTransformer {
                         && !((MethodOrValue)decl).isDeferred()) {
                     continue;
                 }
-                /*result.append(new ExpressionAndType(
+                / *result.append(new ExpressionAndType(
                         gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
-                        gen.makeJavaType(((TypedDeclaration)decl).getType())));*/
+                        gen.makeJavaType(((TypedDeclaration)decl).getType())));* /
                 if (Decl.isGetter(decl)
                         && Decl.isLocal(decl)){
                     result.append(
@@ -3257,30 +3259,50 @@ public class ClassTransformer extends AbstractTransformer {
                             naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT)
                             );
                 } else if (decl instanceof TypeDeclaration) {
-                    result.append(naming.makeQualifiedThis(makeJavaType(((TypeDeclaration)decl).getType(), JT_RAW)));
+                    if (expressionGen().isWithinCompanion()) {
+                        result.append(naming.makeOuterParameterName(((TypeDeclaration)decl)));
+                    } else {
+                        result.append(naming.makeQualifiedThis(makeJavaType(((TypeDeclaration)decl).getType(), JT_RAW)));
+                    }
                 } else {
                     Assert.fail();
                 }
             }
         }
-        addCapturedReifiedTypeParameters(primaryDeclaration, result);
+        addCapturedReifiedTypeParameters(typedMember, primaryDeclaration, result);
     }
     
-    private void addCapturedReifiedTypeParameters(Declaration declaration, ListBuffer<JCExpression> result) {
+    private void addCapturedReifiedTypeParameters(ProducedReference typedMember, Declaration declaration, ListBuffer<JCExpression> result) {
+        addCapturedReifiedTypeParametersInternal(typedMember, declaration, declaration, result);
+    }
+    
+    private void addCapturedReifiedTypeParametersInternal(
+            ProducedReference typedMember,
+            Declaration origin, Declaration declaration, ListBuffer<JCExpression> result) {
         Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
             if (Decl.isLocal(container)) {
-                addCapturedReifiedTypeParameters(container, result);
+                addCapturedReifiedTypeParametersInternal(typedMember, origin, container, result);
             }
-            if (container instanceof Functional
-                    && !(container instanceof Class)) {
-                for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
-                    JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+            if (origin.isInterfaceMember()
+                    ||(container instanceof Generic
+                            && !(container instanceof Class))) {
+                for (TypeParameter tp : ((Generic)container).getTypeParameters()) {
+                    
+                    // TODO: Here I need to figure out the mapping between type arguments and type parameters
+                    //JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                    JCExpression reifiedTypeArg;
+                    if (typedMember != null && typedMember.getTypeArguments().get(tp) != null) {
+                        reifiedTypeArg = makeReifiedTypeArgument(typedMember.getTypeArguments().get(tp));
+                    } else {
+                        reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                    }
                     result.append(reifiedTypeArg);
                 }
             }
         }
-    }
+    }*/
+    //////////////^^^ this shit is identical to the same shit in ExpressionTransformer ^^^
     
     /**
      * A transformation for generating overloaded <em>instantiator methods</em> for 
@@ -4161,14 +4183,14 @@ public class ClassTransformer extends AbstractTransformer {
     }
     
     static <B extends ParameterizedBuilder<B>> void outerTypeParameters(Declaration declaration, B builder) {
-        outerTypeParameters2(declaration, declaration, builder);
+        outerTypeParametersInternal(declaration, declaration, builder);
     }
     
-    static <B extends ParameterizedBuilder<B>> void outerTypeParameters2(Declaration origin, Declaration declaration, B builder) {
+    private static <B extends ParameterizedBuilder<B>> void outerTypeParametersInternal(Declaration origin, Declaration declaration, B builder) {
         Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
             if (Decl.isLocal(container) || origin.isInterfaceMember()) {
-                outerTypeParameters2(origin, container, builder);
+                outerTypeParametersInternal(origin, container, builder);
             }
             if (origin.isInterfaceMember() || 
                     (container instanceof Generic
@@ -4179,14 +4201,19 @@ public class ClassTransformer extends AbstractTransformer {
     }
     
     static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParameters(Declaration declaration, B builder) {
+        outerReifiedTypeParametersInternal(declaration, declaration, builder);
+    }
+    
+    private static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParametersInternal(Declaration origin, Declaration declaration, B builder) {
         Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
             if (Decl.isLocal(container)) {
-                outerReifiedTypeParameters(container, builder);
+                outerReifiedTypeParametersInternal(origin, container, builder);
             }
-            if (container instanceof Functional
-                    && !(container instanceof Class)) {
-                builder.reifiedTypeParameters(((Functional)container).getTypeParameters());
+            if (origin.isInterfaceMember() ||
+                    (container instanceof Generic
+                    && !(container instanceof Class))) {
+                builder.reifiedTypeParameters(((Generic)container).getTypeParameters());
             }
         }
     }
@@ -4585,8 +4612,8 @@ public class ClassTransformer extends AbstractTransformer {
                 @Override
                 protected void appendDpmImplicitArguments(Method method, java.util.List<TypeParameter> typeParameterList,
                         MethodDefinitionBuilder overloadBuilder, ListBuffer<JCExpression> args) {
-                    args.add(naming.makeQuotedThis());
-                    addCapturedLocalArguments(args, method);
+                    //args.add(naming.makeQuotedThis());
+                    addCapturedLocalArguments(new ExpressionOnlyBuffer(args), null, method, null);
                     super.appendDpmImplicitArguments(method, typeParameterList, overloadBuilder, args);
                 }
                 @Override

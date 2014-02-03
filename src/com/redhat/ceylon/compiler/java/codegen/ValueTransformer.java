@@ -374,7 +374,6 @@ public class ValueTransformer extends AbstractTransformer {
             ClassTransformer.outerTypeParameters(value, builder);
         }
         
-        
         @Override
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
             ClassTransformer.capturedThisParameter(value, builder);

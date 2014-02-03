@@ -48,6 +48,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Functional;
+import com.redhat.ceylon.compiler.typechecker.model.Generic;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.IntersectionType;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
@@ -61,11 +62,13 @@ import com.redhat.ceylon.compiler.typechecker.model.ProducedReference;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
 import com.redhat.ceylon.compiler.typechecker.model.Scope;
+import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.UnionType;
 import com.redhat.ceylon.compiler.typechecker.model.UnknownType;
+import com.redhat.ceylon.compiler.typechecker.model.Value;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Comprehension;
@@ -3703,4 +3706,241 @@ public abstract class AbstractTransformer implements Transformation {
                 make().Binary(JCTree.USR, makeUnquotedIdent(tempName.asName()), makeInteger(32)));
         return make().TypeCast(syms().intType, makeLetExpr(tempName, null, type, value, combine));
     }
+    
+    void addCapturedLocalArgumentsUnified(ListBuffer<ExpressionAndType> result, Declaration primaryDeclaration) {
+        // need to know:
+        // * the "superness" of the thing I'm adding arguments for, and which supertype I'm dealing with
+        // * also need to know about produced references,so I can look up the reified type arguments
+        // * plus the common stuff
+    }
+    
+    interface WrappedBuffer {
+        void add(ExpressionAndType item);
+    }
+    static class ExpressionAndTypeBuffer implements WrappedBuffer {
+        private final ListBuffer<ExpressionAndType> result;
+        public ExpressionAndTypeBuffer(ListBuffer<ExpressionAndType> result) {
+            this.result = result;
+        }
+        @Override
+        public void add(ExpressionAndType item) {
+            this.result.add(item);
+        }
+    }
+    static class ExpressionOnlyBuffer implements WrappedBuffer {
+        private final ListBuffer<JCExpression> result;
+        public ExpressionOnlyBuffer(ListBuffer<JCExpression> result) {
+            this.result = result;
+        }
+        @Override
+        public void add(ExpressionAndType item) {
+            this.result.add(item.expression);
+        }
+    }
+    
+    //////////////// vvv this shit is identical to the same shit in ClassTransformer vvv
+    protected void addCapturedLocalArguments(WrappedBuffer result, TypeDeclaration superOf, Declaration primaryDeclaration, ProducedReference typedMember){
+        
+        if (superOf instanceof Interface) {
+            // We're actually calling the static method on the companion
+            // so we need to pass $this, plus the captured and reified arguments
+            result.add(new ExpressionAndType(naming.makeThis(), makeJavaType(superOf.getType())));
+            
+        }
+        
+        // Add implementation argument for a deferred local function
+        if (primaryDeclaration instanceof Method
+                && ((Method)primaryDeclaration).isDeferred()
+                // If the deferred local function is in a class initializer we don't need the implementation argument
+                && (!(primaryDeclaration.getContainer() instanceof Class) || !primaryDeclaration.isCaptured())) {
+            result.add(new ExpressionAndType(
+                    naming.makeUnquotedIdent(naming.selector((Method)primaryDeclaration, Naming.NA_MEMBER)),
+                    makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
+        }
+        if (primaryDeclaration.isInterfaceMember() 
+                && expressionGen().isWithinCompanionOf((Interface)primaryDeclaration.getContainer())
+                ) {
+            if (!primaryDeclaration.isShared()) {
+                // We're inside a companion, and invoking a method on the same interface
+                result.add(new ExpressionAndType(naming.makeQuotedThis(), 
+                        makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
+                addCapturedReifiedTypeParameters(typedMember, primaryDeclaration, result);
+                return;
+            } else {
+                result.add(new ExpressionAndType(naming.makeQuotedThis(), 
+                        makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
+                addCapturedReifiedTypeParameters(typedMember, primaryDeclaration, result);
+                return;
+            }
+        } else if (primaryDeclaration.isClassMember() 
+                || (primaryDeclaration.isInterfaceMember() && !expressionGen().isWithinCompanion())) {
+            // The class constructor captures, and the member accesses fields.
+            return;
+        }
+        
+        java.util.List<Declaration> cl = Decl.getCapturedLocals(primaryDeclaration);
+        if (cl != null) {
+            for (Declaration decl : cl) {
+                if (decl instanceof Method 
+                        && Strategy.useStaticForFunction((Method)decl)
+                        && !decl.isParameter()) {
+                    continue;
+                }
+                if ((decl instanceof MethodOrValue)
+                        && Decl.isLocal(decl)
+                        && ((MethodOrValue)decl).isTransient()
+                        && !((MethodOrValue)decl).isParameter()
+                        && !((MethodOrValue)decl).isDeferred()) {
+                    continue;
+                }
+                /*result.append(new ExpressionAndType(
+                        gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
+                        gen.makeJavaType(((TypedDeclaration)decl).getType())));*/
+                if (Decl.isGetter(decl)
+                        && Decl.isLocal(decl)){
+                    result.add(new ExpressionAndType(
+                            ((Value)decl).isTransient() ? naming.makeQuotedIdent(naming.getAttrClassName((Value)decl, 0)) : naming.makeName((TypedDeclaration)decl, Naming.NA_Q_LOCAL_INSTANCE),
+                            makeJavaType(((TypedDeclaration)decl).getType())));
+                } else if (decl instanceof Setter
+                        && Decl.isLocal(decl)){
+                    result.add(new ExpressionAndType(
+                            naming.makeQuotedIdent(naming.getAttrClassName((Setter)decl, 0)),
+                            makeJavaType(((TypedDeclaration)decl).getType())));
+                } else if (decl instanceof TypedDeclaration) {
+                    result.add(new ExpressionAndType(
+                            naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT),
+                            makeErroneous(null, "WTF")));
+                } else if (decl instanceof TypeDeclaration) {
+                    if (expressionGen().isWithinCompanion()) {
+                        result.add(
+                                new ExpressionAndType(
+                                naming.makeOuterParameterName(((TypeDeclaration)decl)),
+                                makeErroneous(null, "WTF")));
+                    } else {
+                        result.add(
+                                new ExpressionAndType(
+                                naming.makeQualifiedThis(makeJavaType(((TypeDeclaration)decl).getType(), JT_RAW)),
+                                makeErroneous(null, "WTF")));
+                    }
+                } else {
+                    Assert.fail();
+                }
+            }
+        }
+        addCapturedReifiedTypeParameters(typedMember, primaryDeclaration, result);
+    }
+    /*
+    protected void addCapturedLocalArguments(ListBuffer<JCExpression> result, ProducedReference typedMember, Declaration primaryDeclaration){
+        // Add implementation argument for a deferred local function
+        if (primaryDeclaration instanceof Method
+                && ((Method)primaryDeclaration).isDeferred()
+                // If the deferred local function is in a class initializer we don't need the implementation argument
+                && (!(primaryDeclaration.getContainer() instanceof Class) || !primaryDeclaration.isCaptured())) {
+            result.append(
+                    naming.makeUnquotedIdent(naming.selector((Method)primaryDeclaration, Naming.NA_MEMBER))
+                    );
+        }
+        if (primaryDeclaration.isClassMember()) { 
+                ///&& Decl.isLocal((Class)primaryDeclaration.getScope())) {
+            // The class constructor captures, and the member accesses fields.
+            return;
+        }
+        
+        java.util.List<Declaration> cl = Decl.getCapturedLocals(primaryDeclaration);
+        if (cl != null) {
+            for (Declaration decl : cl) {
+                if (decl instanceof Method 
+                        && Strategy.useStaticForFunction((Method)decl)
+                        && !decl.isParameter()) {
+                    continue;
+                }
+                if ((decl instanceof MethodOrValue)
+                        && Decl.isLocal(decl)
+                        && ((MethodOrValue)decl).isTransient()
+                        && !((MethodOrValue)decl).isParameter()
+                        && !((MethodOrValue)decl).isDeferred()) {
+                    continue;
+                }
+                / *result.append(new ExpressionAndType(
+                        gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
+                        gen.makeJavaType(((TypedDeclaration)decl).getType())));* /
+                if (Decl.isGetter(decl)
+                        && Decl.isLocal(decl)){
+                    result.append(
+                            ((Value)decl).isTransient() ? naming.makeQuotedIdent(naming.getAttrClassName((Value)decl, 0)) : naming.makeName((TypedDeclaration)decl, Naming.NA_Q_LOCAL_INSTANCE)
+                            );
+                } else if (decl instanceof Setter
+                        && Decl.isLocal(decl)){
+                    result.append(
+                            naming.makeQuotedIdent(naming.getAttrClassName((Setter)decl, 0))
+                            );
+                } else if (decl instanceof TypedDeclaration) {
+                    result.append(
+                            naming.makeName((TypedDeclaration)decl, Naming.NA_IDENT)
+                            );
+                } else if (decl instanceof TypeDeclaration) {
+                    if (expressionGen().isWithinCompanion()) {
+                        result.append(naming.makeOuterParameterName(((TypeDeclaration)decl)));
+                    } else {
+                        result.append(naming.makeQualifiedThis(makeJavaType(((TypeDeclaration)decl).getType(), JT_RAW)));
+                    }
+                } else {
+                    Assert.fail();
+                }
+            }
+        }
+        addCapturedReifiedTypeParameters(typedMember, primaryDeclaration, result);
+    }
+    
+    private void addCapturedReifiedTypeParameters(Declaration declaration, ListBuffer<ExpressionAndType> result) {
+        Declaration container = Decl.getDeclarationContainer(declaration);
+        if (container != null) {
+            if (Decl.isLocal(container)) {
+                addCapturedReifiedTypeParameters(container, result);
+            }
+            if (container instanceof Functional
+                    && !(container instanceof Class)) {
+                for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+                    JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                    result.append(new ExpressionAndType(reifiedTypeArg, makeTypeDescriptorType()));
+                }
+            }
+        }
+    }*/
+    //////////////// ^^^ this shit is identical to the same shit in ClassTransformer ^^^
+    
+    //////////////vvv this shit is identical to the same shit in ClassTransformer vvv
+    
+    
+    private void addCapturedReifiedTypeParameters(ProducedReference typedMember, Declaration declaration, WrappedBuffer result) {
+        addCapturedReifiedTypeParametersInternal(typedMember, declaration, declaration, result);
+    }
+    
+    private void addCapturedReifiedTypeParametersInternal(
+            ProducedReference typedMember,
+            Declaration origin, Declaration declaration, WrappedBuffer result) {
+        Declaration container = Decl.getDeclarationContainer(declaration);
+        if (container != null) {
+            if (Decl.isLocal(container)) {
+                addCapturedReifiedTypeParametersInternal(typedMember, origin, container, result);
+            }
+            if (origin.isInterfaceMember()
+                    ||(container instanceof Generic
+                            && !(container instanceof Class))) {
+                for (TypeParameter tp : ((Generic)container).getTypeParameters()) {
+                    
+                    // TODO: Here I need to figure out the mapping between type arguments and type parameters
+                    //JCExpression reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                    JCExpression reifiedTypeArg;
+                    if (typedMember != null && typedMember.getTypeArguments().get(tp) != null) {
+                        reifiedTypeArg = makeReifiedTypeArgument(typedMember.getTypeArguments().get(tp));
+                    } else {
+                        reifiedTypeArg = makeReifiedTypeArgument(tp.getType());
+                    }
+                    result.add(new ExpressionAndType(reifiedTypeArg, makeReifiedTypeType()));
+                }
+            }
+        }
+    }
+    //////////////^^^ this shit is identical to the same shit in ExpressionTransformer ^^^
 }
