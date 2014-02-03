@@ -4577,7 +4577,8 @@ public class ClassTransformer extends AbstractTransformer {
                 }
                 @Override
                 protected long getModifiers(Method method, DaoBody<Method> daoBody) {
-                    long mods = super.getModifiers(method, daoBody);
+                    long mods = !method.isShared() ? PRIVATE : 
+                        ((Interface)method.getContainer()).isShared() ? PUBLIC : 0;
                     mods |= STATIC;
                     return mods;
                 }
@@ -4665,9 +4666,11 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         @Override
-        protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
-            builder.modifiers(transformMethodDeclFlags(methodOrFunction)&~PRIVATE);
-            builder.modifiers(STATIC);
+        protected void transformUltimateModifiers(Method method, MethodDefinitionBuilder builder) {
+            long mods = !method.isShared() ? PRIVATE : 
+                ((Interface)method.getContainer()).isShared() ? PUBLIC : 0;
+            mods |= STATIC;
+            builder.modifiers(mods);
         }
     }
     private CompanionMethodTransformation companionMethodTransformation = new CompanionMethodTransformation();

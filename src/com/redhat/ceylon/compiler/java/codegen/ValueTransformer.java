@@ -423,8 +423,9 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected long getVisibility(Value value) {
-            return ((Interface)value.getContainer()).isShared() ? PUBLIC : 
-                value.isShared() ? 0 : PRIVATE;
+            long mods = !value.isShared() ? PRIVATE : 
+                ((Interface)value.getContainer()).isShared() ? PUBLIC : 0;
+            return mods;
         }
         
         @Override
@@ -760,8 +761,9 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected long getVisibility(Value value) {
-            return ((Interface)value.getContainer()).isShared() ? PUBLIC : 
-                value.isShared() ? 0 : PRIVATE;
+            long mods = !value.isShared() ? PRIVATE : 
+                ((Interface)value.getContainer()).isShared() ? PUBLIC : 0;
+            return mods;
         }
     }
     private final CompanionSetter companionSetter = new CompanionSetter();
