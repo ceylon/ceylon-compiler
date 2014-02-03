@@ -226,7 +226,18 @@ abstract class Invocation {
     }
     
     protected void addCapturedReifiedTypeParameters(ListBuffer<ExpressionAndType> result){
+        Tree.Term primary = getPrimary();
         Declaration prim = getPrimaryDeclaration();
+        if (primary instanceof Tree.QualifiedMemberOrTypeExpression
+                && gen.expressionGen().isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)primary).getPrimary())) {
+            TypeDeclaration superOf = gen.expressionGen().superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)primary);
+            if (superOf instanceof Interface) {
+                result.add(new ExpressionAndType(gen.naming.makeThis(), gen.makeJavaType(superOf.getType())));
+                Declaration refinedPrim = prim.getRefinedDeclaration();
+                gen.classGen().addCapturedReifiedTypeParametersInternal(refinedPrim, refinedPrim, ((Tree.QualifiedMemberOrTypeExpression)primary).getTarget(), result, true);
+            }
+        }
+        
         if (prim != null && prim.isInterfaceMember()) {
             if (gen.expressionGen().isWithinCompanionOf((Interface)prim.getContainer())) {
                 gen.classGen().addCapturedReifiedTypeParametersInternal(prim, prim, null, result, true);

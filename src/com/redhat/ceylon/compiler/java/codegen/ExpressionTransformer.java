@@ -3670,14 +3670,13 @@ public class ExpressionTransformer extends AbstractTransformer {
                 if (iface.equals(typeFact().getIdentifiableDeclaration())) {
                     result = naming.makeQualifiedSuper(qualifier);
                 } else {
-                    result = naming.makeCompanionAccessorCall(qualifier, iface);
+                    result = makeJavaType(inheritedFrom.getType(), JT_COMPANION);
                 }
             } else {
                 if (iface.equals(typeFact().getIdentifiableDeclaration())) {
                     result = naming.makeQualifiedSuper(qualifier);
                 } else {
-                    //result = naming.makeCompanionFieldName(iface);
-                    throw new RuntimeException("TODO");
+                    result = makeJavaType(inheritedFrom.getType(), JT_COMPANION);
                 }
             }
         } else {
@@ -3973,6 +3972,16 @@ public class ExpressionTransformer extends AbstractTransformer {
             if (transformer != null) {
                 result = transformer.transform(qualExpr, selector);
             } else {
+                if (expr instanceof Tree.QualifiedMemberOrTypeExpression
+                        && isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary())) {
+                    TypeDeclaration superOf = superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)expr);
+                    if (superOf instanceof Interface) {
+                        getterArgs.add(naming.makeThis());
+                        Declaration refinedPrim = decl.getRefinedDeclaration();
+                        classGen().addCapturedReifiedTypeParametersInternal(refinedPrim, refinedPrim, ((Tree.QualifiedMemberOrTypeExpression)expr).getTarget(), getterArgs, false);
+                    }
+                }
+                
                 Tree.Primary qmePrimary = null;
                 if (expr instanceof Tree.QualifiedMemberOrTypeExpression) {
                     qmePrimary = ((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary();
@@ -4413,6 +4422,17 @@ public class ExpressionTransformer extends AbstractTransformer {
         at(op);
         String selector = naming.selector(decl, Naming.NA_SETTER);
         ListBuffer<JCExpression> setterArgs = ListBuffer.lb();
+        
+        if (leftTerm instanceof Tree.QualifiedMemberOrTypeExpression
+                && isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)leftTerm).getPrimary())) {
+            TypeDeclaration superOf = superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)leftTerm);
+            if (superOf instanceof Interface) {
+                setterArgs.add(naming.makeThis());
+                Declaration refinedPrim = decl.getRefinedDeclaration();
+                classGen().addCapturedReifiedTypeParametersInternal(refinedPrim, refinedPrim, ((Tree.QualifiedMemberOrTypeExpression)leftTerm).getTarget(), setterArgs, false);
+            }
+        }
+        
         if (decl.isToplevel()) {
             // must use top level setter
             lhs = naming.makeName(decl, Naming.NA_FQ | Naming.NA_WRAPPER);
