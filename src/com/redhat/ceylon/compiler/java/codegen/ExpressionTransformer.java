@@ -2406,6 +2406,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         Declaration primaryDeclaration = invocation.getPrimaryDeclaration();
         
         invocation.addCapturedLocalArguments(result);
+        invocation.addCapturedReifiedTypeParameters(result);
         
         Tree.Term primary = invocation.getPrimary();
         if(primaryDeclaration instanceof Class == false
@@ -2417,7 +2418,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 && Invocation.onValueType(this, primary, primaryDeclaration) 
                 && transformedPrimary != null) {
             result.add(new ExpressionAndType(transformedPrimary.expr,
-                    makeJavaType(primary.getTypeModel())));   
+                    makeJavaType(primary.getTypeModel())));
         }
     }
     
@@ -3793,6 +3794,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 && !decl.isShared()
                 && isWithinCompanionOf((Interface)decl.getContainer())) {
             getterArgs.add(naming.makeQuotedThis());
+            classGen().addCapturedReifiedTypeParameters(getterArgs, decl);
         }
         if (decl instanceof Functional
                 && (!(decl instanceof Method) || !decl.isParameter() 

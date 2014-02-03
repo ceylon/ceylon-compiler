@@ -38,6 +38,7 @@ import com.redhat.ceylon.compiler.typechecker.model.ClassAlias;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Functional;
+import com.redhat.ceylon.compiler.typechecker.model.Generic;
 import com.redhat.ceylon.compiler.typechecker.model.Interface;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
 import com.redhat.ceylon.compiler.typechecker.model.MethodOrValue;
@@ -221,24 +222,32 @@ abstract class Invocation {
                 }
             }
         }
-        addCapturedReifiedTypeParameters(primaryDeclaration, result);
     }
     
-    private void addCapturedReifiedTypeParameters(Declaration declaration, ListBuffer<ExpressionAndType> result) {
+    protected void addCapturedReifiedTypeParameters(ListBuffer<ExpressionAndType> result){
+        Declaration prim = getPrimaryDeclaration();
+        if (prim != null && prim.isInterfaceMember()) {
+            if (gen.expressionGen().isWithinCompanionOf((Interface)prim.getContainer())) {
+                gen.classGen().addCapturedReifiedTypeParametersInternal(prim, prim, null, result, true);
+            }
+        }
+    }/*
+    private void addCapturedReifiedTypeParametersInternal(Declaration origin, Declaration declaration, ListBuffer<ExpressionAndType> result) {
         Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
-            if (Decl.isLocal(container)) {
-                addCapturedReifiedTypeParameters(container, result);
+            if (Decl.isLocal(container) || origin.isInterfaceMember()) {
+                addCapturedReifiedTypeParametersInternal(origin, container, result);
             }
-            if (container instanceof Functional
-                    && !(container instanceof Class)) {
-                for (TypeParameter tp : ((Functional)container).getTypeParameters()) {
+            if (origin.isInterfaceMember() ||
+                    (container instanceof Generic
+                    && !(container instanceof Class))) {
+                for (TypeParameter tp : ((Generic)container).getTypeParameters()) {
                     JCExpression reifiedTypeArg = gen.makeReifiedTypeArgument(tp.getType());
                     result.append(new ExpressionAndType(reifiedTypeArg, gen.makeTypeDescriptorType()));
                 }
             }
         }
-    }
+    }*/
     
     public final void setUnboxed(boolean unboxed) {
         this.unboxed = unboxed;
