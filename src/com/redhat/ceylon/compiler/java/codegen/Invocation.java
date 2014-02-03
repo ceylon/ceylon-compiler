@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import com.redhat.ceylon.compiler.java.codegen.AbstractTransformer.BoxingStrategy;
-import com.redhat.ceylon.compiler.java.codegen.AbstractTransformer.ExpressionOnlyBuffer;
 import com.redhat.ceylon.compiler.java.codegen.Naming.Suffix;
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassAlias;
@@ -163,31 +162,10 @@ abstract class Invocation {
     
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result){
         if (getPrimaryDeclaration() != null) {
-            Tree.Term prim = getPrimary();
-            TypeDeclaration superOf = null;
-            if (prim instanceof Tree.QualifiedMemberOrTypeExpression
-                    && gen.expressionGen().isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)prim).getPrimary())) {
-                superOf = gen.expressionGen().superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)prim);
-            }
-            gen.addCapturedLocalArguments(new AbstractTransformer.ExpressionAndTypeBuffer(result), superOf, getPrimaryDeclaration(), null);
+            addCapturedLocalArguments(result, getPrimaryDeclaration());
         }
     }
-    //////////////// vvv this shit is identical to the same shit in ClassTransformer vvv
-    /*
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result, Declaration primaryDeclaration){
-        Tree.Term prim = getPrimary();
-        if (prim instanceof Tree.QualifiedMemberOrTypeExpression
-                && gen.expressionGen().isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)prim).getPrimary())) {
-            TypeDeclaration from = gen.expressionGen().superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)prim);
-            if (from instanceof Interface) {
-                // We're actually calling the static method on the companion
-                // so we need to pass $this, plus the captured and reified arguments
-                result.add(new ExpressionAndType(gen.naming.makeThis(), gen.makeJavaType(from.getType())));
-                
-            }
-        }
-        
-        
         // Add implementation argument for a deferred local function
         if (primaryDeclaration instanceof Method
                 && ((Method)primaryDeclaration).isDeferred()
@@ -198,8 +176,7 @@ abstract class Invocation {
                     gen.makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
         }
         if (primaryDeclaration.isInterfaceMember() 
-                && gen.expressionGen().isWithinCompanionOf((Interface)primaryDeclaration.getContainer())
-                && !primaryDeclaration.isShared()) {
+                && gen.expressionGen().isWithinCompanionOf((Interface)primaryDeclaration.getContainer())) {
             // We're inside a companion, and invoking a method on the same interface
             result.add(new ExpressionAndType(gen.naming.makeQuotedThis(), 
                     gen.makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
@@ -224,9 +201,9 @@ abstract class Invocation {
                         && !((MethodOrValue)decl).isDeferred()) {
                     continue;
                 }
-                / *result.append(new ExpressionAndType(
+                /*result.append(new ExpressionAndType(
                         gen.naming.makeUnquotedIdent(gen.naming.substitute(decl)),
-                        gen.makeJavaType(((TypedDeclaration)decl).getType())));* /
+                        gen.makeJavaType(((TypedDeclaration)decl).getType())));*/
                 if (Decl.isGetter(decl)
                         && Decl.isLocal(decl)){
                     result.append(new ExpressionAndType(
@@ -262,8 +239,6 @@ abstract class Invocation {
             }
         }
     }
-    */
-    //////////////// ^^^ this shit is identical to the same shit in ClassTransformer ^^^
     
     public final void setUnboxed(boolean unboxed) {
         this.unboxed = unboxed;
@@ -948,7 +923,7 @@ class CallableInvocation extends DirectInvocation {
     
     protected void addCapturedLocalArguments(ListBuffer<ExpressionAndType> result){
         if (functional instanceof Declaration) {
-            gen.addCapturedLocalArguments(new AbstractTransformer.ExpressionAndTypeBuffer(result), null, (Declaration)functional, null);
+            addCapturedLocalArguments(result, (Declaration)functional);
         }
     }
 
