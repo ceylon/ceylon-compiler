@@ -168,18 +168,27 @@ public class LocalCaptureVisitor extends Visitor {
             // (though their member might)
             return;
         }*/
-        if (capturer.isInterfaceMember() 
+        Declaration nonpCapturer = capturer;
+        while (nonpCapturer.isParameter()) {
+            nonpCapturer = (Declaration)capturer.getContainer();
+        }
+        
+        if ((nonpCapturer.isInterfaceMember())
                 && captured.isMember()
-                && captured.getContainer() != capturer.getContainer()) {
+                && captured.getContainer() != nonpCapturer.getContainer()) {
             // If an interface member captures an out class member we say is 
             // actually captures the class instance -- because for example
             // we want the companion to access a value via it's getter, not by 
             // copying the field.
             captured = (Declaration)captured.getContainer();
-        } else if (capturer.isInterfaceMember() 
+        } else if (nonpCapturer.isInterfaceMember() 
                 && captured.isInterfaceMember()
-                && captured.getContainer() == capturer.getContainer()) {
+                && captured.getContainer() == nonpCapturer.getContainer()) {
             // One interface member can't capture another member of the same interface.
+            return;
+        } else if (nonpCapturer.isInterfaceMember()
+                && captured instanceof Interface
+                && nonpCapturer.getContainer() == captured) {
             return;
         }
         List<Declaration> c = capturer.getDirectlyCaptured();

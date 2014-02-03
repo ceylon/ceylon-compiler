@@ -177,7 +177,8 @@ abstract class Invocation {
                     gen.makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
         }
         if (primaryDeclaration.isInterfaceMember() 
-                && gen.expressionGen().isWithinCompanionOf((Interface)primaryDeclaration.getContainer())) {
+                && gen.expressionGen().isWithinCompanionOf((Interface)primaryDeclaration.getContainer())
+                && !primaryDeclaration.isShared()) {
             // We're inside a companion, and invoking a method on the same interface
             result.add(new ExpressionAndType(gen.naming.makeQuotedThis(), 
                     gen.makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
