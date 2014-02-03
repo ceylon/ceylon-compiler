@@ -3629,16 +3629,29 @@ public class ExpressionTransformer extends AbstractTransformer {
         return isSuper(primary) || isSuperOf(primary);
     }
     
-    private JCExpression transformSuperOf(Tree.QualifiedMemberOrTypeExpression superOfQualifiedExpr) {
-        Tree.Term superOf = eliminateParens(superOfQualifiedExpr.getPrimary());
-        Assert.that(superOf instanceof Tree.OfOp);
-        Tree.Type superType = ((Tree.OfOp)superOf).getType();
-        Assert.that(eliminateParens(((Tree.OfOp)superOf).getTerm()) instanceof Tree.Super);
-        Declaration member = superOfQualifiedExpr.getDeclaration();
-        TypeDeclaration inheritedFrom = superType.getTypeModel().getDeclaration();
-        if (inheritedFrom instanceof Interface) {
-            inheritedFrom = (TypeDeclaration)inheritedFrom.getMember(member.getName(), null, false).getContainer();
+    TypeDeclaration superInheritedFrom(Tree.QualifiedMemberOrTypeExpression superOrSuperOf) {
+        TypeDeclaration inheritedFrom;
+        if (isSuper(superOrSuperOf.getPrimary())) {
+            Declaration member = superOrSuperOf.getDeclaration();
+            inheritedFrom = (TypeDeclaration)member.getContainer();
+        } else if (isSuperOf(superOrSuperOf.getPrimary())) {
+            Tree.Term superOf = eliminateParens(superOrSuperOf.getPrimary());
+            Assert.that(superOf instanceof Tree.OfOp);
+            Tree.Type superType = ((Tree.OfOp)superOf).getType();
+            Assert.that(eliminateParens(((Tree.OfOp)superOf).getTerm()) instanceof Tree.Super);
+            Declaration member = superOrSuperOf.getDeclaration();
+            inheritedFrom = superType.getTypeModel().getDeclaration();
+            if (inheritedFrom instanceof Interface) {
+                inheritedFrom = (TypeDeclaration)inheritedFrom.getMember(member.getName(), null, false).getContainer();
+            }
+        } else {
+            throw Assert.fail();
         }
+        return inheritedFrom;
+    }
+    
+    private JCExpression transformSuperOf(Tree.QualifiedMemberOrTypeExpression superOfQualifiedExpr) {
+        TypeDeclaration inheritedFrom = superInheritedFrom(superOfQualifiedExpr);
         return widen(superOfQualifiedExpr, inheritedFrom);
     }
 
@@ -3673,8 +3686,7 @@ public class ExpressionTransformer extends AbstractTransformer {
     }
 
     public JCExpression transformSuper(Tree.QualifiedMemberOrTypeExpression superQualifiedExpr) {
-        Declaration member = superQualifiedExpr.getDeclaration();
-        TypeDeclaration inheritedFrom = (TypeDeclaration)member.getContainer();
+        TypeDeclaration inheritedFrom = superInheritedFrom(superQualifiedExpr);
         return widen(superQualifiedExpr, inheritedFrom);
     }
     
