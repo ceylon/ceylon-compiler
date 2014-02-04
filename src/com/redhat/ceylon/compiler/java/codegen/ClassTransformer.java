@@ -4198,10 +4198,21 @@ public class ClassTransformer extends AbstractTransformer {
     }
     private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
     
-    static <B extends ParameterizedBuilder<B>> void capturedThisParameter(Declaration member, B builder) {
-        Assert.that(member.isInterfaceMember());
+    static <B extends ParameterizedBuilder<B>> void capturedThisParameter(Declaration memberOrLocal, B builder) {
+        
+        Declaration member;
+        if (memberOrLocal.isInterfaceMember()) {
+            member = memberOrLocal;
+        } else if (!memberOrLocal.isToplevel()) {
+            member = Decl.getDeclarationContainer(memberOrLocal);
+            Assert.that(member.isInterfaceMember());
+        } else {
+            throw Assert.fail();
+        }
+        Interface iface = (Interface)member.getContainer();
         ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(builder.gen, "$this");
-        pdb.type(builder.gen.makeJavaType(((Interface)member.getContainer()).getType()), null);
+        pdb.type(builder.gen.makeJavaType(iface.getType()), null);
+        pdb.modifiers(FINAL);
         builder.parameter(pdb);
     }
     
@@ -4450,6 +4461,9 @@ public class ClassTransformer extends AbstractTransformer {
         // TODO Refactor: Essentially the same logic exists for localFunctionTransformation
         Declaration container = Decl.getDeclarationContainer(value, false);
         Declaration nonLocalContainer = Decl.getNonLocalDeclarationContainer(value);
+        if (container.isInterfaceMember()) {
+            return true;
+        }
         if (container instanceof Method) {
             if ((transformMethodDeclFlags((Method)container) & STATIC) != 0
                 || nonLocalContainer instanceof TypedDeclaration && nonLocalContainer.isToplevel()) {
@@ -4466,7 +4480,7 @@ public class ClassTransformer extends AbstractTransformer {
                 return true;
             }
         } else if (container instanceof Class) {
-        if ((transformClassDeclFlags((Class)container) & STATIC) != 0) {
+            if ((transformClassDeclFlags((Class)container) & STATIC) != 0) {
                 return true;
             }
         }
@@ -4712,11 +4726,7 @@ public class ClassTransformer extends AbstractTransformer {
         protected void transformUltimateParameterList(Tree.AnyMethod methodOrFunction, MethodDefinitionBuilder builder) {
             Method model = methodOrFunction.getDeclarationModel();
             // The $this parameter
-            Interface iface = (Interface)model.getContainer();
-            ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(ClassTransformer.this, "$this");
-            pdb.type(makeJavaType(iface.getType()), null);
-            pdb.modifiers(FINAL);
-            builder.parameter(pdb);
+            capturedThisParameter(model, builder);
             // parameters for captured local environment
             capturedLocalParameters(model, builder);
             // parameters for reified type arguments

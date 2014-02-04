@@ -3789,14 +3789,16 @@ public class ExpressionTransformer extends AbstractTransformer {
                 && primaryExpr == null) {
             qualExpr = naming.makeOuterParameterName((TypeDeclaration)decl.getContainer());
         } else if (
-                decl.isInterfaceMember()
+                (decl.isInterfaceMember() || Decl.getDeclarationContainer(decl) != null && Decl.getDeclarationContainer(decl).isInterfaceMember())
                 && !decl.isShared()) {
             if (expr instanceof Tree.BaseMemberOrTypeExpression) {
                 implicitArguments.add(naming.makeQuotedThis());
             } else if (expr instanceof Tree.QualifiedMemberOrTypeExpression) {
                 implicitArguments.add(primaryExpr);
             }
-            classGen().addCapturedReifiedTypeParameters(implicitArguments, decl);
+            if (decl.isInterfaceMember()) {
+                classGen().addCapturedReifiedTypeParameters(implicitArguments, decl);
+            }
         }
         if (decl instanceof Functional
                 && (!(decl instanceof Method) || !decl.isParameter() 
@@ -3979,7 +3981,11 @@ public class ExpressionTransformer extends AbstractTransformer {
                         && isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary())) {
                     TypeDeclaration superOf = superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)expr);
                     if (superOf instanceof Interface) {
-                        implicitArguments.add(naming.makeThis());
+                        if (isWithinCompanion()) {
+                            implicitArguments.add(naming.makeQuotedThis());
+                        } else {
+                            implicitArguments.add(naming.makeThis());
+                        }
                         Declaration refinedPrim = decl.getRefinedDeclaration();
                         classGen().addCapturedReifiedTypeParametersInternal(refinedPrim, refinedPrim, ((Tree.QualifiedMemberOrTypeExpression)expr).getTarget(), implicitArguments, false);
                     }

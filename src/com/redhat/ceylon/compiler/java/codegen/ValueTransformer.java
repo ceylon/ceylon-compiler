@@ -479,6 +479,9 @@ public class ValueTransformer extends AbstractTransformer {
         
         @Override
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
+            if (Decl.getDeclarationContainer(value).isInterfaceMember()) {
+                ClassTransformer.capturedThisParameter(value, builder);
+            }
             ClassTransformer.deferredSpecificationParameter(ValueTransformer.this, value, makeJavaType(getGetterInterfaceType(value)), builder);
             ClassTransformer.capturedLocalParameters(value, builder);
             ClassTransformer.outerReifiedTypeParameters(value, builder);
