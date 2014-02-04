@@ -168,6 +168,13 @@ public class LocalCaptureVisitor extends Visitor {
             // (though their member might)
             return;
         }*/
+        if (captured.isClassMember()
+                && ("hash".equals(captured.getName())
+                        || "equals".equals(captured.getName())
+                        || "string".equals(captured.getName()))) {
+            return;
+        }
+        
         Declaration nonpCapturer = capturer;
         while (nonpCapturer.isParameter()) {
             nonpCapturer = (Declaration)capturer.getContainer();
