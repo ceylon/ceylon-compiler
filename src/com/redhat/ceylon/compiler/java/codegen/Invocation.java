@@ -177,11 +177,16 @@ abstract class Invocation {
                     gen.makeJavaType(((Method)primaryDeclaration).getType().getFullType())));
         }
         if (primaryDeclaration.isInterfaceMember() 
-                && gen.expressionGen().isWithinCompanionOf((Interface)primaryDeclaration.getContainer())
                 && !primaryDeclaration.isShared()) {
             // We're inside a companion, and invoking a method on the same interface
-            result.add(new ExpressionAndType(gen.naming.makeQuotedThis(), 
-                    gen.makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
+            if (getPrimary() instanceof Tree.BaseMemberOrTypeExpression) {
+                result.add(new ExpressionAndType(gen.naming.makeQuotedThis(), 
+                        gen.makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
+            } else if (getPrimary() instanceof Tree.QualifiedMemberOrTypeExpression) {
+                result.add(new ExpressionAndType(
+                        gen.expressionGen().transformExpression(((Tree.QualifiedMemberOrTypeExpression)getPrimary()).getPrimary()), 
+                        gen.makeJavaType(((Interface)primaryDeclaration.getContainer()).getType())));
+            }
             return;
         } else if (primaryDeclaration.isClassMember() || primaryDeclaration.isInterfaceMember()) {
             // The class constructor captures, and the member accesses fields.

@@ -3777,7 +3777,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         
         JCExpression qualExpr = null;
         String selector = null;
-        ListBuffer<JCExpression> getterArgs = ListBuffer.<JCExpression>lb();
+        ListBuffer<JCExpression> implicitArguments = ListBuffer.<JCExpression>lb();
         // true for Java interop using fields, and for super constructor parameters, which must use
         // parameters rather than getter methods
         boolean mustUseField = false;
@@ -3790,10 +3790,13 @@ public class ExpressionTransformer extends AbstractTransformer {
             qualExpr = naming.makeOuterParameterName((TypeDeclaration)decl.getContainer());
         } else if (
                 decl.isInterfaceMember()
-                && !decl.isShared()
-                && isWithinCompanionOf((Interface)decl.getContainer())) {
-            getterArgs.add(naming.makeQuotedThis());
-            classGen().addCapturedReifiedTypeParameters(getterArgs, decl);
+                && !decl.isShared()) {
+            if (expr instanceof Tree.BaseMemberOrTypeExpression) {
+                implicitArguments.add(naming.makeQuotedThis());
+            } else if (expr instanceof Tree.QualifiedMemberOrTypeExpression) {
+                implicitArguments.add(primaryExpr);
+            }
+            classGen().addCapturedReifiedTypeParameters(implicitArguments, decl);
         }
         if (decl instanceof Functional
                 && (!(decl instanceof Method) || !decl.isParameter() 
@@ -3823,7 +3826,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 }
                 selector = naming.selector((Value)decl);
                 if (((Value)decl).isDeferred()) {
-                    getterArgs.add(naming.makeUnquotedIdent(naming.getAttrClassName((Value)decl, 0)));
+                    implicitArguments.add(naming.makeUnquotedIdent(naming.getAttrClassName((Value)decl, 0)));
                 }
                 for (Declaration captured : Decl.getCapturedLocals(decl)) {
                     if (captured instanceof TypedDeclaration) {
@@ -3833,10 +3836,10 @@ public class ExpressionTransformer extends AbstractTransformer {
                                 && !((MethodOrValue)captured).isDeferred()) {
                             continue;
                         }
-                        getterArgs.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
+                        implicitArguments.add(naming.makeName((TypedDeclaration)captured, Naming.NA_IDENT));
                     } 
                 }
-                ClassTransformer.outerReifiedTypeArguments(this, decl, getterArgs);
+                ClassTransformer.outerReifiedTypeArguments(this, decl, implicitArguments);
             }
         } else if (Decl.isValueOrSharedOrCapturedParam(decl)) {
             if (decl.isToplevel()) {
@@ -3976,9 +3979,9 @@ public class ExpressionTransformer extends AbstractTransformer {
                         && isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary())) {
                     TypeDeclaration superOf = superInheritedFrom((Tree.QualifiedMemberOrTypeExpression)expr);
                     if (superOf instanceof Interface) {
-                        getterArgs.add(naming.makeThis());
+                        implicitArguments.add(naming.makeThis());
                         Declaration refinedPrim = decl.getRefinedDeclaration();
-                        classGen().addCapturedReifiedTypeParametersInternal(refinedPrim, refinedPrim, ((Tree.QualifiedMemberOrTypeExpression)expr).getTarget(), getterArgs, false);
+                        classGen().addCapturedReifiedTypeParametersInternal(refinedPrim, refinedPrim, ((Tree.QualifiedMemberOrTypeExpression)expr).getTarget(), implicitArguments, false);
                     }
                 }
                 
@@ -4005,7 +4008,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                     if (useGetter) {
                         result = make().Apply(List.<JCTree.JCExpression>nil(),
                                 result,
-                                getterArgs.toList());
+                                implicitArguments.toList());
                     }
                 }
             }
@@ -4149,7 +4152,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 && !decl.isShared()){
             Interface declaration = (Interface) declContainer;
             // access the interface $impl instance
-            qualExpr = naming.makeCompanionAccessorCall(qualExpr, declaration);
+            qualExpr = makeJavaType(declaration.getType(), JT_COMPANION);
             // When the interface is local the accessor returns Object
             // so we need to cast it to the type of the companion
             if (Decl.isAncestorLocal(declaration)) {
@@ -4422,6 +4425,18 @@ public class ExpressionTransformer extends AbstractTransformer {
         at(op);
         String selector = naming.selector(decl, Naming.NA_SETTER);
         ListBuffer<JCExpression> setterArgs = ListBuffer.lb();
+        
+        if (
+                decl.isInterfaceMember()
+                && !decl.isShared()) {
+            if (leftTerm instanceof Tree.BaseMemberOrTypeExpression) {
+                setterArgs.add(naming.makeQuotedThis());
+            } else if (leftTerm instanceof Tree.QualifiedMemberOrTypeExpression) {
+                setterArgs.add(transformExpression(((Tree.QualifiedMemberOrTypeExpression)leftTerm).getPrimary()));
+            }
+            classGen().addCapturedReifiedTypeParameters(setterArgs, decl);
+        }
+        
         
         if (leftTerm instanceof Tree.QualifiedMemberOrTypeExpression
                 && isSuperOrSuperOf(((Tree.QualifiedMemberOrTypeExpression)leftTerm).getPrimary())) {
