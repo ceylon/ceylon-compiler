@@ -51,8 +51,6 @@ class LocalFunctionSuperCaptureClass<X, Y> implements .com.redhat.ceylon.compile
 }
 interface LocalFunctionSuperCaptureInterface<X, Y> {
     
-    public .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface$impl<X, Y> $com$redhat$ceylon$compiler$java$test$structure$local$LocalFunctionSuperCaptureInterface$impl();
-    
     public X getGetXI();
     
     public void setGetXI(final X getXI);
@@ -74,33 +72,33 @@ final class LocalFunctionSuperCaptureInterface$impl {
     private LocalFunctionSuperCaptureInterface$impl() {
     }
     
-    public final static <X, Y>X getGetXI() {
+    static final <X, Y>X getGetXI(.com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         return (X).ceylon.language.nothing_.get_();
     }
     
-    public final static <X, Y>void setGetXI(final X getXI) {
+    static final <X, Y>void setGetXI(.com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, final X getXI) {
     }
     
-    public final static <X, Y>Y getGetYI() {
+    static final <X, Y>Y getGetYI(.com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         return (Y).ceylon.language.nothing_.get_();
     }
     
-    public final static <X, Y>void setGetYI(final Y getYI) {
+    static final <X, Y>void setGetYI(.com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, final Y getYI) {
     }
     
-    public final static <X, Y>.java.lang.Object takesXI(final X x) {
+    static <X, Y>.java.lang.Object takesXI(final .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, final X x) {
         return null;
     }
     
-    public final static <X, Y>.java.lang.Object takesYI(final Y y) {
+    static <X, Y>.java.lang.Object takesYI(final .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y, final Y y) {
         return null;
     }
     
-    public final static <X, Y>X returnsXI() {
+    static <X, Y>X returnsXI(final .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         return (X).ceylon.language.nothing_.get_();
     }
     
-    public final static <X, Y>Y returnsYI() {
+    static <X, Y>Y returnsYI(final .com.redhat.ceylon.compiler.java.test.structure.local.LocalFunctionSuperCaptureInterface<X, Y> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         return (Y).ceylon.language.nothing_.get_();
     }
 }

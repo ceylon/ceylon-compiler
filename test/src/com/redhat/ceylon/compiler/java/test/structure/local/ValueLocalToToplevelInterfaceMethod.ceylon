@@ -2,10 +2,11 @@
 interface ValueLocalToToplevelInterfaceMethodTop<T> {
     shared default T diamond => nothing;
 }
+
 @noanno
-interface ValueLocalToToplevelInterfaceMethodLeft<U>
-        satisfies ValueLocalToToplevelInterfaceMethodTop<U> {
-    shared actual default U diamond => nothing;
+interface ValueLocalToToplevelInterfaceMethodLeft<X>
+        satisfies ValueLocalToToplevelInterfaceMethodTop<X> {
+    shared actual default X diamond => nothing;
 }
 @noanno
 interface ValueLocalToToplevelInterfaceMethodRight 
@@ -33,6 +34,7 @@ interface ValueLocalToToplevelInterfaceMethod
             local = k;
         }
     }
+    
     shared void method<U>(U u) 
             given U satisfies Object {
         Integer x = 0;
@@ -96,7 +98,7 @@ interface ValueLocalToToplevelInterfaceMethod
                     super.string.hash;
         }
         result = superAccess;
-        
+        /*
         value reified {
             return x is U;
         }
@@ -140,10 +142,11 @@ interface ValueLocalToToplevelInterfaceMethod
         value transitiveCapture2 => localVariableCapture + localCapture2;
         result = transitiveCapture2;
         assign transitiveCapture2 => print(result+=x);
+        */
     }
 }
 
-
+/*
 /*
 @noanno
 interface ValueLocalToToplevelInterfaceMethod<T> 
@@ -252,4 +255,4 @@ interface ValueLocalToToplevelInterfaceMethod<T>
         deferred => nesting;
         result = deferred;
     }
-}*/
+}*/*/

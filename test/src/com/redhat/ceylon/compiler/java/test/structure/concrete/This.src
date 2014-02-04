@@ -2,8 +2,6 @@ package com.redhat.ceylon.compiler.java.test.structure.concrete;
 
 interface This {
     
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.This$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$This$impl();
-    
     public abstract long m1();
     
     public long m2();
@@ -19,55 +17,35 @@ interface This {
 }
 final class This$impl {
     
-    This$impl(.com.redhat.ceylon.compiler.java.test.structure.concrete.This $this) {
-        this.$this = $this;
-    }
-    private final .com.redhat.ceylon.compiler.java.test.structure.concrete.This $this;
-    
-    public long m2() {
-        return (
-            let
-            {
-                long $ceylontmp$i1$0 = m2$i1();
-                long $ceylontmp$i2$1 = m2$i2($ceylontmp$i1$0);
-            }
-            returning m2$canonical$($ceylontmp$i1$0, $ceylontmp$i2$1);
-        );
+    private This$impl() {
     }
     
-    public final long m2$i1() {
+    static long m2$i1(.com.redhat.ceylon.compiler.java.test.structure.concrete.This $this) {
         return $this.m1();
     }
     
-    public long m2(final long i1) {
-        return (
-            let
-            {
-                long $ceylontmp$i2$2 = m2$i2(i1);
-            }
-            returning m2$canonical$(i1, $ceylontmp$i2$2);
-        );
-    }
-    
-    public final long m2$i2(final long i1) {
+    static long m2$i2(.com.redhat.ceylon.compiler.java.test.structure.concrete.This $this, final long i1) {
         return $this.m1();
     }
     
-    private long m2$canonical$(final long i1, final long i2) {
+    private static long m2$canonical$(.com.redhat.ceylon.compiler.java.test.structure.concrete.This $this, final long i1, final long i2) {
         return $this.m1() + $this.m1() + i1 + i2;
     }
     
-    public long m2(final long i1, final long i2) {
-        return m2$canonical$(i1, i2);
+    static long m2(final .com.redhat.ceylon.compiler.java.test.structure.concrete.This $this, final long i1, final long i2) {
+        return m2$canonical$($this, i1, i2);
     }
     
-    class Inner implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
+    static class Inner implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
         
-        Inner() {
+        private final .com.redhat.ceylon.compiler.java.test.structure.concrete.This $outer$This
+        
+        Inner(final .com.redhat.ceylon.compiler.java.test.structure.concrete.This $outer$This) {
+            this.$outer$This = $outer$This;
         }
         
         private final void m3$priv$() {
-            $this.m2(1L, 2L);
+            $outer$This.m2(1L, 2L);
         }
         
         @.java.lang.Override

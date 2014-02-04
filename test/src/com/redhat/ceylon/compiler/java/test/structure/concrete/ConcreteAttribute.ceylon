@@ -31,6 +31,7 @@ interface ConcreteAttribute<A> {
         return null;
     }
 }
+
 @noanno
 void concreteAttributeCallsite(ConcreteAttribute<Integer|Float> a) {
     variable Null|Integer|Float v;
@@ -42,6 +43,7 @@ void concreteAttributeCallsite(ConcreteAttribute<Integer|Float> a) {
     a.aVariableFormal = 1.0;
     v = a.aDefault;
 }
+
 @noanno
 class ConcreteAttributeGetterImpl<B>() satisfies ConcreteAttribute<B> {
     shared actual B? aFormal {
@@ -58,6 +60,7 @@ class ConcreteAttributeGetterImpl<B>() satisfies ConcreteAttribute<B> {
     assign aDefault {
     }
 }
+
 @noanno
 void concreteAttributeGetterImplCallsite(ConcreteAttributeGetterImpl<Integer|Float> a) {
     variable Null|Integer|Float v;

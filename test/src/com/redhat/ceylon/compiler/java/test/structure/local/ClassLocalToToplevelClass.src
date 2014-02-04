@@ -442,11 +442,11 @@ class FunctionLocalToToplevelClass<T> implements .com.redhat.ceylon.compiler.jav
         private Interface$0$impl() {
         }
         
-        static <T>long x(final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass$Interface<T> $this, final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass<T> $outer$FunctionLocalToToplevelClass) {
+        static <T>long x(final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass$Interface<T> $this, final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass<T> $outer$FunctionLocalToToplevelClass, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
             return $outer$FunctionLocalToToplevelClass.getI$priv$();
         }
         
-        public static final <T>long getY(.com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass$Interface<T> $this, final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass<T> $outer$FunctionLocalToToplevelClass) {
+        static final <T>long getY(.com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass$Interface<T> $this, final .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass<T> $outer$FunctionLocalToToplevelClass, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
             return $outer$FunctionLocalToToplevelClass.getI$priv$();
         }
     }
@@ -458,12 +458,12 @@ class FunctionLocalToToplevelClass<T> implements .com.redhat.ceylon.compiler.jav
         
         @.java.lang.Override
         public final long x() {
-            return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass<T>.Interface$0$impl.x(this, .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this);
+            return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.Interface$0$impl.x(this, .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this, $reified$T);
         }
         
         @.java.lang.Override
         public final long getY() {
-            return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass<T>.Interface$0$impl.getY(this, .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this);
+            return .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.Interface$0$impl.getY(this, .com.redhat.ceylon.compiler.java.test.structure.local.FunctionLocalToToplevelClass.this, $reified$T);
         }
         
         @.java.lang.Override

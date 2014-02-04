@@ -2,8 +2,6 @@ package com.redhat.ceylon.compiler.java.test.structure.concrete;
 
 interface I1 {
     
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.I1$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$I1$impl();
-    
     public abstract .java.lang.String m1();
     
     public abstract long m1$i();
@@ -17,22 +15,18 @@ interface I1 {
 }
 final class I1$impl {
     
-    I1$impl(.com.redhat.ceylon.compiler.java.test.structure.concrete.I1 $this) {
-        this.$this = $this;
+    private I1$impl() {
     }
-    private final .com.redhat.ceylon.compiler.java.test.structure.concrete.I1 $this;
     
-    public final long m1$i() {
+    static long m1$i(final .com.redhat.ceylon.compiler.java.test.structure.concrete.I1 $this) {
         return 0L;
     }
     
-    public final boolean m1$b(final long i) {
+    static boolean m1$b(final .com.redhat.ceylon.compiler.java.test.structure.concrete.I1 $this, final long i) {
         return false;
     }
 }
 interface I2 {
-    
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.I2$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$I2$impl();
     
     public abstract .java.lang.String m2();
     
@@ -47,56 +41,40 @@ interface I2 {
 }
 final class I2$impl {
     
-    I2$impl(.com.redhat.ceylon.compiler.java.test.structure.concrete.I2 $this) {
-        this.$this = $this;
+    private I2$impl() {
     }
-    private final .com.redhat.ceylon.compiler.java.test.structure.concrete.I2 $this;
     
-    public final long m2$i() {
+    static long m2$i(final .com.redhat.ceylon.compiler.java.test.structure.concrete.I2 $this) {
         return 0L;
     }
     
-    public final boolean m2$b(final long i) {
+    static boolean m2$b(final .com.redhat.ceylon.compiler.java.test.structure.concrete.I2 $this, final long i) {
         return false;
     }
 }
 class C implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType, .com.redhat.ceylon.compiler.java.test.structure.concrete.I1, .com.redhat.ceylon.compiler.java.test.structure.concrete.I2 {
     
     C() {
-        this.$com$redhat$ceylon$compiler$java$test$structure$concrete$I1$this$ = new .com.redhat.ceylon.compiler.java.test.structure.concrete.I1$impl(this);
-        this.$com$redhat$ceylon$compiler$java$test$structure$concrete$I2$this$ = new .com.redhat.ceylon.compiler.java.test.structure.concrete.I2$impl(this);
-    }
-    protected final .com.redhat.ceylon.compiler.java.test.structure.concrete.I1$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$I1$this$;
-    
-    @.java.lang.Override
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.I1$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$I1$impl() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$I1$this$;
     }
     
     @.java.lang.Override
     public final long m1$i() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$I1$this$.m1$i();
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.I1$impl.m1$i(this);
     }
     
     @.java.lang.Override
     public final boolean m1$b(final long i) {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$I1$this$.m1$b(i);
-    }
-    protected final .com.redhat.ceylon.compiler.java.test.structure.concrete.I2$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$I2$this$;
-    
-    @.java.lang.Override
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.I2$impl $com$redhat$ceylon$compiler$java$test$structure$concrete$I2$impl() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$I2$this$;
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.I1$impl.m1$b(this, i);
     }
     
     @.java.lang.Override
     public final long m2$i() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$I2$this$.m2$i();
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.I2$impl.m2$i(this);
     }
     
     @.java.lang.Override
     public final boolean m2$b(final long i) {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$I2$this$.m2$b(i);
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.I2$impl.m2$b(this, i);
     }
     
     public final .java.lang.String m1() {

@@ -58,5 +58,4 @@ class DefaultSetter() {
     class Sub() satisfies ISub {
         
     }
-
 }

@@ -1,0 +1,185 @@
+package com.redhat.ceylon.compiler.java.test.structure.local;
+
+interface ValueLocalToToplevelInterfaceMethodTop<T> {
+    
+    public T getDiamond();
+}
+final class ValueLocalToToplevelInterfaceMethodTop$impl {
+    
+    private ValueLocalToToplevelInterfaceMethodTop$impl() {
+    }
+    
+    static final <T>T getDiamond(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodTop<T> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T) {
+        return (T).ceylon.language.nothing_.get_();
+    }
+}
+interface ValueLocalToToplevelInterfaceMethodLeft<U> extends .com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodTop<U> {
+    
+    @.java.lang.Override
+    public U getDiamond();
+}
+final class ValueLocalToToplevelInterfaceMethodLeft$impl {
+    
+    private ValueLocalToToplevelInterfaceMethodLeft$impl() {
+    }
+    
+    static final <U>U getDiamond(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodLeft<U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+        return (U).ceylon.language.nothing_.get_();
+    }
+}
+interface ValueLocalToToplevelInterfaceMethodRight extends .com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodTop<.ceylon.language.String> {
+    
+    @.java.lang.Override
+    public .ceylon.language.String getDiamond();
+    public static final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $TypeDescriptor$ = .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodRight.class);
+}
+final class ValueLocalToToplevelInterfaceMethodRight$impl {
+    
+    private ValueLocalToToplevelInterfaceMethodRight$impl() {
+    }
+    
+    static final .ceylon.language.String getDiamond(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodRight $this) {
+        return .ceylon.language.String.instance("");
+    }
+}
+interface ValueLocalToToplevelInterfaceMethod extends .com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodLeft<.ceylon.language.String>, .com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethodRight {
+    
+    @.java.lang.Override
+    public .ceylon.language.String getDiamond();
+    
+    @.java.lang.Override
+    public .java.lang.String toString();
+    
+    public void naming();
+    
+    public <U>void method(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final U u);
+    public static final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $TypeDescriptor$ = .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.klass(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod.class);
+}
+final class ValueLocalToToplevelInterfaceMethod$impl {
+    
+    private ValueLocalToToplevelInterfaceMethod$impl() {
+    }
+    
+    static final .ceylon.language.String getDiamond(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this) {
+        return .ceylon.language.String.instance("a");
+    }
+    
+    static final .java.lang.String toString(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this) {
+        return "";
+    }
+    
+    private static final long getLocal$1(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this) {
+        return 2L;
+    }
+    
+    private static final void setLocal$1(final long local) {
+    }
+    
+    private static final long getLocal$0(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this) {
+        return 1L;
+    }
+    
+    private static final void setLocal$0(final long local) {
+    }
+    
+    static void naming(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this) {
+        if (1L + 1L == 2L) {
+            final long k = getLocal$0($this);
+            setLocal$0(k);
+        } else {
+            final long k = getLocal$1($this);
+            setLocal$1(k);
+        }
+    }
+    
+    private static final <U>long getLocalCapture$2(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this, final long x$1, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+        return x$1 + 1L;
+    }
+    
+    private static final <U>void setLocalCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$2, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long localCapture) {
+        (
+            let
+            {
+                long $ceylontmp$op$3 = result$2.ref + localCapture;
+                result$2.ref = $ceylontmp$op$3;
+            }
+            returning $ceylontmp$op$3;
+        );
+    }
+    
+    private static final <U>long getLocalVariableCapture$2(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$4, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+        y$4.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$5 = y$4.ref;
+                y$4.ref = $ceylontmp$op$5 + 1;
+            }
+            returning $ceylontmp$op$5;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$6 = y$4.ref + 1L;
+                y$4.ref = $ceylontmp$op$6;
+            }
+            returning $ceylontmp$op$6;
+        );
+        return y$4.ref;
+    }
+    
+    private static final <U>void setLocalVariableCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$7, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long localVariableCapture) {
+        y$7.ref = 1L;
+        (
+            let
+            {
+                long $ceylontmp$op$8 = y$7.ref;
+                y$7.ref = $ceylontmp$op$8 + 1;
+            }
+            returning $ceylontmp$op$8;
+        );
+        (
+            let
+            {
+                long $ceylontmp$op$9 = y$7.ref + 1L;
+                y$7.ref = $ceylontmp$op$9;
+            }
+            returning $ceylontmp$op$9;
+        );
+    }
+    
+    private static final <U>long getTransitiveCapture$2(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$10, final long x$11, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$12, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+        return getLocalVariableCapture$2($this, y$10, $reified$U) + getLocalCapture$2($this, x$11, $reified$U);
+    }
+    
+    private static final <U>void setTransitiveCapture$2(final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y$13, final long x$14, final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result$15, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final long transitiveCapture) {
+        setLocalVariableCapture$2(y$13, $reified$U, transitiveCapture);
+        setLocalCapture$2(result$15, $reified$U, transitiveCapture);
+    }
+    
+    private static final <U>U getTpCapture$2(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+        return (U).ceylon.language.nothing_.get_();
+    }
+    
+    private static final <U>void setTpCapture$2(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final U tpCapture) {
+    }
+    
+    private static final <U>long getThisAccess$2(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
+        return .ceylon.language.String.hashCode($this.toString());
+    }
+    
+    static <U>void method(.com.redhat.ceylon.compiler.java.test.structure.local.ValueLocalToToplevelInterfaceMethod $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final U u) {
+        final long x = 0L;
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong result = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
+        result.ref = getLocalCapture$2($this, x, $reified$U);
+        setLocalCapture$2(result, $reified$U, result.ref);
+        final .com.redhat.ceylon.compiler.java.language.VariableBoxLong y = new .com.redhat.ceylon.compiler.java.language.VariableBoxLong(0L);
+        result.ref = getLocalVariableCapture$2($this, y, $reified$U);
+        setLocalVariableCapture$2(y, $reified$U, result.ref);
+        result.ref = getTransitiveCapture$2($this, y, x, result, $reified$U);
+        setTransitiveCapture$2(y, x, result, $reified$U, result.ref);
+        result.ref = getTpCapture$2($this, $reified$U).hashCode();
+        setTpCapture$2($reified$U, (U).ceylon.language.nothing_.get_());
+        result.ref = getThisAccess$2($this, $reified$U);
+    }
+}

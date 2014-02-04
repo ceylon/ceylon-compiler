@@ -2,8 +2,6 @@ package com.redhat.ceylon.compiler.java.test.structure.concrete;
 
 interface RawInv<T, U> {
     
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv$impl<T, U> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawInv$impl();
-    
     public abstract T getA();
     
     public T getADefault();
@@ -22,40 +20,27 @@ interface RawInv<T, U> {
     
     public abstract U getA2();
 }
-final class RawInv$impl<T, U> {
+final class RawInv$impl {
     
-    RawInv$impl(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv<T, U> $this) {
-        this.$reified$T = $reified$T;
-        this.$reified$U = $reified$U;
-        this.$this = $this;
-    }
-    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
-    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
-    private final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv<T, U> $this;
-    
-    public void $refine$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
-        this.$reified$U = $reified$U;
-        this.$reified$T = $reified$T;
+    private RawInv$impl() {
     }
     
-    public final T getADefault() {
+    static final <T, U>T getADefault(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv<T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
         throw new .ceylon.language.Exception(null, null);
     }
     
-    public final void setADefault(final T aDefault) {
+    static final <T, U>void setADefault(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv<T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final T aDefault) {
     }
     
-    public T mDefault(final T t) {
+    static <T, U>T mDefault(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv<T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final T t) {
         throw new .ceylon.language.Exception(null, null);
     }
     
-    public final T mDefaulted$t() {
+    static <T, U>T mDefaulted$t(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawInv<T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
         return null;
     }
 }
 interface RawIn<T, U> {
-    
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn$impl<? super T, U> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$impl();
     
     public abstract .java.lang.Object m(final T t);
     
@@ -69,27 +54,16 @@ interface RawIn<T, U> {
     
     public abstract .java.lang.Object m2(final U u);
 }
-final class RawIn$impl<T, U> {
+final class RawIn$impl {
     
-    RawIn$impl(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn<? super T, U> $this) {
-        this.$reified$T = $reified$T;
-        this.$reified$U = $reified$U;
-        this.$this = $this;
-    }
-    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
-    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
-    private final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn<? super T, U> $this;
-    
-    public void $refine$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
-        this.$reified$U = $reified$U;
-        this.$reified$T = $reified$T;
+    private RawIn$impl() {
     }
     
-    public .java.lang.Object mDefault(final T t) {
+    static <T, U>.java.lang.Object mDefault(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn<? super T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, final T t) {
         return null;
     }
     
-    public final T mDefaulted$t() {
+    static <T, U>T mDefaulted$t(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn<? super T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
         return null;
     }
 }
@@ -98,25 +72,18 @@ class RawInImplementor<X, Y> implements .com.redhat.ceylon.compiler.java.runtime
     RawInImplementor(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         this.$reified$X = $reified$X;
         this.$reified$Y = $reified$Y;
-        this.$com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$this$ = new .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn$impl<.java.lang.Object, Y>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.intersection($reified$X, $reified$Y), $reified$Y, this);
     }
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X;
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y;
-    protected final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn$impl<? super .java.lang.Object, Y> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$this$;
-    
-    @.java.lang.Override
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn$impl<? super .java.lang.Object, Y> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$impl() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$this$;
-    }
     
     @.java.lang.Override
     public .java.lang.Object mDefault(final .java.lang.Object t) {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$this$.mDefault(t);
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn$impl.mDefault(this, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.intersection($reified$X, $reified$Y), $reified$Y, t);
     }
     
     @.java.lang.Override
     public final .java.lang.Object mDefaulted$t() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$RawIn$this$.mDefaulted$t();
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.RawIn$impl.mDefaulted$t(this, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.intersection($reified$X, $reified$Y), $reified$Y);
     }
     
     @.java.lang.Override
@@ -156,8 +123,6 @@ class RawInImplementor<X, Y> implements .com.redhat.ceylon.compiler.java.runtime
 }
 interface RawOut<T, U> {
     
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut$impl<? extends T, U> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$impl();
-    
     public abstract T getA();
     
     public T getADefault();
@@ -168,27 +133,16 @@ interface RawOut<T, U> {
     
     public abstract U getA2();
 }
-final class RawOut$impl<T, U> {
+final class RawOut$impl {
     
-    RawOut$impl(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U, .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut<? extends T, U> $this) {
-        this.$reified$T = $reified$T;
-        this.$reified$U = $reified$U;
-        this.$this = $this;
-    }
-    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T;
-    private .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U;
-    private final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut<? extends T, U> $this;
-    
-    public void $refine$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
-        this.$reified$U = $reified$U;
-        this.$reified$T = $reified$T;
+    private RawOut$impl() {
     }
     
-    public final T getADefault() {
+    static final <T, U>T getADefault(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut<? extends T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
         throw new .ceylon.language.Exception(null, null);
     }
     
-    public T mDefault() {
+    static <T, U>T mDefault(final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut<? extends T, U> $this, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$T, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$U) {
         throw new .ceylon.language.Exception(null, null);
     }
 }
@@ -197,25 +151,18 @@ class RawOutImplementor<X, Y> implements .com.redhat.ceylon.compiler.java.runtim
     RawOutImplementor(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y) {
         this.$reified$X = $reified$X;
         this.$reified$Y = $reified$Y;
-        this.$com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$this$ = new .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut$impl<.java.lang.Object, Y>(.com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.intersection($reified$X, $reified$Y), $reified$Y, this);
     }
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$X;
     private final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Y;
-    protected final .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut$impl<? extends .java.lang.Object, Y> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$this$;
-    
-    @.java.lang.Override
-    public .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut$impl<? extends .java.lang.Object, Y> $com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$impl() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$this$;
-    }
     
     @.java.lang.Override
     public final .java.lang.Object getADefault() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$this$.getADefault();
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut$impl.getADefault(this, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.intersection($reified$X, $reified$Y), $reified$Y);
     }
     
     @.java.lang.Override
     public .java.lang.Object mDefault() {
-        return $com$redhat$ceylon$compiler$java$test$structure$concrete$RawOut$this$.mDefault();
+        return .com.redhat.ceylon.compiler.java.test.structure.concrete.RawOut$impl.mDefault(this, .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor.intersection($reified$X, $reified$Y), $reified$Y);
     }
     
     @.java.lang.Override

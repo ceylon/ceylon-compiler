@@ -22,10 +22,10 @@ interface IntersectionSatisfier_X<out T, out N> given N satisfies Null {
     shared formal T|N x;
 }
 @noanno
-interface IntersectionSatisfier_I1<out T> satisfies IntersectionSatisfier_X<T, Null> {
-    shared actual default T? x { return null; }
+interface IntersectionSatisfier_I1<out U> satisfies IntersectionSatisfier_X<U, Null> {
+    shared actual default U? x { return null; }
 }
 @noanno
 interface IntersectionSatisfier_I2 satisfies IntersectionSatisfier_I1<Anything> {}
 @noanno
-class IntersectionSatisfier_C<T>() satisfies IntersectionSatisfier_I2&IntersectionSatisfier_I1<T> {}
+class IntersectionSatisfier_C<V>() satisfies IntersectionSatisfier_I2&IntersectionSatisfier_I1<V> {}

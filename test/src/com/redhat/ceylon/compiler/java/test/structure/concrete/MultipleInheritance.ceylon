@@ -18,7 +18,7 @@
  * MA  02110-1301, USA.
  */
 @noanno
-shared interface MultipleInheritance {
+shared interface MultipleInheritance<T> {
     shared default Integer a {
         return 1;
     } assign a {
@@ -26,27 +26,39 @@ shared interface MultipleInheritance {
     }
     shared default void m() {
     }
-}
-@noanno
-class MultipleInheritanceImpl() satisfies MultipleInheritance {
-}
-@noanno
-interface MultipleInheritanceSub satisfies MultipleInheritance {
-}
-@noanno
-class MultipleInheritanceSubImpl() satisfies MultipleInheritanceSub {
-}
-@noanno
-class MultipleInheritanceImplSub() extends MultipleInheritanceImpl() satisfies MultipleInheritanceSub {
-    shared actual variable Integer a = 1;
-    shared actual void m() {
-        (super of MultipleInheritanceSub).m();
+    void x(Object t) {
+        if (is T t) {
+        } 
     }
 }
 @noanno
-class MultipleInheritanceSubImplSub() extends MultipleInheritanceSubImpl() satisfies MultipleInheritance {
+class MultipleInheritanceImpl<A>() satisfies MultipleInheritance<A> {
+}
+@noanno
+interface MultipleInheritanceSub<B> satisfies MultipleInheritance<B> {
+}
+@noanno
+class MultipleInheritanceSubImpl<C>() satisfies MultipleInheritanceSub<C> {
+}
+@noanno
+class MultipleInheritanceImplSub<D>() extends MultipleInheritanceImpl<D>() satisfies MultipleInheritanceSub<D> {
     shared actual variable Integer a = 1;
     shared actual void m() {
-        (super of MultipleInheritance).m();
+        (super of MultipleInheritanceSub<D>).m();
+        value x = (super of MultipleInheritanceSub<D>).a;
+        (super of MultipleInheritanceSub<D>).a=0;
+        (super of MultipleInheritanceSub<D>).a+=a;
+        (super of MultipleInheritanceSub<D>).a++;
+    }
+}
+@noanno
+class MultipleInheritanceSubImplSub<E>() extends MultipleInheritanceSubImpl<E>() satisfies MultipleInheritance<E> {
+    shared actual variable Integer a = 1;
+    shared actual void m() {
+        (super of MultipleInheritance<E>).m();
+        value x = (super of MultipleInheritanceSub<E>).a;
+        (super of MultipleInheritance<E>).a=0;
+        (super of MultipleInheritance<E>).a+=a;
+        (super of MultipleInheritance<E>).a++;
     }    
 }

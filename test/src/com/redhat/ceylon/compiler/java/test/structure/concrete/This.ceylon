@@ -25,7 +25,6 @@ interface This {
     }
     class Inner() {
         void m3() {
-            // This one shouldn't be qualified with $this.
             m2(1, 2);
         }
     }

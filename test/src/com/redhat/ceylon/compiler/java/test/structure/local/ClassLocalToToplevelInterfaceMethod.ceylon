@@ -20,7 +20,7 @@ interface ClassLocalToToplevelInterfaceMethod<T>
                 return capture();
             }
         }
-        /*
+        
         result = Capture(0).capture();
         result = Capture{
             k=1;
@@ -95,7 +95,7 @@ interface ClassLocalToToplevelInterfaceMethod<T>
                 return x+y;
             }
         }
-        
+        /*
         result = DefaultedParameter(1).m(2);
         result = DefaultedParameter{
             a=1;
@@ -103,7 +103,7 @@ interface ClassLocalToToplevelInterfaceMethod<T>
             b=2;
         };
         ref = DefaultedParameter;
-        
+         */
         class SuperclassCapture() extends Capture(1) {
             // TODO We should only generate fields for captured stuff if we 
             // capture it directly ouselves
@@ -140,6 +140,6 @@ interface ClassLocalToToplevelInterfaceMethod<T>
          // static references
          // TODO object o extends ClassLocalToToplevelFunction(){}
          */
-         */
+         
     }
 }
