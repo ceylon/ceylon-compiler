@@ -1539,7 +1539,7 @@ public class ClassTransformer extends AbstractTransformer {
                                 model.getType(),
                                 PUBLIC | (attr.isDefault() ? 0 : FINAL), 
                                 Collections.<TypeParameter>emptyList(), 
-                                typedMember.getType(), 
+                                ((TypedDeclaration)member.getRefinedDeclaration()).getType(), 
                                 Naming.getGetterName(attr), 
                                 Collections.<Parameter>emptyList(),
                                 attr.getTypeErased(),
