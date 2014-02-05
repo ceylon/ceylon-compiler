@@ -521,18 +521,23 @@ public class Decl {
     }
     
     public static ClassOrInterface getClassOrInterfaceContainer(Element decl, boolean includingDecl){
+        Scope s;
         if (!includingDecl) {
-            decl = (Element) decl.getContainer();
+            s = decl.getContainer();
+        } else if (decl instanceof Scope) {
+            s = (Scope)decl;
+        } else {
+            return null;
         }
         // stop when null or when it's a ClassOrInterface
-        while(decl != null
-                && !(decl instanceof ClassOrInterface)){
+        while(s != null
+                && !(s instanceof ClassOrInterface)){
             // stop if the container is not an Element
-            if(!(decl.getContainer() instanceof Element))
+            if(!(s.getContainer() instanceof Element))
                 return null;
-            decl = (Element) decl.getContainer();
+            s = s.getContainer();
         }
-        return (ClassOrInterface) decl;
+        return (ClassOrInterface) s;
     }
     
     public static Declaration getDeclarationContainer(Declaration declaration){
