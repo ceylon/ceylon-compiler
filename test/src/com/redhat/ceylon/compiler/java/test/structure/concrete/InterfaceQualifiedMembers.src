@@ -245,7 +245,7 @@ final class InterfaceQualifiedIncrement$impl {
         private InnerI$impl() {
         }
         
-        private static void inside$priv$(final .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceQualifiedIncrement$InnerI $this, final .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceQualifiedIncrement ii) {
+        private static void inside$priv$(final .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceQualifiedIncrement$InnerI $this, final .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceQualifiedIncrement $outer$InterfaceQualifiedIncrement, final .com.redhat.ceylon.compiler.java.test.structure.concrete.InterfaceQualifiedIncrement ii) {
             long x = 0L;
             x = ii.m1();
             x = ii.m2();

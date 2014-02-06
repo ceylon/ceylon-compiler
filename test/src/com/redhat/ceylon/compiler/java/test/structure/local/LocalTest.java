@@ -192,5 +192,10 @@ public class LocalTest extends CompilerTest {
     public void testInterfaceLocalToToplevelFunction() {
         compareWithJavaSource("InterfaceLocalToToplevelFunction");
     }
+    
+    @Test
+    public void testInterfaceMember() {
+        compareWithJavaSource("InterfaceMember");
+    }
 }
 
