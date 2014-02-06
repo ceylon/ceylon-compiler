@@ -3588,18 +3588,18 @@ public abstract class AbstractTransformer implements Transformation {
         if(declaration instanceof TypeParameter){
             TypeParameter tp = (TypeParameter) declaration;
             String name = naming.getTypeArgumentDescriptorName(tp.getName());
-            if(!qualified)
+            //if(!qualified)
                 return makeUnquotedIdent(name);
-            Scope container = tp.getContainer();
+            /*Scope container = tp.getContainer();
             JCExpression qualifier = null;
             if(container instanceof Class){
-                qualifier = naming.makeQualifiedThis(makeJavaType(((Class)container).getType(), JT_RAW));
+                qualifier = null;//naming.makeQualifiedThis(makeJavaType(((Class)container).getType(), JT_RAW));
             }else if(container instanceof Interface){
-                qualifier = naming.makeQualifiedThis(makeJavaType(((Interface)container).getType(), JT_COMPANION | JT_RAW));
+                qualifier = null;//naming.makeQualifiedThis(makeJavaType(((Interface)container).getType(), JT_COMPANION | JT_RAW));
             }else{
                 throw new RuntimeException("Type parameter container not supported yet: " + container);
             }
-            return makeSelect(qualifier, name);
+            return makeSelect(qualifier, name);*/
         }
         // FIXME: refactor this shite
         if(declaration instanceof UnionType){

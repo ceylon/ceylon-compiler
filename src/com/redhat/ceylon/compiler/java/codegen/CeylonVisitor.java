@@ -89,9 +89,9 @@ public class CeylonVisitor extends Visitor implements NaturalVisitor {
         
         if (Decl.withinClassOrInterface(decl)) {
             if (Decl.withinInterface(decl)) {
-                classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).defs(gen.classGen().transform(decl));
+                classBuilder.getTopLevelBuilder().also(gen.classGen().transform(decl));
             } else {
-                classBuilder.defs(gen.classGen().transform(decl));
+                classBuilder.getTopLevelBuilder().also(gen.classGen().transform(decl));
             }
         } else if (decl.getDeclarationModel().isToplevel()) {
             appendList(gen.classGen().transform(decl));

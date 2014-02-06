@@ -541,6 +541,14 @@ public class MethodDefinitionBuilder
             reifiedTypeParameter(typeParam.getName());
         return this;
     }
+    
+    public MethodDefinitionBuilder outerParameter(TypeDeclaration outer) {
+        if (outer != null) {
+            String descriptorName = gen.naming.getOuterParameterName(outer);
+            parameter(makeOuterParameter(outer, descriptorName));
+        }
+        return this;
+    }
 
     public void defaultValue(JCExpression defaultValue) {
         this.defaultValue = defaultValue;

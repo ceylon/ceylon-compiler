@@ -7,23 +7,20 @@ import java.util.ArrayList;
 import com.redhat.ceylon.compiler.java.codegen.Naming.Substitution;
 import com.redhat.ceylon.compiler.typechecker.model.Declaration;
 import com.redhat.ceylon.compiler.typechecker.model.Method;
-import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
-import com.redhat.ceylon.compiler.typechecker.model.Scope;
 import com.redhat.ceylon.compiler.typechecker.model.Setter;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypeParameter;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
 
 /**
  * A baseclass for builders of methods and classes, which both deal with 
  * parameters and type parameters.
  */
 abstract class ParameterizedBuilder<B extends ParameterizedBuilder<B>> {
-
+    
     protected final AbstractTransformer gen;
     private java.util.List<Naming.Substitution> subsToClose = null;
     
@@ -109,6 +106,16 @@ abstract class ParameterizedBuilder<B extends ParameterizedBuilder<B>> {
     }
     public abstract B reifiedTypeParameters(java.util.List<TypeParameter> typeParams);
     public abstract B typeParameter(TypeParameter param);
+    
+    public abstract B outerParameter(TypeDeclaration outer);
+    
+    protected ParameterDefinitionBuilder makeOuterParameter(TypeDeclaration outer, String descriptorName) {
+        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(gen, descriptorName);
+        pdb.type(gen.makeJavaType(outer.getType()), List.<JCAnnotation>nil());
+        pdb.modifiers(FINAL);
+        pdb.ignored();
+        return pdb;
+    }
     
 
 }

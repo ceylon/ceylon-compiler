@@ -666,8 +666,8 @@ public class Naming implements LocalId {
             return;
         }
         if (!last) {
-            if (decl instanceof Interface 
-                    && Decl.isCeylon((Interface)decl)
+            if (decl instanceof ClassOrInterface 
+                    && Decl.isCeylon((ClassOrInterface)decl)
                     && !flags.contains(DeclNameFlag.COMPANION)) {
                 helper.append('$');
             } else {

@@ -134,6 +134,9 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(T def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
+            for(TypeParameter outerTypeParam : typeParametersOfAllContainers(def.getDeclarationModel(), false)){
+                classBuilder.typeParameter(outerTypeParam, false);
+            }
             for (TypeParameter param : typeParameters) {
                 classBuilder.typeParameter(param);
             }
@@ -248,9 +251,6 @@ public class ClassTransformer extends AbstractTransformer {
         
         @Override
         protected void transformTypeParameters(Tree.InterfaceDeclaration def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
-            for(TypeParameter outerTypeParam : typeParametersOfAllContainers(def.getDeclarationModel(), false)){
-                classBuilder.typeParameter(outerTypeParam, false);
-            }
             super.transformTypeParameters(def, typeParameters, classBuilder);
         }
         
@@ -411,6 +411,7 @@ public class ClassTransformer extends AbstractTransformer {
         protected void transformUltimate(AnyClass def,
                 ClassDefinitionBuilder classBuilder) {
             // Add reified type parameters to the constructor
+            implicitParameters(def.getDeclarationModel(), classBuilder);
             TypeParameterList typeParameterList = def.getTypeParameterList();
             if(typeParameterList != null) {
                 classBuilder.reifiedTypeParameters(typeParameterList);
@@ -469,8 +470,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformUltimate(AnyClass def,
                 ClassDefinitionBuilder classBuilder) {
-            capturedLocalParameters(def.getDeclarationModel(), classBuilder);
-            outerReifiedTypeParameters(def.getDeclarationModel(), classBuilder);
+            implicitParameters(def.getDeclarationModel(), classBuilder);
             super.transformUltimate(def, classBuilder);
             for (Declaration captured : Decl.getCapturedLocals(def.getDeclarationModel())) {
                 if (captured instanceof TypedDeclaration) {
@@ -773,7 +773,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
     };
     ClassAliasTransformation toplevelClassAliasTransformation = new ClassAliasTransformation(new ClassAliasInitializer());
-    ClassTransformation memberClassTransformation = new ClassTransformation(new MemberClassInstantiator(new MemberClassConstructor()));
+    ClassTransformation memberClassTransformation = new ClassTransformation(new MemberClassConstructor());
     ClassAliasTransformation memberClassAliasTransformation = new ClassAliasTransformation(new MemberClassInstantiator(new ClassAliasInitializer()) {
         @Override
         protected void transformOverload(
@@ -800,7 +800,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(Tree.ClassDefinition def, java.util.List<TypeParameter> typeParameters, ClassDefinitionBuilder classBuilder) {
-            outerTypeParameters(def.getDeclarationModel(), classBuilder);
+            implicitOuterTypeParameters(def.getDeclarationModel(), classBuilder);
             super.transformTypeParameters(def, typeParameters, classBuilder);
         }
         
@@ -1176,7 +1176,7 @@ public class ClassTransformer extends AbstractTransformer {
                 || Decl.isAnnotationClass(parameterType.getDeclaration());
     }
 
-    List<JCStatement> visitClassOrInterfaceDefinition(Node def, ClassDefinitionBuilder classBuilder) {
+    List<JCStatement> visitClassOrInterfaceDefinition(Tree.TypeDeclaration def, ClassDefinitionBuilder classBuilder) {
         // Transform the class/interface members
         CeylonVisitor visitor = gen().visitor;
         
@@ -3033,7 +3033,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
             if (method.isInterfaceMember()) {
-                outerTypeParameters(method, overloadBuilder);
+                implicitOuterTypeParameters(method, overloadBuilder);
             }
             super.transformTypeParameterList(method, overloadBuilder);
         }
@@ -3066,9 +3066,7 @@ public class ClassTransformer extends AbstractTransformer {
                 Parameter currentParameter, 
                 MethodDefinitionBuilder overloadBuilder) {
             if (method.isInterfaceMember()) {
-                capturedThisParameter(method, overloadBuilder);
-                capturedLocalParameters(method, overloadBuilder);
-                outerReifiedTypeParameters(method, overloadBuilder);
+                implicitParameters(method, overloadBuilder);
             }
             super.transformParameterList(method, parameterList, currentParameter, overloadBuilder);
         }
@@ -3168,8 +3166,7 @@ public class ClassTransformer extends AbstractTransformer {
 
         protected final void appendImplicitParameters(Class functional, java.util.List<TypeParameter> typeParameterList,
                 MethodDefinitionBuilder overloadBuilder) {
-            capturedLocalParameters(functional, overloadBuilder);
-            outerReifiedTypeParameters(functional, overloadBuilder);
+            implicitParameters(functional, overloadBuilder);
             super.appendImplicitParameters(functional, typeParameterList, overloadBuilder);
         }
         
@@ -3584,7 +3581,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformTypeParameterList(Method method,
                 MethodDefinitionBuilder methodBuilder) {
-            outerTypeParameters(method, methodBuilder);
+            implicitOuterTypeParameters(method, methodBuilder);
             super.transformTypeParameterList(method, methodBuilder);
         }
         
@@ -3592,9 +3589,7 @@ public class ClassTransformer extends AbstractTransformer {
         protected void transformParameterList(Method method,
                 ParameterList parameterList, Parameter parameter,
                 MethodDefinitionBuilder methodBuilder)  {
-            capturedThisParameter(method, methodBuilder);
-            capturedLocalParameters(method, methodBuilder);
-            outerReifiedTypeParameters(method, methodBuilder);
+            implicitParameters(method, methodBuilder);
             super.transformParameterList(method, parameterList, parameter, methodBuilder);
         }
         
@@ -3640,8 +3635,7 @@ public class ClassTransformer extends AbstractTransformer {
                 ParameterList parameterList, Parameter parameter,
                 MethodDefinitionBuilder methodBuilder)  {
             // XXX less than ideally we copy all the stuff captured by the class, rather than just the stuff captured by the defaulted expression
-            capturedLocalParameters(cls, methodBuilder);
-            outerReifiedTypeParameters(cls, methodBuilder);
+            implicitParameters(cls, methodBuilder);
             // make sure reified type parameters are accepted
             if(cls.getTypeParameters() != null)
                 methodBuilder.reifiedTypeParameters(cls.getTypeParameters());
@@ -4198,7 +4192,7 @@ public class ClassTransformer extends AbstractTransformer {
     }
     private ToplevelFunctionTransformation toplevelFunctionTransformation = new ToplevelFunctionTransformation();
     
-    static <B extends ParameterizedBuilder<B>> void capturedThisParameter(Declaration memberOrLocal, B builder) {
+    static <B extends ParameterizedBuilder<B>> void implicitThisParameter(Declaration memberOrLocal, B builder) {
         
         Declaration member;
         if (memberOrLocal.isInterfaceMember()) {
@@ -4216,7 +4210,17 @@ public class ClassTransformer extends AbstractTransformer {
         builder.parameter(pdb);
     }
     
-    static <B extends ParameterizedBuilder<B>> void outerTypeParameters(Declaration declaration, B builder) {
+    static <B extends ParameterizedBuilder<B>> void implicitOuterParameter(Declaration decl, B builder) {
+        TypeDeclaration thisDeclaration = Decl.getClassOrInterfaceContainer(decl, true);
+        if (thisDeclaration != null) {
+            TypeDeclaration outerDeclaration = Decl.getClassOrInterfaceContainer(thisDeclaration, false);
+            if (outerDeclaration != null) {
+                builder.outerParameter(outerDeclaration);
+            }
+        }
+    }
+    
+    static <B extends ParameterizedBuilder<B>> void implicitOuterTypeParameters(Declaration declaration, B builder) {
         outerTypeParametersInternal(declaration, declaration, builder);
     }
     
@@ -4234,18 +4238,17 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     
-    static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParameters(Declaration declaration, B builder) {
-        outerReifiedTypeParametersInternal(declaration, declaration, builder);
+    static <B extends ParameterizedBuilder<B>> void implicitOuterReifiedTypeParameters(Declaration declaration, B builder) {
+        implicitOuterReifiedTypeParametersInternal(declaration, declaration, builder);
     }
-    static <B extends ParameterizedBuilder<B>> void outerReifiedTypeParametersInternal(Declaration origin, Declaration declaration, B builder) {
+    static <B extends ParameterizedBuilder<B>> void implicitOuterReifiedTypeParametersInternal(Declaration origin, Declaration declaration, B builder) {
         Declaration container = Decl.getDeclarationContainer(declaration);
         if (container != null) {
             if (Decl.isLocal(container) || origin.isInterfaceMember()) {
-                outerReifiedTypeParametersInternal(origin, container, builder);
+                implicitOuterReifiedTypeParametersInternal(origin, container, builder);
             }
             if (origin.isInterfaceMember() ||
-                    (container instanceof Generic
-                            && !(container instanceof Class))) {
+                    container instanceof Generic) {
                 builder.reifiedTypeParameters(((Generic)container).getTypeParameters());
             }
         }
@@ -4352,14 +4355,12 @@ public class ClassTransformer extends AbstractTransformer {
                 }
                 @Override
                 protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
-                    outerTypeParameters(method, overloadBuilder);
+                    implicitOuterTypeParameters(method, overloadBuilder);
                     super.transformTypeParameterList(method, overloadBuilder);
                 }
                 @Override
                 protected final void transformParameterList(Method method, ParameterList parameterList, Parameter currentParameter, MethodDefinitionBuilder overloadBuilder) {
-                    deferredSpecificationParameter(ClassTransformer.this, method, makeJavaType(method.getType().getFullType()), overloadBuilder);
-                    capturedLocalParameters(method, overloadBuilder);
-                    outerReifiedTypeParameters(method, overloadBuilder);
+                    implicitParameters(method, overloadBuilder);
                     super.transformParameterList(method, parameterList, currentParameter, overloadBuilder);
                 }
                 @Override
@@ -4418,40 +4419,37 @@ public class ClassTransformer extends AbstractTransformer {
                 @Override
                 protected void transformTypeParameterList(Method method,
                         MethodDefinitionBuilder methodBuilder) {
-                    outerTypeParameters(method, methodBuilder);
+                    implicitOuterTypeParameters(method, methodBuilder);
                     super.transformTypeParameterList(method, methodBuilder);
                 }
                 @Override
                 protected void transformParameterList(Method method,
                         ParameterList parameterList, Parameter parameter,
                         MethodDefinitionBuilder methodBuilder)  {
-                    capturedLocalParameters(method, methodBuilder);
-                    outerReifiedTypeParameters(method, methodBuilder);
+                    implicitParameters(method, methodBuilder);
                     super.transformParameterList(method, parameterList, parameter, methodBuilder);
                 }
             };
         }
         
         protected void transformUltimateTypeParameterList(Method methodOrFunction, MethodDefinitionBuilder builder) {
-            outerTypeParameters(methodOrFunction, builder);
+            implicitParameters(methodOrFunction, builder);
             copyTypeParameters(methodOrFunction, builder);
         }
         
         protected void transformUltimateParameterList(Tree.AnyMethod methodOrFunction, MethodDefinitionBuilder builder) {
             Method model = methodOrFunction.getDeclarationModel();
-            deferredSpecificationParameter(ClassTransformer.this, model, makeJavaType(model.getType().getFullType()), builder);
-            capturedLocalParameters(model, builder);
-            outerReifiedTypeParameters(model, builder);
+            implicitParameters(model, builder);
             super.transformUltimateParameterList(methodOrFunction, builder);
         }
-    
+        
         protected void transformUltimateModifiers(Method methodOrFunction, MethodDefinitionBuilder builder) {
             int mods = PRIVATE | FINAL | transformMethodDeclFlags(methodOrFunction);
             mods = mods | useStatic(methodOrFunction);
             // TODO when container is interface
             builder.modifiers(mods);
         }
-
+        
         private int useStatic(Method methodOrFunction) {
             return localStatic(methodOrFunction) ? STATIC : 0;
         }
@@ -4623,7 +4621,7 @@ public class ClassTransformer extends AbstractTransformer {
                 
                 @Override
                 protected void transformTypeParameterList(Method method, MethodDefinitionBuilder overloadBuilder) {
-                    outerTypeParameters(method, overloadBuilder);
+                    implicitOuterTypeParameters(method, overloadBuilder);
                     super.transformTypeParameterList(method, overloadBuilder);
                 }
                 
@@ -4638,11 +4636,7 @@ public class ClassTransformer extends AbstractTransformer {
                 @Override
                 protected void appendImplicitParameters(Method functional, java.util.List<TypeParameter> typeParameterList,
                         MethodDefinitionBuilder overloadBuilder) {
-                    
-                    capturedThisParameter(functional, overloadBuilder);
-                    capturedLocalParameters(functional, overloadBuilder);
-                    outerReifiedTypeParameters(functional, overloadBuilder);
-                    
+                    implicitParameters(functional, overloadBuilder);
                     super.appendImplicitParameters(functional, typeParameterList, overloadBuilder);
                 }
                 @Override
@@ -4717,7 +4711,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformUltimateTypeParameterList(Method method, MethodDefinitionBuilder builder) {
             // TPs from outer
-            outerTypeParameters(method, builder);
+            implicitOuterTypeParameters(method, builder);
             // TPs from method itself
             super.transformUltimateTypeParameterList(method, builder);
         }
@@ -4725,13 +4719,7 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void transformUltimateParameterList(Tree.AnyMethod methodOrFunction, MethodDefinitionBuilder builder) {
             Method model = methodOrFunction.getDeclarationModel();
-            // The $this parameter
-            capturedThisParameter(model, builder);
-            // parameters for captured local environment
-            capturedLocalParameters(model, builder);
-            // parameters for reified type arguments
-            outerReifiedTypeParameters(model, builder);
-            // the explicit parameter list
+            implicitParameters(model, builder);
             super.transformUltimateParameterList(methodOrFunction, builder);
         }
         
@@ -4800,5 +4788,93 @@ public class ClassTransformer extends AbstractTransformer {
         }
     }
     private InterfaceMethodTransformation interfaceMethodTransformation = new InterfaceMethodTransformation();
+    
+    
+    final static int IP_THIS = 1<<0;
+    final static int IP_OUTER = 1<<1;
+    final static int IP_THIS_REIFIED_TP = 1<<2;
+    final static int IP_OUTER_REIFIED_TP = 1<<3;
+    final static int IP_CAPTURED_LOCALS = 1<<4;
+    
+    static int implicitParameters(Declaration decl) {
+        int result = 0;
+        if (decl instanceof Interface) {
+            Assert.fail("Interfaces don't have parameters");
+        }
+        if (decl.isMember()) {
+            result |= IP_OUTER;
+            result |= IP_OUTER_REIFIED_TP;
+        }
+        if (decl.isInterfaceMember() && !(decl instanceof Class)) {
+            result |= IP_THIS;
+        }
+        if (decl.isInterfaceMember() || decl instanceof Class) {
+            result |= IP_THIS_REIFIED_TP;
+        }
+        if (Decl.isLocal(decl)) {
+            result |= IP_CAPTURED_LOCALS;
+        }
+        return result;
+    }
+    /**
+     * Adds implicit parameters to the given builder
+     */
+    static <B extends ParameterizedBuilder<B>> void implicitParameters(Declaration decl, B builder) {
+        int implicits = implicitParameters(decl);
+        if ((implicits & IP_THIS) != 0) {
+            implicitThisParameter(decl, builder);
+        }
+        if ((implicits & IP_OUTER) != 0) {
+            implicitOuterParameter(decl, builder);
+        }
+        if ((implicits & IP_OUTER_REIFIED_TP) != 0 || (implicits & IP_THIS_REIFIED_TP) != 0) {
+            implicitOuterReifiedTypeParameters(decl, builder);
+        }
+        //if () {
+            // TODO implicitThisReifiedTypeParameters(decl, builder);
+        //}
+        if ((implicits & IP_CAPTURED_LOCALS) != 0) {
+            capturedLocalParameters(decl, builder);
+        }
+    }
+    
+    /**
+     * Adds implicit type parameters to the given builder
+     */
+    static <B extends ParameterizedBuilder<B>> void implicitTypeParameters(Declaration decl, B builder) {
+        int implicits = implicitParameters(decl);
+        if ((implicits & IP_OUTER_REIFIED_TP) != 0 || (implicits & IP_THIS_REIFIED_TP) != 0) {
+            implicitOuterTypeParameters(decl, builder);
+        }
+        //if ((implicits & IP_THIS_REIFIED_TP) != 0) {
+            // TODO implicitThisTypeParameters(decl, builder);
+        //}
+    }
+    
+    /**
+     * Adds arguments to the given listbuffer
+     */
+    /*
+    void implicitArguments(Declaration decl, 
+            ListBuffer/ *<JCExpression|ExpressionAndType>* / args, 
+            boolean expressionAndType) {
+        int implicits = implicitParameters(decl);
+        if ((implicits & IP_OUTER) != 0) {
+            implicitOuterArgument(decl, result);// TODO
+        }
+        if ((implicits & IP_OUTER_REIFIED_TP) != 0) {
+            addCapturedReifiedTypeParameters(args, decl);
+        }
+        if ((implicits & IP_THIS) != 0) {
+            implicitThisArgument(decl, result);// TODO
+        }
+        if ((implicits & IP_THIS_REIFIED_TP) != 0) {
+            addCapturedReifiedTypeParameters(args, decl);
+        }
+        if ((implicits & IP_CAPTURED_LOCALS) != 0) {
+            // Also a version in invocation!
+            addCapturedLocalArguments(result, decl);
+        }
+    }*/
 
  }

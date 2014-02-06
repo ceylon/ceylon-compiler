@@ -145,7 +145,7 @@ public class ClassDefinitionBuilder
         return containingClassBuilder;
     }
     
-    private ClassDefinitionBuilder getTopLevelBuilder() {
+    ClassDefinitionBuilder getTopLevelBuilder() {
         ClassDefinitionBuilder result = this;
         while (result.getContainingClassBuilder() != null) {
             result = result.getContainingClassBuilder();
@@ -217,8 +217,11 @@ public class ClassDefinitionBuilder
                     && concreteInterfaceMemberDefs.constructors.isEmpty()));
     }
 
-    private void also(JCTree also) {
+    void also(JCTree also) {
         this.also.append(also);
+    }
+    void also(List<JCTree> also) {
+        this.also.appendList(also);
     }
 
     private void appendDefinitionsTo(ListBuffer<JCTree> defs) {
@@ -505,10 +508,13 @@ public class ClassDefinitionBuilder
     public ClassDefinitionBuilder getCompanionBuilder(TypeDeclaration decl) {
         if (concreteInterfaceMemberDefs == null) {
             String className = gen.naming.getCompanionClassName(decl).replaceFirst(".*\\.", "");
+            ClassDefinitionBuilder current = gen.current();
             concreteInterfaceMemberDefs = new ClassDefinitionBuilder(gen, className, decl.getName())
                 .ignoreAnnotations();
+            concreteInterfaceMemberDefs.setContainingClassBuilder(containingClassBuilder);
             concreteInterfaceMemberDefs.isCompanion = true;
             concreteInterfaceMemberDefs.isCompanionLocal = Decl.isLocal(decl);
+            concreteInterfaceMemberDefs.setContainingClassBuilder(current);
         }
         return concreteInterfaceMemberDefs;
     }
@@ -598,6 +604,27 @@ public class ClassDefinitionBuilder
         return pdb;
     }
 
+    
+    public ClassDefinitionBuilder outerParameter(TypeDeclaration outer) {
+        if (outer != null) {
+            String descriptorName = gen.naming.getOuterParameterName(outer);
+            parameter(makeOuterParameter(outer, descriptorName));
+            long flags = PRIVATE;
+            flags |= FINAL;
+            List<JCAnnotation> annotations;
+            if(!isCompanion)
+                annotations = gen.makeAtIgnore();
+            else
+                annotations = List.nil();
+            JCVariableDecl localVar = gen.make().VarDef(gen.make().Modifiers(flags, annotations), gen.names().fromString(descriptorName), 
+                    gen.makeJavaType(outer.getType()), null);
+            defs(localVar);
+            init(gen.make().Exec(gen.make().Assign(
+                    gen.naming.makeQualIdent(gen.naming.makeThis(), descriptorName), 
+                    gen.naming.makeQualIdent(null, descriptorName))));
+        }
+        return this;
+    }
 
     public ClassDefinitionBuilder addGetTypeMethod(ProducedType type){
         if ((modifiers & INTERFACE) != 0) {

@@ -371,15 +371,13 @@ public class ValueTransformer extends AbstractTransformer {
     
     class CompanionGetter extends GetterTransformation {
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            ClassTransformer.outerTypeParameters(value, builder);
+            ClassTransformer.implicitOuterTypeParameters(value, builder);
         }
         
         
         @Override
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
-            ClassTransformer.capturedThisParameter(value, builder);
-            ClassTransformer.capturedLocalParameters(value, builder);
-            ClassTransformer.outerReifiedTypeParameters(value, builder);
+            ClassTransformer.implicitParameters(value, builder);
         }
         
         @Override
@@ -474,17 +472,12 @@ public class ValueTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            ClassTransformer.outerTypeParameters(value, builder);
+            ClassTransformer.implicitOuterTypeParameters(value, builder);
         }
         
         @Override
         protected void transformParameters(Value value, MethodDefinitionBuilder builder) {
-            if (Decl.getDeclarationContainer(value).isInterfaceMember()) {
-                ClassTransformer.capturedThisParameter(value, builder);
-            }
-            ClassTransformer.deferredSpecificationParameter(ValueTransformer.this, value, makeJavaType(getGetterInterfaceType(value)), builder);
-            ClassTransformer.capturedLocalParameters(value, builder);
-            ClassTransformer.outerReifiedTypeParameters(value, builder);
+            ClassTransformer.implicitParameters(value, builder);
         }
         
         protected void transformBody(Tree.AnyAttribute value, MethodDefinitionBuilder builder) {
@@ -538,7 +531,7 @@ public class ValueTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            ClassTransformer.outerTypeParameters(value, builder);
+            ClassTransformer.implicitOuterTypeParameters(value, builder);
         }
         
         protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
@@ -745,15 +738,13 @@ public class ValueTransformer extends AbstractTransformer {
         }
         
         protected void transformTypeParameters(Value value, MethodDefinitionBuilder builder) {
-            ClassTransformer.outerTypeParameters(value, builder);
+            ClassTransformer.implicitOuterTypeParameters(value, builder);
         }
         
         
         @Override
         protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
-            ClassTransformer.capturedThisParameter(value, builder);
-            ClassTransformer.capturedLocalParameters(value, builder);
-            ClassTransformer.outerReifiedTypeParameters(value, builder);
+            ClassTransformer.implicitParameters(value, builder);
             super.transformParameters(value, setter, builder);
         }
         
@@ -783,9 +774,7 @@ public class ValueTransformer extends AbstractTransformer {
         }
         @Override
         protected void transformParameters(Value value, Setter setter, MethodDefinitionBuilder builder) {
-            ClassTransformer.deferredSpecificationParameter(ValueTransformer.this, setter, makeJavaType(getGetterInterfaceType(value)), builder);
-            ClassTransformer.capturedLocalParameters(setter, builder);
-            ClassTransformer.outerReifiedTypeParameters(setter, builder);
+            ClassTransformer.implicitParameters(setter, builder);
             super.transformParameters(value, setter, builder);
         }
 
