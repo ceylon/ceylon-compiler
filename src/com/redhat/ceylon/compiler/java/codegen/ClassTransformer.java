@@ -2614,7 +2614,7 @@ public class ClassTransformer extends AbstractTransformer {
      */
     private class DaoCompanion<D extends Declaration&Functional>  extends DaoThis<D> {
         @Override
-        protected final List<JCExpression> makeTypeArguments(D model, DefaultedArgumentOverload ol) {
+        protected final List<JCExpression> makeTypeArguments(D model, DefaultedArgumentOverload<D> ol) {
             return List.<JCExpression>nil();
         }
     }
