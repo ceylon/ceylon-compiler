@@ -1,0 +1,55 @@
+package com.redhat.ceylon.compiler.java.test.issues.bug15xx;
+
+final class noArguments_ {
+    
+    private noArguments_() {
+    }
+    
+    static void noArguments() {
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        .com.redhat.ceylon.compiler.java.test.issues.bug15xx.noArguments_.noArguments();
+    }
+}
+final class v_ {
+    
+    private v_() {
+    }
+    private static final .java.lang.Object[] value;
+    static {
+        value = new .java.lang.Object[]{(
+            let
+            {
+                .com.redhat.ceylon.compiler.java.test.issues.bug15xx.noArguments_.noArguments();
+            }
+            returning null;
+        )};
+    }
+    
+    public static .java.lang.Object get_() {
+        try {
+            return value[0];
+        } catch (.java.lang.NullPointerException ex) {
+            throw new .ceylon.language.InitializationError("Cyclic initialization");
+        }
+    }
+}
+final class e_ {
+    
+    private e_() {
+    }
+    private static final .ceylon.language.Empty[] value;
+    static {
+        value = new .ceylon.language.Empty[]{.ceylon.language.empty_.get_()};
+    }
+    
+    public static .ceylon.language.Empty get_() {
+        try {
+            return value[0];
+        } catch (.java.lang.NullPointerException ex) {
+            throw new .ceylon.language.InitializationError("Cyclic initialization");
+        }
+    }
+}

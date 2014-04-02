@@ -1427,7 +1427,7 @@ public class ExpressionTransformer extends AbstractTransformer {
     }
     
     private JCExpression makeTuple(ProducedType tupleType, java.util.List<Tree.PositionalArgument> expressions) {
-        if (expressions.isEmpty()) {
+        if (typeFact().isEmptyType(tupleType)) {
             return makeEmpty();// A tuple terminated by empty
         }
         
@@ -2465,7 +2465,13 @@ public class ExpressionTransformer extends AbstractTransformer {
         boolean wrapIntoArray = false;
         ListBuffer<JCExpression> arrayWrap = new ListBuffer<JCExpression>();
         for (int argIndex = 0; argIndex < numArguments; argIndex++) {
-            BoxingStrategy boxingStrategy = invocation.getParameterBoxingStrategy(argIndex);
+    		BoxingStrategy boxingStrategy;
+        	try {
+				boxingStrategy = invocation.getParameterBoxingStrategy(argIndex);
+        	} catch (IndexOutOfBoundsException e) {
+        		// This can happen if there are no parameters at all, but a spread argument *[] (#1593).
+        		break;
+        	}
             ProducedType parameterType = invocation.getParameterType(argIndex);
             // for Java methods of variadic primitives, it's better to wrap them ourselves into an array
             // to avoid ambiguity of foo(1,2) for foo(int...) and foo(Object...) methods
@@ -2479,11 +2485,11 @@ public class ExpressionTransformer extends AbstractTransformer {
 
             ExpressionAndType exprAndType;
             if (invocation.isArgumentSpread(argIndex)) {
-                if (!invocation.isParameterSequenced(argIndex)) {
-                    result = transformSpreadTupleArgument(invocation, callBuilder,
+            	if (!invocation.isParameterSequenced(argIndex)) {
+            		result = transformSpreadTupleArgument(invocation, callBuilder,
                             result, argIndex);
                     break;
-                }
+            	}
                 if(invocation.isJavaMethod()){
                     // if it's a java method we need a special wrapping
                     exprAndType = transformSpreadArgument(invocation,
