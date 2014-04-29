@@ -64,6 +64,7 @@ import com.redhat.ceylon.compiler.loader.mirror.AnnotatedMirror;
 import com.redhat.ceylon.compiler.loader.mirror.AnnotationMirror;
 import com.redhat.ceylon.compiler.loader.mirror.ClassMirror;
 import com.redhat.ceylon.compiler.loader.mirror.FieldMirror;
+import com.redhat.ceylon.compiler.loader.mirror.FunctionalInterface;
 import com.redhat.ceylon.compiler.loader.mirror.MethodMirror;
 import com.redhat.ceylon.compiler.loader.mirror.PackageMirror;
 import com.redhat.ceylon.compiler.loader.mirror.TypeMirror;
@@ -3804,9 +3805,45 @@ public abstract class AbstractModelLoader implements ModelCompleter, ModelLoader
         if (ret.getUnderlyingType() == null) {
             ret.setUnderlyingType(getUnderlyingType(originalType, location));
         }
+        if(location == TypeLocation.TOPLEVEL 
+                && variance == VarianceLocation.CONTRAVARIANT){
+            ProducedType callableType = getFunctionalInterfaceType(moduleScope, scope, type);
+            if(callableType != null){
+                System.err.println(type+" is a FunctionalInterface: "+callableType);
+                UnionType pt = new UnionType(typeFactory);
+                List<ProducedType> caseTypes = new ArrayList<ProducedType>(2);
+                caseTypes.add(ret);
+                caseTypes.add(callableType);
+                pt.setCaseTypes(caseTypes);
+                ret = pt.getType();
+            }
+        }
         return ret;
     }
     
+    private ProducedType getFunctionalInterfaceType(Module moduleScope, Scope scope, TypeMirror type) {
+//        System.err.println("getfunctional for "+type);
+        if(type instanceof SimpleReflType)
+            return null;
+        FunctionalInterface functionalInterface = getFunctionalInterface(type);
+        if(functionalInterface == null)
+            return null;
+        // we found one
+        ProducedType returnType = obtainType(moduleScope, functionalInterface.returnType, scope, TypeLocation.TOPLEVEL, VarianceLocation.COVARIANT);
+        List<TypeMirror> parameters = functionalInterface.parameterTypes;
+        List<ProducedType> parameterTypes = new ArrayList<ProducedType>(parameters.size());
+        for(TypeMirror parameter : parameters){
+            ProducedType parameterType = obtainType(moduleScope, parameter, scope, 
+                    TypeLocation.TOPLEVEL, VarianceLocation.CONTRAVARIANT);
+            parameterTypes.add(parameterType);
+        }
+        ProducedType parameterTuple = typeFactory.getTupleType(parameterTypes, false, false, -1);
+        ProducedType callableType = typeFactory.getCallableDeclaration().getProducedType(null, Arrays.asList(returnType, parameterTuple));
+        return callableType;
+    }
+    
+    protected abstract FunctionalInterface getFunctionalInterface(TypeMirror type);
+
     private TypeMirror applyTypeMapping(TypeMirror type, TypeLocation location) {
         // don't erase to c.l.String if in a type param location
         if (sameType(type, STRING_TYPE) && location != TypeLocation.TYPE_PARAM) {

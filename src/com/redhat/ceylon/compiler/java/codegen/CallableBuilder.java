@@ -41,6 +41,7 @@ import com.redhat.ceylon.compiler.typechecker.model.Parameter;
 import com.redhat.ceylon.compiler.typechecker.model.ParameterList;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedReference;
 import com.redhat.ceylon.compiler.typechecker.model.ProducedType;
+import com.redhat.ceylon.compiler.typechecker.model.ProducedTypedReference;
 import com.redhat.ceylon.compiler.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.compiler.typechecker.model.Value;
@@ -1142,14 +1143,23 @@ public class CallableBuilder {
         JCClassDecl classDef = gen.make().AnonymousClassDef(gen.make().Modifiers(0), classBody.toList());
         
         int variadicIndex = isVariadic ? numParams - 1 : -1;
-        JCNewClass instance = gen.make().NewClass(null, 
-                null, 
-                gen.makeJavaType(typeModel, JT_EXTENDS | JT_CLASS_NEW), 
-                List.<JCExpression>of(gen.makeReifiedTypeArgument(typeModel.getTypeArgumentList().get(0)),
-                                      gen.makeReifiedTypeArgument(typeModel.getTypeArgumentList().get(1)),
-                                      gen.make().Literal(typeModel.getProducedTypeName(true)),
-                                      gen.make().TypeCast(gen.syms().shortType, gen.makeInteger(variadicIndex))),
-                classDef);
+        JCNewClass instance;
+        if(functionalInterface == null){
+            instance = gen.make().NewClass(null, 
+                    null, 
+                    gen.makeJavaType(typeModel, JT_EXTENDS | JT_CLASS_NEW), 
+                    List.<JCExpression>of(gen.makeReifiedTypeArgument(typeModel.getTypeArgumentList().get(0)),
+                            gen.makeReifiedTypeArgument(typeModel.getTypeArgumentList().get(1)),
+                            gen.make().Literal(typeModel.getProducedTypeName(true)),
+                            gen.make().TypeCast(gen.syms().shortType, gen.makeInteger(variadicIndex))),
+                    classDef);
+        }else{
+            instance = gen.make().NewClass(null, 
+                    null, 
+                    gen.makeJavaType(functionalInterface, JT_EXTENDS | JT_CLASS_NEW), 
+                    List.<JCExpression>nil(),
+                    classDef);
+        }
         return instance;
     }
 
@@ -1341,6 +1351,10 @@ public class CallableBuilder {
     }
 
     Target target = new Target(null);
+
+    private ProducedTypedReference functionalInterfaceMethod;
+
+    private ProducedType functionalInterface;
     
     class Target {
         Tree.Term forwardCallTo;
@@ -1447,5 +1461,14 @@ public class CallableBuilder {
             return gen.makeEmptyAsSequential(true);
         }
         throw Assert.fail("compiler bug: " + defaultedParam.getName() + " is not a defaulted parameter");
+    }
+
+    /**
+     * @param other
+     * @param functionalInterface
+     */
+    public void functionalInterface(ProducedType interfaceType, ProducedTypedReference method) {
+        this.functionalInterface = interfaceType;
+        this.functionalInterfaceMethod = method;
     }
 }
