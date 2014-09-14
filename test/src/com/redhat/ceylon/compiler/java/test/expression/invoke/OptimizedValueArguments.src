@@ -1,0 +1,177 @@
+package com.redhat.ceylon.compiler.java.test.expression.invoke;
+
+final class optimizedValueArguments_ {
+    
+    private optimizedValueArguments_() {
+    }
+    
+    static void optimizedValueArguments() {
+        (
+            let
+            {
+                final .java.lang.Object arg$0$0 = .ceylon.language.String.instance((
+                    let
+                    {
+                        final .java.lang.String $ceylontmp$returnValue$2;
+                        $ceylontmp$returnLabel$3: do {
+                            {
+                                $ceylontmp$returnValue$2 = "Hello, World!";
+                                break $ceylontmp$returnLabel$3;
+                            }
+                        }                         while (false);
+                    }
+                    returning $ceylontmp$returnValue$2;
+                ));
+                .ceylon.language.print_.print(arg$0$0);
+            }
+            returning null;
+        );
+        (
+            let
+            {
+                final .java.lang.Object arg$4$0 = .ceylon.language.String.instance((
+                    let
+                    {
+                        final .java.lang.String $ceylontmp$returnValue$7;
+                        $ceylontmp$returnLabel$8: do {
+                            if (1L > 0L) {
+                                {
+                                    $ceylontmp$returnValue$7 = "Hello, World!";
+                                    break $ceylontmp$returnLabel$8;
+                                }
+                            } else {
+                                {
+                                    $ceylontmp$returnValue$7 = "WARNING: Unsound system!";
+                                    break $ceylontmp$returnLabel$8;
+                                }
+                            }
+                        }                         while (false);
+                    }
+                    returning $ceylontmp$returnValue$7;
+                ));
+                .ceylon.language.print_.print(arg$4$0);
+            }
+            returning null;
+        );
+        (
+            let
+            {
+                final .java.lang.Object arg$9$0 = .ceylon.language.String.instance((
+                    let
+                    {
+                        final .java.lang.String $ceylontmp$returnValue$13;
+                        $ceylontmp$returnLabel$14: do {
+                            if (1L > 0L) {
+                                if (2L > 1L) {
+                                    {
+                                        $ceylontmp$returnValue$13 = "Hello, World!";
+                                        break $ceylontmp$returnLabel$14;
+                                    }
+                                } else {
+                                    {
+                                        $ceylontmp$returnValue$13 = "WARNING: Partially unsound system!";
+                                        break $ceylontmp$returnLabel$14;
+                                    }
+                                }
+                            } else {
+                                throw new .ceylon.language.AssertionError("Unsound system");
+                            }
+                        }                         while (false);
+                    }
+                    returning $ceylontmp$returnValue$13;
+                ));
+                .ceylon.language.print_.print(arg$9$0);
+            }
+            returning null;
+        );
+        (
+            let
+            {
+                final .java.lang.Object arg$15$0 = .ceylon.language.String.instance((
+                    let
+                    {
+                        final .java.lang.String $ceylontmp$returnValue$18;
+                        $ceylontmp$returnLabel$19: do {
+                            if (2L > 1L) {
+                                {
+                                    $ceylontmp$returnValue$18 = "Hello, World!";
+                                    break $ceylontmp$returnLabel$19;
+                                }
+                            }
+                            {
+                                $ceylontmp$returnValue$18 = "WARNING: Unsound system!";
+                                break $ceylontmp$returnLabel$19;
+                            }
+                        }                         while (false);
+                    }
+                    returning $ceylontmp$returnValue$18;
+                ));
+                .ceylon.language.print_.print(arg$15$0);
+            }
+            returning null;
+        );
+        (
+            let
+            {
+                final .java.lang.Object arg$20$0 = .ceylon.language.String.instance((
+                    let
+                    {
+                        final .java.lang.String $ceylontmp$returnValue$32;
+                        $ceylontmp$returnLabel$33: do {
+                            if (2L > 1L) {
+                                if (3L < 4L) {
+                                    {
+                                        $ceylontmp$returnValue$32 = "Hi";
+                                        break $ceylontmp$returnLabel$33;
+                                    }
+                                } else {
+                                    final long $ceylontmp$start$24 = 1L;
+                                    final long $ceylontmp$end$25 = 10L;
+                                    final boolean $ceylontmp$increasing$26 = $ceylontmp$start$24 <= $ceylontmp$end$25;
+                                    final long $ceylontmp$incr$27 = $ceylontmp$increasing$26 ? 1L : -1L;
+                                    loop_0: for (long i$28 = $ceylontmp$start$24; $ceylontmp$increasing$26 ? i$28 - $ceylontmp$end$25 <= 0L : i$28 - $ceylontmp$end$25 >= 0L; i$28 += $ceylontmp$incr$27) {
+                                        final long i = i$28;
+                                        if (i > 5L) {
+                                            {
+                                                $ceylontmp$returnValue$32 = .ceylon.language.Integer.toString(i);
+                                                break $ceylontmp$returnLabel$33;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (3L > 4L) {
+                                    {
+                                        $ceylontmp$returnValue$32 = "wat";
+                                        break $ceylontmp$returnLabel$33;
+                                    }
+                                }
+                            }
+                            loop_1: while (true) {
+                                if (1L < 2L) {
+                                    if (9L < 10L) {
+                                        {
+                                            $ceylontmp$returnValue$32 = "Hello";
+                                            break $ceylontmp$returnLabel$33;
+                                        }
+                                    }
+                                } else break loop_1;
+                            }
+                            {
+                                $ceylontmp$returnValue$32 = "foo";
+                                break $ceylontmp$returnLabel$33;
+                            }
+                        }                         while (false);
+                    }
+                    returning $ceylontmp$returnValue$32;
+                ));
+                .ceylon.language.print_.print(arg$20$0);
+            }
+            returning null;
+        );
+    }
+    
+    public static void main(.java.lang.String[] args) {
+        .ceylon.language.process_.get_().setupArguments(args);
+        .com.redhat.ceylon.compiler.java.test.expression.invoke.optimizedValueArguments_.optimizedValueArguments();
+    }
+}
