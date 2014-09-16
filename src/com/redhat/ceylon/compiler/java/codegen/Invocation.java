@@ -1561,6 +1561,36 @@ class NamedArgumentInvocation extends Invocation {
         return block;
     }
     
+    /**
+     * Rewrites a getter block with early returns.
+     * <p>
+     * Replaces every return with an assignment to the given variable and a
+     * break from a new outer <code>do { ... } while (false);</code> loop.
+     * <p>
+     * See doc/optimizations.md.
+     * 
+     * @param block
+     *            The block.
+     * @param returnVarName
+     *            The name of the variable to which the return results are
+     *            assigned.
+     * @return The outer <code>do { ... } while (false);</code> loop.
+     */
+    private final JCStatement getterToLet_general(final JCBlock block, final SyntheticName returnVarName) {
+        final SyntheticName returnLabelName = gen.naming.temp("returnLabel");
+        block.accept(new TreeTranslator() {
+            @Override
+            public void visitReturn(JCReturn tree) {
+                result = gen.make().Block(0, List.<JCStatement>of(
+                        gen.make().Exec(gen.make().Assign(gen.make().Ident(returnVarName.asName()), tree.expr)),
+                        gen.make().Break(returnLabelName.asName())));
+            }
+        });
+        JCStatement doLoop = gen.make().DoLoop(block, gen.makeBoolean(false));
+        JCStatement labelledLoop = gen.make().Labelled(returnLabelName.asName(), doLoop);
+        return labelledLoop;
+    }
+    
     private final void appendDefaulted(Parameter param, JCExpression argExpr) {
         // we can't just generate types like Foo<?> if the target type param is not raw because the bounds will
         // not match, so we go raw
