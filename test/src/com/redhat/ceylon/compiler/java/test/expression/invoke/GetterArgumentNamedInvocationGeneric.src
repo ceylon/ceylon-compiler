@@ -20,18 +20,19 @@ final class getterArgumentNamedInvocationGeneric_ {
         (
             let
             {
-                
-                final class i$1 implements .com.redhat.ceylon.compiler.java.language.Getter<T> {
-                    
-                    private i$1() {
+                final T arg$0$0 = (
+                    let
+                    {
+                        final T $ceylontmp$returnValue$2;
+                        $ceylontmp$returnLabel$3: do {
+                            {
+                                $ceylontmp$returnValue$2 = t;
+                                break $ceylontmp$returnLabel$3;
+                            }
+                        }                         while (false);
                     }
-                    
-                    public T get_() {
-                        return t;
-                    }
-                }
-                final .com.redhat.ceylon.compiler.java.language.Getter<T> i$1 = new i$1();
-                final T arg$0$0 = i$1.get_();
+                    returning $ceylontmp$returnValue$2;
+                );
                 callFunction.callFunction(arg$0$0);
             }
             returning null;

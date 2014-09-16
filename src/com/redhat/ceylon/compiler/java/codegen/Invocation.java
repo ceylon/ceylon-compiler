@@ -62,11 +62,26 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.SequencedArgument;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Term;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCCase;
+import com.sun.tools.javac.tree.JCTree.JCCatch;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
+import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
+import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCSynchronized;
+import com.sun.tools.javac.tree.JCTree.JCTry;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -1391,9 +1406,17 @@ class NamedArgumentInvocation extends Invocation {
         ProducedType nonWideningType = gen.nonWideningType(typedRef, nonWideningTypedRef);
         ProducedType type = parameterType(declaredParam, model.getType(), 0);
         final BoxingStrategy boxType = getNamedParameterBoxingStrategy(declaredParam);
-        JCExpression initValue = gen.make().Apply(null, 
+        JCExpression initValue;
+        LetExpr initValue_letExpr = getterToLetExpr(attrClass);
+        if (initValue_letExpr != null) {
+            // use optimized version with let expression
+            initValue = initValue_letExpr;
+        } else {
+            // use normal version
+            initValue = gen.make().Apply(null, 
                 gen.makeSelect(alias.makeIdent(), Naming.getGetterName(model)),
                 List.<JCExpression>nil());
+        }
         initValue = gen.expressionGen().applyErasureAndBoxing(
                 initValue, 
                 nonWideningType, 
@@ -1405,7 +1428,13 @@ class NamedArgumentInvocation extends Invocation {
                 argName.asName(), 
                 gen.makeJavaType(type, boxType==BoxingStrategy.BOXED ? JT_NO_PRIMITIVES : 0), 
                 initValue);
-        statements = toStmts(attrArg, attrClass).append(var);
+        if (initValue_letExpr != null) {
+            // optimized: only use var statement
+            statements = ListBuffer.<JCStatement>of(var);
+        } else {
+            // unoptimized: include class definition + instantiation
+            statements = toStmts(attrArg, attrClass).append(var);
+        }
         bind(declaredParam, argName, gen.makeJavaType(type, boxType==BoxingStrategy.BOXED ? JT_NO_PRIMITIVES : 0),
                 statements.toList());
     }
@@ -1427,6 +1456,145 @@ class NamedArgumentInvocation extends Invocation {
             }
         }
         return result;
+    }
+    
+    /**
+     * Converts a class declaration for a value getter, as used in named arguments,
+     * to a single let expression.
+     * <p>
+     * This is an optimization; see https://github.com/ceylon/ceylon-compiler/issues/1794.
+     * 
+     * @param attrClass Two statements: The attribute class and an instantiation of it.
+     * @return <code>null</code> if the conversion was not successful (use the original
+     * getter instead), otherwise a {@link LetExpr} that evaluates to the same result as the getter.
+     */
+    private LetExpr getterToLetExpr(final List<JCTree> attrClass) {
+        if (attrClass.size() != 2)
+            return null;
+        final JCTree first = attrClass.get(0);
+        final JCTree second = attrClass.get(1);
+        if (!(first instanceof JCClassDecl && second instanceof JCVariableDecl))
+            return null;
+        final JCClassDecl classDecl = (JCClassDecl)first;
+        final JCVariableDecl variableDecl = (JCVariableDecl)second;
+        if (classDecl.defs.size() != 2)
+            return null;
+        // the first decl is the constructor, boring
+        final JCTree secondDecl = classDecl.defs.get(1);
+        if (!(secondDecl instanceof JCMethodDecl))
+            return null;
+        final JCMethodDecl getMethod = (JCMethodDecl)secondDecl;
+        
+        /*
+         * To simulate returns in the original getter method body,
+         * we wrap the entire body in a do { ... } while (false); loop
+         * and rewrite each return to an assignment to a special returnValue
+         * variable + a break from the do-while loop.
+         * (The rewrite of the bodies is done recursively by rewriteReturnsForLetExpr.)
+         */
+        
+        Naming.SyntheticName returnVarName = gen.naming.temp("returnValue");
+        Naming.SyntheticName returnLabelName = gen.naming.temp("returnLabel");
+        
+        JCStatement rewrittenBody = rewriteReturnsForLetExpr(getMethod.body, returnVarName, returnLabelName);
+        JCStatement doLoop = gen.make().DoLoop(
+                rewrittenBody,
+                /* condition */ gen.makeBoolean(false));
+        JCStatement labelledLoop = gen.make().Labelled(returnLabelName.asName(), doLoop);
+        JCVariableDecl returnVarDecl = gen.makeVar(FINAL, returnVarName, getMethod.restype, null);
+        List<JCStatement> newBody = List.<JCStatement>of(labelledLoop);
+        return gen.make().LetExpr(
+                returnVarDecl,
+                newBody,
+                /* returning */ gen.make().Ident(returnVarName.asName()));
+    }
+    
+    /**
+     * Rewrite returns in a statements for the optimization from
+     * {@link #getterToLetExpr(List)}.
+     * <p>
+     * Recursively, <code>return x;</code> is rewritten to the two statements
+     * {@code returnVar = x; break returnLabel;}.
+     * 
+     * @param statement The original statement (usually a block).
+     * @param returnVarName The name of the return variable.
+     * @param returnLabelName The name of the "return" label (to which we break).
+     * @return A new statement (usually a block) without any returns.
+     */
+    private JCStatement rewriteReturnsForLetExpr(JCStatement statement, Naming.SyntheticName returnVarName, Naming.SyntheticName returnLabelName) {
+        if (statement instanceof JCBlock) {
+            final ListBuffer<JCStatement> ret = ListBuffer.<JCStatement>lb();
+            for (JCStatement stat : ((JCBlock)statement).stats) {
+                ret.append(rewriteReturnsForLetExpr(stat, returnVarName, returnLabelName));
+            }
+            return gen.make().Block(0, ret.toList());
+        } else if (statement instanceof JCReturn) {
+            final JCReturn retStat = (JCReturn)statement;
+            return gen.make().Block(0, List.<JCStatement>of(
+                    gen.make().Exec(gen.make().Assign(gen.make().Ident(returnVarName.asName()), retStat.expr)),
+                    gen.make().Break(returnLabelName.asName())));
+        } else if (statement instanceof JCIf) {
+            final JCIf ifStat = (JCIf)statement;
+            return gen.make().If(ifStat.cond,
+                    rewriteReturnsForLetExpr(ifStat.thenpart, returnVarName, returnLabelName),
+                    rewriteReturnsForLetExpr(ifStat.elsepart, returnVarName, returnLabelName));
+        } else if (statement instanceof JCForLoop) {
+            final JCForLoop forStat = (JCForLoop)statement;
+            return gen.make().ForLoop(forStat.init, forStat.cond, forStat.step,
+                    rewriteReturnsForLetExpr(forStat.body, returnVarName, returnLabelName));
+        } else if (statement instanceof JCEnhancedForLoop) {
+            final JCEnhancedForLoop enhForStat = (JCEnhancedForLoop)statement;
+            return gen.make().ForeachLoop(enhForStat.var, enhForStat.expr,
+                    rewriteReturnsForLetExpr(enhForStat.body, returnVarName, returnLabelName));
+        } else if (statement instanceof JCWhileLoop) {
+            final JCWhileLoop whileStat = (JCWhileLoop)statement;
+            return gen.make().WhileLoop(whileStat.cond,
+                    rewriteReturnsForLetExpr(whileStat.body, returnVarName, returnLabelName));
+        } else if (statement instanceof JCDoWhileLoop) {
+            final JCDoWhileLoop doStat = (JCDoWhileLoop)statement;
+            return gen.make().DoLoop(
+                    rewriteReturnsForLetExpr(doStat.body, returnVarName, returnLabelName),
+                    doStat.cond);
+        } else if (statement instanceof JCLabeledStatement) {
+            final JCLabeledStatement labeledStat = (JCLabeledStatement)statement;
+            return gen.make().Labelled(labeledStat.label,
+                    rewriteReturnsForLetExpr(labeledStat.body, returnVarName, returnLabelName));
+        } else if (statement instanceof JCSwitch) {
+            final JCSwitch switchStat = (JCSwitch)statement;
+            final ListBuffer<JCCase> cases = ListBuffer.<JCCase>lb();
+            for (JCCase cas : switchStat.cases) {
+                final ListBuffer<JCStatement> stats = ListBuffer.<JCStatement>lb();
+                for (JCStatement stat : cas.stats) {
+                    stats.append(rewriteReturnsForLetExpr(stat, returnVarName, returnLabelName));
+                }
+                cases.append(gen.make().Case(cas.pat, stats.toList()));
+            }
+            return gen.make().Switch(switchStat.selector, cases.toList());
+        } else if (statement instanceof JCTry) {
+            final JCTry tryStat = (JCTry)statement;
+            final JCBlock rewrittenBody = (JCBlock)rewriteReturnsForLetExpr(tryStat.body, returnVarName, returnLabelName);
+            final ListBuffer<JCCatch> catchers = ListBuffer.<JCCatch>lb();
+            for (JCCatch catcher : catchers) {
+                catchers.append(gen.make().Catch(catcher.param,
+                        (JCBlock)rewriteReturnsForLetExpr(catcher.body, returnVarName, returnLabelName)));
+            }
+            final JCBlock finalizer;
+            if (tryStat.finalizer != null) {
+                finalizer = (JCBlock)rewriteReturnsForLetExpr(tryStat.finalizer, returnVarName, returnLabelName);
+            } else {
+                finalizer = null;
+            }
+            return gen.make().Try(
+                    rewrittenBody,
+                    catchers.toList(),
+                    finalizer);
+        } else if (statement instanceof JCSynchronized) {
+            JCSynchronized syncStat = (JCSynchronized)statement;
+            return gen.make().Synchronized(syncStat.lock,
+                    (JCBlock)rewriteReturnsForLetExpr(syncStat.body, returnVarName, returnLabelName));
+        } else {
+            return statement;
+        }
     }
     
     private final void appendDefaulted(Parameter param, JCExpression argExpr) {
