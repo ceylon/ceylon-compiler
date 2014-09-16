@@ -62,11 +62,22 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.SequencedArgument;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Term;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
+import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
+import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCSynchronized;
+import com.sun.tools.javac.tree.JCTree.JCTry;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -1427,6 +1438,101 @@ class NamedArgumentInvocation extends Invocation {
             }
         }
         return result;
+    }
+    
+    /**
+     * Determines if a block has early returns. See doc/optimization.md.
+     * 
+     * @param block
+     *            The block.
+     * @return {@code true} if the block contains early returns (general case),
+     *         {@code false} if it does not (simple case).
+     */
+    private final boolean hasEarlyReturns(final JCBlock block) {
+        final RuntimeException abort = new RuntimeException("Return not allowed");
+        try {
+            block.accept(new TreeScanner() {
+
+                boolean returnAllowed = true;
+
+                @Override
+                public void visitBlock(JCBlock tree) {
+                    if (!tree.stats.isEmpty()) {
+                        tree.stats.get(tree.stats.size() - 1).accept(this);
+                        returnAllowed = false;
+                        for (int i = 0; i < tree.stats.size() - 1; i++) {
+                            tree.stats.get(i).accept(this);
+                        }
+                    }
+                }
+
+                @Override
+                public void visitReturn(JCReturn tree) {
+                    if (!returnAllowed) {
+                        throw abort;
+                    }
+                }
+
+                @Override
+                public void visitIf(JCIf tree) {
+                    boolean myReturnAllowed = returnAllowed;
+                    tree.thenpart.accept(this);
+                    returnAllowed = myReturnAllowed;
+                    if (tree.elsepart != null) {
+                        tree.elsepart.accept(this);
+                    }
+                }
+
+                // disallow returns in all other control structures
+                @Override
+                public void visitWhileLoop(JCWhileLoop tree) {
+                    returnAllowed = false;
+                    super.visitWhileLoop(tree);
+                }
+                @Override
+                public void visitForLoop(JCForLoop tree) {
+                    returnAllowed = false;
+                    super.visitForLoop(tree);
+                }
+                @Override
+                public void visitForeachLoop(JCEnhancedForLoop tree) {
+                    returnAllowed = false;
+                    super.visitForeachLoop(tree);
+                }
+                @Override
+                public void visitDoLoop(JCDoWhileLoop tree) {
+                    returnAllowed = false;
+                    super.visitDoLoop(tree);
+                }
+                @Override
+                public void visitLabelled(JCLabeledStatement tree) {
+                    returnAllowed = false;
+                    super.visitLabelled(tree);
+                }
+                @Override
+                public void visitSwitch(JCSwitch tree) {
+                    returnAllowed = false;
+                    super.visitSwitch(tree);
+                }
+                @Override
+                public void visitTry(JCTry tree) {
+                    returnAllowed = false;
+                    super.visitTry(tree);
+                }
+                @Override
+                public void visitSynchronized(JCSynchronized tree) {
+                    returnAllowed = false;
+                    super.visitSynchronized(tree);
+                }
+            });
+            return false;
+        } catch (RuntimeException e) {
+            if (e == abort) {
+                return true;
+            } else {
+                throw e;
+            }
+        }
     }
     
     private final void appendDefaulted(Parameter param, JCExpression argExpr) {
