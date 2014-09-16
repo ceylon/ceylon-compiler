@@ -33,6 +33,7 @@ import java.util.TreeMap;
 
 import com.redhat.ceylon.compiler.java.codegen.AbstractTransformer.BoxingStrategy;
 import com.redhat.ceylon.compiler.java.codegen.Naming.Suffix;
+import com.redhat.ceylon.compiler.java.codegen.Naming.SyntheticName;
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassAlias;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
@@ -78,6 +79,7 @@ import com.sun.tools.javac.tree.JCTree.JCTry;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
 import com.sun.tools.javac.tree.TreeScanner;
+import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -1533,6 +1535,30 @@ class NamedArgumentInvocation extends Invocation {
                 throw e;
             }
         }
+    }
+    
+    /**
+     * Rewrites a getter block without early returns.
+     * <p>
+     * Replaces every return with an assignment to the given variable.
+     * <p>
+     * See doc/optimizations.md.
+     * 
+     * @param block
+     *            The block.
+     * @param returnVarName
+     *            The name of the variable to which the return results are
+     *            assigned.
+     * @return The block.
+     */
+    private final JCBlock getterToLet_simple(final JCBlock block, final SyntheticName returnVarName) {
+        block.accept(new TreeTranslator() {
+            @Override
+            public void visitReturn(JCReturn tree) {
+                result = gen.make().Exec(gen.make().Assign(gen.make().Ident(returnVarName.asName()), tree.expr));
+            }
+        });
+        return block;
     }
     
     private final void appendDefaulted(Parameter param, JCExpression argExpr) {
