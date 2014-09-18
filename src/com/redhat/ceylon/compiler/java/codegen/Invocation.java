@@ -64,12 +64,14 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.Term;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
 import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCForLoop;
 import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -1394,7 +1396,6 @@ class NamedArgumentInvocation extends Invocation {
 
     private void bindAttributeArgument(Tree.AttributeArgument attrArg,
             Parameter declaredParam, Naming.SyntheticName argName) {
-        ListBuffer<JCStatement> statements;
         final Value model = attrArg.getDeclarationModel();
         final String name = model.getName();
         final Naming.SyntheticName alias = gen.naming.alias(name);
@@ -1404,9 +1405,98 @@ class NamedArgumentInvocation extends Invocation {
         ProducedType nonWideningType = gen.nonWideningType(typedRef, nonWideningTypedRef);
         ProducedType type = parameterType(declaredParam, model.getType(), 0);
         final BoxingStrategy boxType = getNamedParameterBoxingStrategy(declaredParam);
-        JCExpression initValue = gen.make().Apply(null, 
-                gen.makeSelect(alias.makeIdent(), Naming.getGetterName(model)),
-                List.<JCExpression>nil());
+
+        // let's find out if we can optimize that anonymous class to a let
+        // expression
+        final AttributeArgumentOptimization optimization;
+        JCClassDecl getterClass = null;
+        JCMethodDecl getMethod = null;
+        if (attrClass.size() == 2 && attrClass.get(0) instanceof JCClassDecl && attrClass.get(1) instanceof JCVariableDecl) {
+            getterClass = (JCClassDecl) attrClass.get(0);
+            // attrClass.get(1) is an instantiation of the getter class
+            if (getterClass.defs.size() == 2 && getterClass.defs.get(1) instanceof JCMethodDecl) {
+                // getterClass.defs.get(0) is the empty constructor
+                getMethod = (JCMethodDecl) getterClass.defs.get(1);
+                if (hasEarlyReturns(getMethod.body)) {
+                    // general case: has early returns
+                    /*
+                     * TODO: use general optimization
+                     * 
+                     * Currently, the general optimization occasionally crashes
+                     * javac. It appears that it crashes when there is a
+                     * do-while loop within a let expression that is assigned to
+                     * a class field in a constructor (but not when the same
+                     * expression is assigned to a constructor-local variable).
+                     * That is most likely a javac bug, but we have not yet had
+                     * the resources to fix it.
+                     * 
+                     * The easiest way to reproduce the crash is to use the
+                     * following code
+                     * 
+                     * @noanno object o {
+                     *     @noanno shared Anything f(@noanno Anything a) => a;
+                     *     
+                     *     @noanno shared Anything x
+                     *             = f {
+                     *         value a {
+                     *             return finished;
+                     *         }
+                     *     };
+                     * }
+                     * 
+                     * and to always enable the general optimization.
+                     * 
+                     * If the bug turns out to be hard or impossible to fix,
+                     * then it should still be possible to enable this
+                     * optimization when we're not in a constructor; however,
+                     * it's difficult to determine if we're in a constructor.
+                     * CeylonVisitor (gen.gen().visitor) has an inInitializer
+                     * flag, but that is reset by transformExpression and by
+                     * transformBlock, so we can't use it here.
+                     */
+                    //optimization = AttributeArgumentOptimization.general;
+                    optimization = AttributeArgumentOptimization.none;
+                } else {
+                    // simple case: no early returns
+                    optimization = AttributeArgumentOptimization.simple;
+                }
+            } else {
+                // weird class def, don't mess with it
+                optimization = AttributeArgumentOptimization.none;
+            }
+        } else {
+            // weird class, don't mess with it
+            optimization = AttributeArgumentOptimization.none;
+        }
+
+        final ListBuffer<JCStatement> statements = ListBuffer.<JCStatement>lb();
+        JCExpression initValue;
+        switch (optimization) {
+            case none: {
+                initValue = gen.make().Apply(null,
+                        gen.makeSelect(alias.makeIdent(), Naming.getGetterName(model)),
+                        List.<JCExpression>nil());
+                statements.appendList(toStmts(attrArg, attrClass));
+                break;
+            }
+            case simple: {
+                SyntheticName retVarName = gen.naming.temp("returnValue");
+                initValue = gen.make().Ident(retVarName.asName());
+                statements.append(gen.make().VarDef(gen.make().Modifiers(FINAL), retVarName.asName(), getMethod.restype, null));
+                statements.appendList(getterToLet_simple(getMethod.body, retVarName).stats);
+                break;
+            }
+            case general: {
+                SyntheticName retVarName = gen.naming.temp("returnValue");
+                initValue = gen.make().Ident(retVarName.asName());
+                statements.append(gen.make().VarDef(gen.make().Modifiers(FINAL), retVarName.asName(), getMethod.restype, null));
+                statements.append(getterToLet_general(getMethod.body, retVarName));
+                break;
+            }
+            default:
+                throw new AssertionError("Unknown switch constant");
+        }
+
         initValue = gen.expressionGen().applyErasureAndBoxing(
                 initValue, 
                 nonWideningType, 
@@ -1418,11 +1508,21 @@ class NamedArgumentInvocation extends Invocation {
                 argName.asName(), 
                 gen.makeJavaType(type, boxType==BoxingStrategy.BOXED ? JT_NO_PRIMITIVES : 0), 
                 initValue);
-        statements = toStmts(attrArg, attrClass).append(var);
+        statements.append(var);
+
         bind(declaredParam, argName, gen.makeJavaType(type, boxType==BoxingStrategy.BOXED ? JT_NO_PRIMITIVES : 0),
                 statements.toList());
     }
-    
+
+    /**
+     * See doc/optimizations.md.
+     */
+    private enum AttributeArgumentOptimization {
+        none,
+        simple,
+        general
+    }
+
     private void bind(Parameter param, Naming.SyntheticName argName, JCExpression argType, List<JCStatement> statements) {
         this.vars.appendList(statements);
         this.argsAndTypes.put(parameterIndex(param), new ExpressionAndType(argName.makeIdent(), argType));
