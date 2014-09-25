@@ -162,3 +162,111 @@ where:
 * the static type of `iterable`
 
 TODO
+
+## Named arguments
+
+### Value arguments (aka attribute arguments)
+
+The most general way to convert a value argument
+```ceylon
+fun {
+    value val {
+        return "Hi";
+    }
+};
+```
+for a named arguments invocation is to generate an anonymous class that holds the converted body:
+```java
+final class val$1 implements .com.redhat.ceylon.compiler.java.language.Getter<.java.lang.String> {
+    private val$1() {}
+    public .java.lang.String get_() {
+        return "Hi";
+    }
+}
+final .com.redhat.ceylon.compiler.java.language.Getter<.java.lang.String> val$1 = new val$1();
+final .java.lang.String arg$0$0 = val$1.get_();
+```
+
+However, this is only rarely necessary, and often it is instead possible to use a `let` expression,
+depending on how the original body uses `return` statements.
+
+#### Early returns
+
+A `return` is said to be *early* if it's not followed by statements in any surrounding block.
+
+For example, the following contains an early return:
+```ceylon
+if (condition) {
+    return a;
+}
+return b;
+```
+On the other hand, the following does not contain an early return:
+```ceylon
+if (condition) {
+    return a;
+} else {
+    return b;
+}
+```
+
+#### Simple case
+
+If the original body contains no early return statements, it is possible to prepend a declaration of
+a special variable to hold the return value, and then replace every return with an assignment to that
+variable. The entire body can then be inlined into the surrounding let expression:
+
+```java
+final .java.lang.String $ceylontmp$returnValue$0;
+if (condition) {
+    $ceylontmp$returnValue$0 = a;
+} else {
+    $ceylontmp$returnValue$0 = b;
+}
+final .java.lang.String arg$0$0 = $ceylontmp$returnValue$0;
+```
+
+(The extra `$ceylontmp$` variable is necessary because it sometimes needs to be boxed
+before being assigned to `arg$0$0`, which we don't want to do in every return statement.)
+
+#### General case
+
+If the original body contains early returns, then converting a `return` to an assignment changes the
+semantics of the block: statements following what was previously an early return would now be executed.
+To avoid this, the entire block can be wrapped in a `do { ... } while (false);` loop, and every
+return assignment is then accompanied by a break from that loop:
+
+```java
+final .java.lang.String $ceylontmp$returnValue$0;
+$returnLabel: do {
+    if (condition) {
+        $ceylontmp$returnValue$0 = a;
+        break $returnlabel;
+    }
+    $ceylontmp$returnValue$0 = b;
+    break $returnLabel;
+} while (false);
+final .java.lang.String arg$0$0 = $ceylontmp$returnValue$0;
+```
+
+This optimization is currently disabled because when used in a constructor, it can crash javac.
+More precisely, the following crashes javac:
+```java
+this.x = (
+   let
+   {
+       final .java.lang.Object $ceylontmp$returnValue$15;
+       $ceylontmp$returnLabel$16: do {
+           {
+               $ceylontmp$returnValue$15 = .ceylon.language.finished_.get_();
+               break $ceylontmp$returnLabel$16;
+           }
+       }                 while (false);
+       final .java.lang.Object $arg$0 = $ceylontmp$returnValue$15;
+       }
+   returning $arg$0;
+   );
+```
+while the exact same let expression, assigned to a new `.java.lang.Object $ceylontmp$x$23`, works just fine.
+(To investigate this, apply [this patch](https://gist.github.com/lucaswerkmeister/f991b0f2330d47263119)
+to your tree, then run the `testInvGetterArgumentNamedInvocation` from `ExpressionTest2`.)

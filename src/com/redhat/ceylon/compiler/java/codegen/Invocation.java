@@ -33,6 +33,7 @@ import java.util.TreeMap;
 
 import com.redhat.ceylon.compiler.java.codegen.AbstractTransformer.BoxingStrategy;
 import com.redhat.ceylon.compiler.java.codegen.Naming.Suffix;
+import com.redhat.ceylon.compiler.java.codegen.Naming.SyntheticName;
 import com.redhat.ceylon.compiler.typechecker.model.Class;
 import com.redhat.ceylon.compiler.typechecker.model.ClassAlias;
 import com.redhat.ceylon.compiler.typechecker.model.ClassOrInterface;
@@ -62,11 +63,25 @@ import com.redhat.ceylon.compiler.typechecker.tree.Tree.SequencedArgument;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Term;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCDoWhileLoop;
+import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCForLoop;
+import com.sun.tools.javac.tree.JCTree.JCIf;
+import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCSynchronized;
+import com.sun.tools.javac.tree.JCTree.JCTry;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.JCWhileLoop;
+import com.sun.tools.javac.tree.TreeScanner;
+import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 
@@ -1380,7 +1395,6 @@ class NamedArgumentInvocation extends Invocation {
 
     private void bindAttributeArgument(Tree.AttributeArgument attrArg,
             Parameter declaredParam, Naming.SyntheticName argName) {
-        ListBuffer<JCStatement> statements;
         final Value model = attrArg.getDeclarationModel();
         final String name = model.getName();
         final Naming.SyntheticName alias = gen.naming.alias(name);
@@ -1390,9 +1404,98 @@ class NamedArgumentInvocation extends Invocation {
         ProducedType nonWideningType = gen.nonWideningType(typedRef, nonWideningTypedRef);
         ProducedType type = parameterType(declaredParam, model.getType(), 0);
         final BoxingStrategy boxType = getNamedParameterBoxingStrategy(declaredParam);
-        JCExpression initValue = gen.make().Apply(null, 
-                gen.makeSelect(alias.makeIdent(), Naming.getGetterName(model)),
-                List.<JCExpression>nil());
+
+        // let's find out if we can optimize that anonymous class to a let
+        // expression
+        final AttributeArgumentOptimization optimization;
+        JCClassDecl getterClass = null;
+        JCMethodDecl getMethod = null;
+        if (attrClass.size() == 2 && attrClass.get(0) instanceof JCClassDecl && attrClass.get(1) instanceof JCVariableDecl) {
+            getterClass = (JCClassDecl) attrClass.get(0);
+            // attrClass.get(1) is an instantiation of the getter class
+            if (getterClass.defs.size() == 2 && getterClass.defs.get(1) instanceof JCMethodDecl) {
+                // getterClass.defs.get(0) is the empty constructor
+                getMethod = (JCMethodDecl) getterClass.defs.get(1);
+                if (hasEarlyReturns(getMethod.body)) {
+                    // general case: has early returns
+                    /*
+                     * TODO: use general optimization
+                     * 
+                     * Currently, the general optimization occasionally crashes
+                     * javac. It appears that it crashes when there is a
+                     * do-while loop within a let expression that is assigned to
+                     * a class field in a constructor (but not when the same
+                     * expression is assigned to a constructor-local variable).
+                     * That is most likely a javac bug, but we have not yet had
+                     * the resources to fix it.
+                     * 
+                     * The easiest way to reproduce the crash is to use the
+                     * following code
+                     * 
+                     * @noanno object o {
+                     *     @noanno shared Anything f(@noanno Anything a) => a;
+                     *     
+                     *     @noanno shared Anything x
+                     *             = f {
+                     *         value a {
+                     *             return finished;
+                     *         }
+                     *     };
+                     * }
+                     * 
+                     * and to always enable the general optimization.
+                     * 
+                     * If the bug turns out to be hard or impossible to fix,
+                     * then it should still be possible to enable this
+                     * optimization when we're not in a constructor; however,
+                     * it's difficult to determine if we're in a constructor.
+                     * CeylonVisitor (gen.gen().visitor) has an inInitializer
+                     * flag, but that is reset by transformExpression and by
+                     * transformBlock, so we can't use it here.
+                     */
+                    //optimization = AttributeArgumentOptimization.general;
+                    optimization = AttributeArgumentOptimization.none;
+                } else {
+                    // simple case: no early returns
+                    optimization = AttributeArgumentOptimization.simple;
+                }
+            } else {
+                // weird class def, don't mess with it
+                optimization = AttributeArgumentOptimization.none;
+            }
+        } else {
+            // weird class, don't mess with it
+            optimization = AttributeArgumentOptimization.none;
+        }
+
+        final ListBuffer<JCStatement> statements = ListBuffer.<JCStatement>lb();
+        JCExpression initValue;
+        switch (optimization) {
+            case none: {
+                initValue = gen.make().Apply(null,
+                        gen.makeSelect(alias.makeIdent(), Naming.getGetterName(model)),
+                        List.<JCExpression>nil());
+                statements.appendList(toStmts(attrArg, attrClass));
+                break;
+            }
+            case simple: {
+                SyntheticName retVarName = gen.naming.temp("returnValue");
+                initValue = gen.make().Ident(retVarName.asName());
+                statements.append(gen.make().VarDef(gen.make().Modifiers(FINAL), retVarName.asName(), getMethod.restype, null));
+                statements.appendList(getterToLet_simple(getMethod.body, retVarName).stats);
+                break;
+            }
+            case general: {
+                SyntheticName retVarName = gen.naming.temp("returnValue");
+                initValue = gen.make().Ident(retVarName.asName());
+                statements.append(gen.make().VarDef(gen.make().Modifiers(FINAL), retVarName.asName(), getMethod.restype, null));
+                statements.append(getterToLet_general(getMethod.body, retVarName));
+                break;
+            }
+            default:
+                throw new AssertionError("Unknown switch constant");
+        }
+
         initValue = gen.expressionGen().applyErasureAndBoxing(
                 initValue, 
                 nonWideningType, 
@@ -1404,11 +1507,21 @@ class NamedArgumentInvocation extends Invocation {
                 argName.asName(), 
                 gen.makeJavaType(type, boxType==BoxingStrategy.BOXED ? JT_NO_PRIMITIVES : 0), 
                 initValue);
-        statements = toStmts(attrArg, attrClass).append(var);
+        statements.append(var);
+
         bind(declaredParam, argName, gen.makeJavaType(type, boxType==BoxingStrategy.BOXED ? JT_NO_PRIMITIVES : 0),
                 statements.toList());
     }
-    
+
+    /**
+     * See doc/optimizations.md.
+     */
+    private enum AttributeArgumentOptimization {
+        none,
+        simple,
+        general
+    }
+
     private void bind(Parameter param, Naming.SyntheticName argName, JCExpression argType, List<JCStatement> statements) {
         this.vars.appendList(statements);
         this.argsAndTypes.put(parameterIndex(param), new ExpressionAndType(argName.makeIdent(), argType));
@@ -1426,6 +1539,155 @@ class NamedArgumentInvocation extends Invocation {
             }
         }
         return result;
+    }
+    
+    /**
+     * Determines if a block has early returns. See doc/optimization.md.
+     * 
+     * @param block
+     *            The block.
+     * @return {@code true} if the block contains early returns (general case),
+     *         {@code false} if it does not (simple case).
+     */
+    private final boolean hasEarlyReturns(final JCBlock block) {
+        final RuntimeException abort = new RuntimeException("Return not allowed");
+        try {
+            block.accept(new TreeScanner() {
+
+                boolean returnAllowed = true;
+
+                @Override
+                public void visitBlock(JCBlock tree) {
+                    if (!tree.stats.isEmpty()) {
+                        tree.stats.get(tree.stats.size() - 1).accept(this);
+                        returnAllowed = false;
+                        for (int i = 0; i < tree.stats.size() - 1; i++) {
+                            tree.stats.get(i).accept(this);
+                        }
+                    }
+                }
+
+                @Override
+                public void visitReturn(JCReturn tree) {
+                    if (!returnAllowed) {
+                        throw abort;
+                    }
+                }
+
+                @Override
+                public void visitIf(JCIf tree) {
+                    boolean myReturnAllowed = returnAllowed;
+                    tree.thenpart.accept(this);
+                    returnAllowed = myReturnAllowed;
+                    if (tree.elsepart != null) {
+                        tree.elsepart.accept(this);
+                    }
+                }
+
+                // disallow returns in all other control structures
+                @Override
+                public void visitWhileLoop(JCWhileLoop tree) {
+                    returnAllowed = false;
+                    super.visitWhileLoop(tree);
+                }
+                @Override
+                public void visitForLoop(JCForLoop tree) {
+                    returnAllowed = false;
+                    super.visitForLoop(tree);
+                }
+                @Override
+                public void visitForeachLoop(JCEnhancedForLoop tree) {
+                    returnAllowed = false;
+                    super.visitForeachLoop(tree);
+                }
+                @Override
+                public void visitDoLoop(JCDoWhileLoop tree) {
+                    returnAllowed = false;
+                    super.visitDoLoop(tree);
+                }
+                @Override
+                public void visitLabelled(JCLabeledStatement tree) {
+                    returnAllowed = false;
+                    super.visitLabelled(tree);
+                }
+                @Override
+                public void visitSwitch(JCSwitch tree) {
+                    returnAllowed = false;
+                    super.visitSwitch(tree);
+                }
+                @Override
+                public void visitTry(JCTry tree) {
+                    returnAllowed = false;
+                    super.visitTry(tree);
+                }
+                @Override
+                public void visitSynchronized(JCSynchronized tree) {
+                    returnAllowed = false;
+                    super.visitSynchronized(tree);
+                }
+            });
+            return false;
+        } catch (RuntimeException e) {
+            if (e == abort) {
+                return true;
+            } else {
+                throw e;
+            }
+        }
+    }
+    
+    /**
+     * Rewrites a getter block without early returns.
+     * <p>
+     * Replaces every return with an assignment to the given variable.
+     * <p>
+     * See doc/optimizations.md.
+     * 
+     * @param block
+     *            The block.
+     * @param returnVarName
+     *            The name of the variable to which the return results are
+     *            assigned.
+     * @return The block.
+     */
+    private final JCBlock getterToLet_simple(final JCBlock block, final SyntheticName returnVarName) {
+        block.accept(new TreeTranslator() {
+            @Override
+            public void visitReturn(JCReturn tree) {
+                result = gen.make().Exec(gen.make().Assign(gen.make().Ident(returnVarName.asName()), tree.expr));
+            }
+        });
+        return block;
+    }
+    
+    /**
+     * Rewrites a getter block with early returns.
+     * <p>
+     * Replaces every return with an assignment to the given variable and a
+     * break from a new outer <code>do { ... } while (false);</code> loop.
+     * <p>
+     * See doc/optimizations.md.
+     * 
+     * @param block
+     *            The block.
+     * @param returnVarName
+     *            The name of the variable to which the return results are
+     *            assigned.
+     * @return The outer <code>do { ... } while (false);</code> loop.
+     */
+    private final JCStatement getterToLet_general(final JCBlock block, final SyntheticName returnVarName) {
+        final SyntheticName returnLabelName = gen.naming.temp("returnLabel");
+        block.accept(new TreeTranslator() {
+            @Override
+            public void visitReturn(JCReturn tree) {
+                result = gen.make().Block(0, List.<JCStatement>of(
+                        gen.make().Exec(gen.make().Assign(gen.make().Ident(returnVarName.asName()), tree.expr)),
+                        gen.make().Break(returnLabelName.asName())));
+            }
+        });
+        JCStatement doLoop = gen.make().DoLoop(block, gen.makeBoolean(false));
+        JCStatement labelledLoop = gen.make().Labelled(returnLabelName.asName(), doLoop);
+        return labelledLoop;
     }
     
     private final void appendDefaulted(Parameter param, JCExpression argExpr) {
