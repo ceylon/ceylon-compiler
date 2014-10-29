@@ -3288,7 +3288,7 @@ public class ExpressionTransformer extends AbstractTransformer {
     public void transformSuperInvocation(Tree.ExtendedType extendedType, ClassDefinitionBuilder classBuilder) {
         HasErrorException error = errors().getFirstExpressionErrorAndMarkBrokenness(extendedType);
         if (error != null) {
-            classBuilder.superCall(this.makeThrowUnresolvedCompilationError(error));
+            classBuilder.getInitBuilder().superCall(this.makeThrowUnresolvedCompilationError(error));
             return;
         }
         if (extendedType.getInvocationExpression().getPositionalArgumentList() != null) {
@@ -3296,7 +3296,7 @@ public class ExpressionTransformer extends AbstractTransformer {
             Declaration primaryDeclaration = ((Tree.MemberOrTypeExpression)invocation.getPrimary()).getDeclaration();
             java.util.List<ParameterList> paramLists = ((Functional)primaryDeclaration).getParameterLists();
             if(paramLists.isEmpty()){
-                classBuilder.superCall(at(extendedType).Exec(makeErroneous(extendedType, "compiler bug: super class " + primaryDeclaration.getName() + " is missing parameter list")));
+                classBuilder.getInitBuilder().superCall(at(extendedType).Exec(makeErroneous(extendedType, "compiler bug: super class " + primaryDeclaration.getName() + " is missing parameter list")));
                 return;
             }
             SuperInvocation builder = new SuperInvocation(this,
@@ -3345,7 +3345,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                 JCExpression superExpr = callBuilder.invoke(expr)    
                     .arguments(superArguments)
                     .build();
-                classBuilder.superCall(at(extendedType).Exec(superExpr));
+                classBuilder.getInitBuilder().superCall(at(extendedType).Exec(superExpr));
             } finally {
                 withinInvocation(prevFnCall);
             }
