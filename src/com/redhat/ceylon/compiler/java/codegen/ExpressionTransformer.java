@@ -3499,7 +3499,7 @@ public class ExpressionTransformer extends AbstractTransformer {
                             (Class)member, 
                             producedReference).build();
                 }
-            }
+            } 
             if (member instanceof Method) {
                 Method method = (Method)member;
                 if (!method.isParameter()) {
@@ -3532,6 +3532,14 @@ public class ExpressionTransformer extends AbstractTransformer {
                         expr,
                         expr.getTypeModel(), 
                         (Class)member, 
+                        producedReference).build();
+            } else if (member instanceof Constructor) {
+                ProducedReference producedReference = expr.getTarget();
+                return CallableBuilder.unboundFunctionalMemberReference(
+                        gen(), 
+                        expr,
+                        expr.getTypeModel(), 
+                        (Constructor)member, 
                         producedReference).build();
             } else {
                 return makeErroneous(expr, "compiler bug: member reference of " + expr + " not supported yet");
