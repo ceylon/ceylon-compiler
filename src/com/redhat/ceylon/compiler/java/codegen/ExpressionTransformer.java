@@ -3098,6 +3098,15 @@ public class ExpressionTransformer extends AbstractTransformer {
         invocation.location(callBuilder);
         if (Decl.isJavaStaticPrimary(invocation.getPrimary())) {
             callBuilder.instantiate(transformedPrimary.expr);
+        } else if (Decl.isConstructorPrimary(invocation.getPrimary())) {
+            if (Decl.getConstructedClass((Constructor)invocation.getPrimaryDeclaration()).isMember()
+                    && invocation.getPrimary() instanceof Tree.QualifiedTypeExpression
+                    && !(((Tree.QualifiedTypeExpression)invocation.getPrimary()).getPrimary() instanceof Tree.BaseTypeExpression)) {
+                callBuilder.instantiate(new ExpressionAndType(transformedPrimary.expr, null),
+                        makeJavaType(invocation.getReturnType(), JT_CLASS_NEW | JT_NON_QUALIFIED));
+            } else {
+                callBuilder.instantiate(transformedPrimary.expr);
+            }
         } else if (!Strategy.generateInstantiator(declaration)) {
             JCExpression qualifier;
             JCExpression qualifierType;
@@ -3770,9 +3779,21 @@ public class ExpressionTransformer extends AbstractTransformer {
                     + " has a null target");
         // consider package qualifiers as non-prefixed, we always qualify them anyways, this is
         // only useful for the typechecker resolving
+        
         Tree.Primary primary = expr.getPrimary();
+        if (expr.getDeclaration() instanceof Constructor) {
+            Constructor ctor = (Constructor)expr.getDeclaration();
+            if (primary instanceof Tree.QualifiedTypeExpression) {
+                // foo.Class.Ctor => foo
+                primary = ((Tree.QualifiedTypeExpression)primary).getPrimary();
+            } else if (primary instanceof Tree.BaseTypeExpression) {
+                // Class.Ctor => null
+                return null;
+            }
+        }
         if(primary instanceof Tree.Package)
             return null;
+        
         ProducedType type = expr.getTarget().getQualifyingType();
         if(expr.getMemberOperator() instanceof Tree.SafeMemberOp && !isOptional(type)){
             ProducedType optionalType = typeFact().getOptionalType(type);
@@ -4014,12 +4035,6 @@ public class ExpressionTransformer extends AbstractTransformer {
         Declaration decl = expr.getDeclaration();
         if (decl == null) {
             return makeErroneous(expr, "compiler bug: expression with no declaration");
-        }
-        
-        if (expr instanceof Tree.QualifiedMemberOrTypeExpression
-                && ((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary() instanceof Tree.QualifiedMemberOrTypeExpression
-                && ((Tree.QualifiedMemberOrTypeExpression)((Tree.QualifiedMemberOrTypeExpression)expr).getPrimary()).getPrimary() instanceof Tree.Package){
-                primaryExpr = null;
         }
         
         // Try to find the original declaration, in case we have conditionals that refine the type of objects without us
