@@ -4217,7 +4217,6 @@ public class ExpressionTransformer extends AbstractTransformer {
             }
             
             if (qualExpr == null && decl.isStaticallyImportable()
-                    && !(decl instanceof Constructor)
                     // make sure we only do this for things contained in a type, as otherwise
                     // it breaks for qualified calls to static methods in interfaces in Java 8
                     // it only breaks for interfaces because they are statically importable
@@ -4287,6 +4286,7 @@ public class ExpressionTransformer extends AbstractTransformer {
         if (qualExpr == null 
                 // statics are not members that can be inherited
                 && !decl.isStaticallyImportable()
+                && !(decl instanceof Constructor)
                 && decl.isMember()
                 // dodge variable refinements with assert/is (these will be turned to locals
                 // and have a name mapping)
