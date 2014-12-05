@@ -1341,7 +1341,8 @@ public class ExpressionTransformer extends AbstractTransformer {
         if(!expr.getWantsDeclaration()){
             if (expr.getDeclaration() instanceof Constructor) {
                 JCExpression classLiteral = makeTypeLiteralCall(expr.getType().getTypeModel().getQualifyingType(), false, expr.getTypeModel());
-                TypeDeclaration classModelDeclaration = (TypeDeclaration)typeFact().getLanguageModuleModelDeclaration("ClassModel");
+                TypeDeclaration classModelDeclaration = (TypeDeclaration)typeFact().getLanguageModuleModelDeclaration(
+                        expr.getType().getTypeModel().getQualifyingType().getDeclaration().isMember() ? "MemberClass" : "Class");
                 JCTypeCast typeCast = make().TypeCast(
                         makeJavaType(classModelDeclaration.getProducedType(null, 
                                 List.of(expr.getType().getTypeModel().getQualifyingType(), 
