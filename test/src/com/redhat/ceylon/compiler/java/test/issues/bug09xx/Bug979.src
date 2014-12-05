@@ -20,11 +20,6 @@ class Bug979Iterable implements .com.redhat.ceylon.compiler.java.runtime.model.R
     }
     
     @.java.lang.Override
-    public boolean contains(final .java.lang.Object element) {
-        return $ceylon$language$Iterable$this$.contains(element);
-    }
-    
-    @.java.lang.Override
     public boolean getEmpty() {
         return $ceylon$language$Iterable$this$.getEmpty();
     }
@@ -45,6 +40,11 @@ class Bug979Iterable implements .com.redhat.ceylon.compiler.java.runtime.model.R
     }
     
     @.java.lang.Override
+    public boolean contains(final .java.lang.Object element) {
+        return $ceylon$language$Iterable$this$.contains(element);
+    }
+    
+    @.java.lang.Override
     public .ceylon.language.String getFirst() {
         return (.ceylon.language.String)$ceylon$language$Iterable$this$.getFirst();
     }
@@ -55,8 +55,13 @@ class Bug979Iterable implements .com.redhat.ceylon.compiler.java.runtime.model.R
     }
     
     @.java.lang.Override
-    public .ceylon.language.String getFromFirst(final long index) {
-        return $ceylon$language$Iterable$this$.getFromFirst(index);
+    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getRest() {
+        return $ceylon$language$Iterable$this$.getRest();
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getExceptLast() {
+        return $ceylon$language$Iterable$this$.getExceptLast();
     }
     
     @.java.lang.Override
@@ -65,13 +70,8 @@ class Bug979Iterable implements .com.redhat.ceylon.compiler.java.runtime.model.R
     }
     
     @.java.lang.Override
-    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getRest() {
-        return $ceylon$language$Iterable$this$.getRest();
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getExceptLast() {
-        return $ceylon$language$Iterable$this$.getExceptLast();
+    public .ceylon.language.String getFromFirst(final long index) {
+        return $ceylon$language$Iterable$this$.getFromFirst(index);
     }
     
     @.java.lang.Override
@@ -381,8 +381,13 @@ class Bug979Set extends .java.lang.Object implements .com.redhat.ceylon.compiler
     }
     
     @.java.lang.Override
-    public .ceylon.language.String getFromFirst(final long index) {
-        return $ceylon$language$Iterable$this$.getFromFirst(index);
+    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getRest() {
+        return $ceylon$language$Iterable$this$.getRest();
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getExceptLast() {
+        return $ceylon$language$Iterable$this$.getExceptLast();
     }
     
     @.java.lang.Override
@@ -391,13 +396,8 @@ class Bug979Set extends .java.lang.Object implements .com.redhat.ceylon.compiler
     }
     
     @.java.lang.Override
-    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getRest() {
-        return $ceylon$language$Iterable$this$.getRest();
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Iterable<? extends .ceylon.language.String, ? extends .java.lang.Object> getExceptLast() {
-        return $ceylon$language$Iterable$this$.getExceptLast();
+    public .ceylon.language.String getFromFirst(final long index) {
+        return $ceylon$language$Iterable$this$.getFromFirst(index);
     }
     
     @.java.lang.Override
