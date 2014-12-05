@@ -1348,7 +1348,6 @@ public class ExpressionTransformer extends AbstractTransformer {
                                 List.of(expr.getType().getTypeModel().getQualifyingType(), 
                                         typeFact().getNothingDeclaration().getType()))), 
                         classLiteral);
-                //getConstructor<Arguments>(reified$Arguments, String name);
                 return make().Apply(null, 
                         naming.makeQualIdent(typeCast, "getConstructor"),
                         List.<JCExpression>of(
