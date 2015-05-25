@@ -3881,6 +3881,13 @@ public abstract class AbstractTransformer implements Transformation {
                 List.<JCTree.JCExpression>nil());
     }
     
+    JCExpression makeLanguageSerializationValue(String valueName) {
+        return make().Apply(
+                List.<JCTree.JCExpression>nil(),
+                naming.makeLanguageSerializationValue(valueName),
+                List.<JCTree.JCExpression>nil());
+    }
+    
     JCExpression makeEmpty() {
         return makeLanguageValue("empty");
     }
