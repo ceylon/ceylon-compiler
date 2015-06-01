@@ -1570,7 +1570,7 @@ public class ClassTransformer extends AbstractTransformer {
                 cases.toList());
         
         if (model.isMember()
-                && !model.getExtendedTypeDeclaration().isMember()) {
+                && !model.getExtendedType().getDeclaration().isMember()) {
             stmts.add(make().If(make().TypeTest(reference.makeIdent(),
                     make().Type(syms().ceylonOuterType)),
                     
