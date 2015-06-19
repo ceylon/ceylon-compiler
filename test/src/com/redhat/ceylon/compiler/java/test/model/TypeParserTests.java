@@ -43,6 +43,7 @@ import com.redhat.ceylon.model.typechecker.model.Interface;
 import com.redhat.ceylon.model.typechecker.model.Declaration;
 import com.redhat.ceylon.model.typechecker.model.IntersectionType;
 import com.redhat.ceylon.model.typechecker.model.Module;
+import com.redhat.ceylon.model.typechecker.model.NothingType;
 import com.redhat.ceylon.model.typechecker.model.Package;
 import com.redhat.ceylon.model.typechecker.model.Type;
 import com.redhat.ceylon.model.typechecker.model.Scope;
@@ -167,10 +168,10 @@ public class TypeParserTests {
             //defaultPkg.setName(Arrays.asList(""));
             //defaultPkg.setModule(defaultModule);
             //unit.setPackage(defaultPkg);
-            Class a = makeClass("a", defaultPkg);
-            makeClass("b", a);
-            makeClass("b", defaultPkg);
-            makeClass("c", defaultPkg);
+            Interface a = makeInterface("a", defaultPkg);
+            makeInterface("b", a);
+            makeInterface("b", defaultPkg);
+            makeInterface("c", defaultPkg);
             makeClass("d", defaultPkg);
             makeClass("e", defaultPkg);
             makeClass("f", defaultPkg);
@@ -182,15 +183,16 @@ public class TypeParserTests {
             Module otherModeul = new Module();
             otherModeul.setUnit(mockPkgUnit);
             otherPkg.setModule(otherModeul);
-            makeClass("u", otherPkg);
-            Class b = makeClass("v", otherPkg);
+            makeInterface("u", otherPkg);
+            Interface b = makeInterface("v", otherPkg);
             makeClass("w", b);
             makeClass("package", otherPkg);
             
-            langPkg.addMember(makeInterface("Empty", langPkg));
             langPkg.addMember(makeClass("Null", langPkg));
             langPkg.addMember(makeClass("Boolean", langPkg));
-            langPkg.addMember(makeInterface("Nothing", langPkg));// a lie, it's not an interface
+            NothingType nothingType = new NothingType(unit);
+            langPkg.addMember(nothingType);
+            langPkg.addMember(makeClass("Anything", langPkg));
             
             TypeParameter itElement = makeTp("Element", OUT);
             Interface iterable = makeParameterisedInterface(langPkg, "Iterable", null, 
@@ -206,6 +208,9 @@ public class TypeParserTests {
                     "Sequence", new Type[]{sequential.appliedType(null, Collections.singletonList(seqlElement.getType()))}, 
                     seqlElement);
             langPkg.addMember(sequence);
+            Interface empty = makeInterface("Empty", langPkg);
+            empty.getSatisfiedTypes().add(sequential.appliedType(null, Arrays.asList(nothingType.getType())));
+            langPkg.addMember(empty);
             
             TypeParameter tupElement = makeTp("Element", OUT);
             langPkg.addMember(makeParameterisedClass(langPkg, "Tuple", null, new Type[]{sequential.appliedType(null, Collections.singletonList(tupElement.getType()))},
@@ -223,12 +228,16 @@ public class TypeParserTests {
         
         @Override
         public Type getType(Module module, String pkg, String name, Scope scope) {
+            if (module.equals(lang) && name.equals("ceylon.language.Nothing"))
+                return new NothingType(unit).getType();
             Class klass = (Class)getDeclaration(module, pkg, name, scope);
             return klass.getType();
         }
 
         @Override
         public Declaration getDeclaration(Module module, String pkg, String name, Scope scope) {
+            if (module.equals(lang) && name.equals("ceylon.language.Nothing"))
+                return new NothingType(unit);
             ClassOrInterface klass = classes.get(name);
             if(klass == null)
                 throw new ModelResolutionException("Unknown type: "+name);
@@ -324,11 +333,11 @@ public class TypeParserTests {
         List<Type> types = union.getCaseTypes();
         Assert.assertEquals(3, types.size());
         Assert.assertEquals("a", types.get(0).getDeclaration().getName());
-        Assert.assertTrue(types.get(0).getDeclaration() instanceof Class);
+        Assert.assertTrue(types.get(0).getDeclaration() instanceof Interface);
         Assert.assertEquals("b", types.get(1).getDeclaration().getName());
-        Assert.assertTrue(types.get(1).getDeclaration() instanceof Class);
+        Assert.assertTrue(types.get(1).getDeclaration() instanceof Interface);
         Assert.assertEquals("c", types.get(2).getDeclaration().getName());
-        Assert.assertTrue(types.get(2).getDeclaration() instanceof Class);
+        Assert.assertTrue(types.get(2).getDeclaration() instanceof Interface);
     }
 
     @Test
@@ -342,11 +351,11 @@ public class TypeParserTests {
         List<Type> types = intersection.getSatisfiedTypes();
         Assert.assertEquals(3, types.size());
         Assert.assertEquals("a", types.get(0).getDeclaration().getName());
-        Assert.assertTrue(types.get(0).getDeclaration() instanceof Class);
+        Assert.assertTrue(types.get(0).getDeclaration() instanceof Interface);
         Assert.assertEquals("b", types.get(1).getDeclaration().getName());
-        Assert.assertTrue(types.get(1).getDeclaration() instanceof Class);
+        Assert.assertTrue(types.get(1).getDeclaration() instanceof Interface);
         Assert.assertEquals("c", types.get(2).getDeclaration().getName());
-        Assert.assertTrue(types.get(2).getDeclaration() instanceof Class);
+        Assert.assertTrue(types.get(2).getDeclaration() instanceof Interface);
     }
 
     @Test
@@ -366,12 +375,12 @@ public class TypeParserTests {
         List<Type> intersectionTypes = intersection.getSatisfiedTypes();
         Assert.assertEquals(2, intersectionTypes.size());
         Assert.assertEquals("a", intersectionTypes.get(0).getDeclaration().getName());
-        Assert.assertTrue(intersectionTypes.get(0).getDeclaration() instanceof Class);
+        Assert.assertTrue(intersectionTypes.get(0).getDeclaration() instanceof Interface);
         Assert.assertEquals("b", intersectionTypes.get(1).getDeclaration().getName());
-        Assert.assertTrue(intersectionTypes.get(1).getDeclaration() instanceof Class);
+        Assert.assertTrue(intersectionTypes.get(1).getDeclaration() instanceof Interface);
 
         Assert.assertEquals("c", unionTypes.get(1).getDeclaration().getName());
-        Assert.assertTrue(unionTypes.get(1).getDeclaration() instanceof Class);
+        Assert.assertTrue(unionTypes.get(1).getDeclaration() instanceof Interface);
     }
 
     @Test
@@ -430,9 +439,9 @@ public class TypeParserTests {
         List<Type> tal = type.getTypeArgumentList();
         Assert.assertEquals(2, tal.size());
         Assert.assertEquals("b", tal.get(0).getDeclaration().getName());
-        Assert.assertTrue(tal.get(0).getDeclaration() instanceof Class);
+        Assert.assertTrue(tal.get(0).getDeclaration() instanceof ClassOrInterface);
         Assert.assertEquals("c", tal.get(1).getDeclaration().getName());
-        Assert.assertTrue(tal.get(1).getDeclaration() instanceof Class);
+        Assert.assertTrue(tal.get(1).getDeclaration() instanceof ClassOrInterface);
     }
 
     @Test
@@ -448,7 +457,7 @@ public class TypeParserTests {
         
         // a
         Assert.assertEquals("a", caseTypes.get(0).getDeclaration().getName());
-        Assert.assertTrue(caseTypes.get(0).getDeclaration() instanceof Class);
+        Assert.assertTrue(caseTypes.get(0).getDeclaration() instanceof Interface);
         
         // first t2
         Type firstT2 = caseTypes.get(1);
@@ -466,12 +475,12 @@ public class TypeParserTests {
         // b
         Type b = bc.getDeclaration().getCaseTypes().get(0);
         Assert.assertEquals("b", b.getDeclaration().getName());
-        Assert.assertTrue(b.getDeclaration() instanceof Class);
+        Assert.assertTrue(b.getDeclaration() instanceof Interface);
 
         // c
         Type c = bc.getDeclaration().getCaseTypes().get(1);
         Assert.assertEquals("c", c.getDeclaration().getName());
-        Assert.assertTrue(c.getDeclaration() instanceof Class);
+        Assert.assertTrue(c.getDeclaration() instanceof Interface);
         
         // second t2
         Type secondT2 = firstT2.getTypeArgumentList().get(1);
@@ -509,14 +518,14 @@ public class TypeParserTests {
         Assert.assertNotNull(type);
         TypeDeclaration declaration = type.getDeclaration();
         Assert.assertNotNull(declaration);
-        Assert.assertTrue(declaration instanceof Class);
+        Assert.assertTrue(declaration instanceof Interface);
         Assert.assertEquals("a.b", declaration.getQualifiedNameString());
 
         Type qualifyingType = type.getQualifyingType();
         Assert.assertNotNull(qualifyingType);
         TypeDeclaration qualifyingDeclaration = qualifyingType.getDeclaration();
         Assert.assertNotNull(qualifyingDeclaration);
-        Assert.assertTrue(qualifyingDeclaration instanceof Class);
+        Assert.assertTrue(qualifyingDeclaration instanceof Interface);
         Assert.assertEquals("a", qualifyingDeclaration.getName());
     }
 
@@ -533,7 +542,7 @@ public class TypeParserTests {
         // c
         Type c = type.getTypeArgumentList().get(0);
         Assert.assertEquals("c", c.getDeclaration().getName());
-        Assert.assertTrue(c.getDeclaration() instanceof Class);
+        Assert.assertTrue(c.getDeclaration() instanceof Interface);
 
         // d
         Type d = type.getTypeArgumentList().get(1);
@@ -551,12 +560,12 @@ public class TypeParserTests {
         // a
         Type a = qualifyingType.getTypeArgumentList().get(0);
         Assert.assertEquals("a", a.getDeclaration().getName());
-        Assert.assertTrue(a.getDeclaration() instanceof Class);
+        Assert.assertTrue(a.getDeclaration() instanceof Interface);
 
         // b
         Type b = qualifyingType.getTypeArgumentList().get(1);
         Assert.assertEquals("b", b.getDeclaration().getName());
-        Assert.assertTrue(b.getDeclaration() instanceof Class);
+        Assert.assertTrue(b.getDeclaration() instanceof Interface);
     }
 
     @Test
@@ -565,7 +574,7 @@ public class TypeParserTests {
         Assert.assertNotNull(type);
         TypeDeclaration declaration = type.getDeclaration();
         Assert.assertNotNull(declaration);
-        Assert.assertTrue(declaration instanceof Class);
+        Assert.assertTrue(declaration instanceof Interface);
         Assert.assertEquals("pkg::v", declaration.getQualifiedNameString());
 
         Assert.assertNull(type.getQualifyingType());
@@ -834,7 +843,7 @@ public class TypeParserTests {
         declaration = type.getDeclaration();
         Assert.assertNotNull(declaration);
         Assert.assertTrue(declaration instanceof IntersectionType);
-        Assert.assertEquals("pkg::u&<ceylon.language::Null|pkg::v>", printType(type));
+        Assert.assertEquals("pkg::u&pkg::v", printType(type)); // u&<v|Null> is simplified to u&v 
         Assert.assertNull(type.getQualifyingType());
         
         type = new TypeParser(MockLoader.instance).decodeType("pkg::u|pkg::v[]?", null, mockDefaultModule, mockPkgUnit);
