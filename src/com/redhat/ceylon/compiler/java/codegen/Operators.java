@@ -135,9 +135,9 @@ public class Operators {
         
         BINARY_EQUAL(Tree.EqualOp.class, 2, "equals", JCTree.EQ, All){
             @Override
-            public OptimisationStrategy getBinOpOptimisationStrategy(Tree.Term t, Tree.Term leftTerm, Tree.Term rightTerm, AbstractTransformer gen) {
+            public OptimisationStrategy getBinOpOptimisationStrategy(boolean exprUnboxed, Tree.Term leftTerm, Tree.Term rightTerm, AbstractTransformer gen) {
                 // no optimised operator returns a boxed type 
-                if(!t.getUnboxed())
+                if(!exprUnboxed)
                     return OptimisationStrategy.NONE;
                 OptimisationStrategy left = isTermOptimisable(leftTerm, gen);
                 OptimisationStrategy right = isTermOptimisable(rightTerm, gen);
@@ -217,15 +217,23 @@ public class Operators {
         }
         
         public final OptimisationStrategy getUnOpOptimisationStrategy(Tree.Term expression, Tree.Term term, AbstractTransformer gen){
+            return getUnOpOptimisationStrategy(expression.getUnboxed(), term, gen);
+        }
+        
+        public final OptimisationStrategy getUnOpOptimisationStrategy(boolean exprUnboxed, Tree.Term term, AbstractTransformer gen){
             // no optimised operator returns a boxed type 
-            if(!expression.getUnboxed())
+            if(!exprUnboxed)
                 return OptimisationStrategy.NONE;
             return isTermOptimisable(term, gen);
         }
         
         public OptimisationStrategy getBinOpOptimisationStrategy(Tree.Term expression, Tree.Term leftTerm, Tree.Term rightTerm, AbstractTransformer gen){
+            return getBinOpOptimisationStrategy(expression.getUnboxed(), leftTerm, rightTerm, gen);
+        }
+        
+        public OptimisationStrategy getBinOpOptimisationStrategy(boolean exprUnboxed, Tree.Term leftTerm, Tree.Term rightTerm, AbstractTransformer gen){
             // no optimised operator returns a boxed type 
-            if(!expression.getUnboxed())
+            if(!exprUnboxed)
                 return OptimisationStrategy.NONE;
             // Can we do an operator optimization?
             OptimisationStrategy optimisationStrategy;
