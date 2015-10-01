@@ -49,6 +49,7 @@ import com.redhat.ceylon.model.typechecker.model.ControlBlock;
 import com.redhat.ceylon.model.typechecker.model.Declaration;
 import com.redhat.ceylon.model.typechecker.model.Functional;
 import com.redhat.ceylon.model.typechecker.model.Interface;
+import com.redhat.ceylon.model.typechecker.model.ModelUtil;
 import com.redhat.ceylon.model.typechecker.model.Function;
 import com.redhat.ceylon.model.typechecker.model.FunctionOrValue;
 import com.redhat.ceylon.model.typechecker.model.Package;
@@ -249,6 +250,10 @@ public class Naming extends NamingBase implements LocalId {
             if (!locals.containsKey(decl)) {
                 locals.put(decl, localId);
                 localId++;
+            }
+            Scope container = decl.getContainer();
+            if(container != null && ModelUtil.isLocalNotInitializerScope(container)){
+                local(container);
             }
         }
         
@@ -1340,6 +1345,14 @@ public class Naming extends NamingBase implements LocalId {
         return makeSelect(makeName((TypedDeclaration)decl, NA_FQ | NA_WRAPPER), getMethodNameInternal((TypedDeclaration)decl));
     }
     
+    JCExpression makeLanguageSerializationValue(String string) {
+        Declaration decl = gen().typeFact().getLanguageModuleSerializationDeclaration(string);
+        if (!Decl.isValue(decl)) {
+            throw new BugException();
+        }
+        return makeSelect(makeName((Value)decl, NA_FQ | NA_WRAPPER), getGetterName(decl));
+    }
+    
     /*
      * Methods for making unique temporary and alias names
      */
@@ -2081,6 +2094,29 @@ public class Naming extends NamingBase implements LocalId {
     public JCExpression makeNamedConstructorType(Constructor constructor, boolean delegation) {
         DeclNameFlag[] flags = delegation ? new DeclNameFlag[]{DeclNameFlag.QUALIFIED, DeclNameFlag.DELEGATION}: new DeclNameFlag[]{DeclNameFlag.QUALIFIED};
         return makeTypeDeclarationExpression(null, constructor, flags);
+    }
+
+    /**
+     * uRLDecoder is ambiguous because we generate the getURLDecoder getter which gets decoded to urlDecoder,
+     * so for those we have to remember the exact name
+     */
+    public static boolean isAmbiguousGetterName(TypedDeclaration attr) {
+        return !attr.isToplevel() && isAmbiguousGetterName(attr.getName());
+    }
+
+    /**
+     * uRLDecoder is ambiguous because we generate the getURLDecoder getter which gets decoded to urlDecoder,
+     * so for those we have to remember the exact name.
+     */
+    public static boolean isAmbiguousGetterName(String name) {
+        int cpl = name.codePointCount(0, name.length());
+        if(cpl < 2)
+            return false;
+        int f = name.codePointAt(0);
+        if(!Character.isLowerCase(f) && f != '_')
+            return false;
+        int s = name.codePointAt(1);
+        return Character.isUpperCase(s);
     }
 }
 

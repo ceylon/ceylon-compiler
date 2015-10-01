@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -177,7 +178,7 @@ public class CeylonDocTool extends OutputRepoUsingTool {
     private final Map<Referenceable, Node> modelNodeMap = new IdentityHashMap<Referenceable, Node>();
     private final Map<Parameter, PhasedUnit> parameterUnitMap = new IdentityHashMap<Parameter, PhasedUnit>();
     private final Map<Parameter, Node> parameterNodeMap = new IdentityHashMap<Parameter, Node>();
-    private final Map<String, Boolean> moduleUrlAvailabilityCache = new IdentityHashMap<String, Boolean>();
+    private final Map<String, Boolean> moduleUrlAvailabilityCache = new HashMap<String, Boolean>();
     private RepositoryManager outputRepositoryManager;
 
     public CeylonDocTool() {
@@ -374,8 +375,12 @@ public class CeylonDocTool extends OutputRepoUsingTool {
     }
 
     @Override
+    protected List<File> getSourceDirs() {
+        return sourceFolders;
+    }
+
+    @Override
     public void initialize(CeylonTool mainTool) {
-        setSystemProperties();
         TypeCheckerBuilder builder = new TypeCheckerBuilder();
         for(File src : sourceFolders){
             builder.addSrcDirectory(src);
@@ -1038,7 +1043,7 @@ public class CeylonDocTool extends OutputRepoUsingTool {
         if (!includeNonShared && !decl.isShared()) {
             return false;
         }
-        if (decl.isNative() && !decl.isNativeHeader()) {
+        if (decl.isNativeImplementation()) {
             return false;
         }
         return true;

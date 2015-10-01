@@ -151,56 +151,6 @@ class ListImplementor<X> implements .com.redhat.ceylon.compiler.java.runtime.mod
     }
     
     @.java.lang.Override
-    public boolean includesAt(final long index, final .ceylon.language.List<? extends .java.lang.Object> sublist) {
-        return $ceylon$language$List$this$.includesAt(index, sublist);
-    }
-    
-    @.java.lang.Override
-    public boolean includes(final .ceylon.language.List<? extends .java.lang.Object> sublist) {
-        return $ceylon$language$List$this$.includes(sublist);
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> inclusions(final .ceylon.language.List<? extends .java.lang.Object> sublist) {
-        return $ceylon$language$List$this$.inclusions(sublist);
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Integer firstInclusion(final .ceylon.language.List<? extends .java.lang.Object> sublist) {
-        return $ceylon$language$List$this$.firstInclusion(sublist);
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Integer lastInclusion(final .ceylon.language.List<? extends .java.lang.Object> sublist) {
-        return $ceylon$language$List$this$.lastInclusion(sublist);
-    }
-    
-    @.java.lang.Override
-    public boolean occursAt(final long index, final .java.lang.Object element) {
-        return $ceylon$language$List$this$.occursAt(index, element);
-    }
-    
-    @.java.lang.Override
-    public boolean occurs(final .java.lang.Object element) {
-        return $ceylon$language$List$this$.occurs(element);
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> occurrences(final .java.lang.Object element) {
-        return $ceylon$language$List$this$.occurrences(element);
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Integer firstOccurrence(final .java.lang.Object element) {
-        return $ceylon$language$List$this$.firstOccurrence(element);
-    }
-    
-    @.java.lang.Override
-    public .ceylon.language.Integer lastOccurrence(final .java.lang.Object element) {
-        return $ceylon$language$List$this$.lastOccurrence(element);
-    }
-    
-    @.java.lang.Override
     public .ceylon.language.Iterable<? extends .ceylon.language.Integer, ? extends .java.lang.Object> indexesWhere(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
         return $ceylon$language$List$this$.indexesWhere(selecting);
     }
@@ -262,6 +212,11 @@ class ListImplementor<X> implements .com.redhat.ceylon.compiler.java.runtime.mod
     }
     
     @.java.lang.Override
+    public final .ceylon.language.Iterable<? extends .ceylon.language.Sequence<? extends X>, ? extends .java.lang.Object> getPermutations() {
+        return $ceylon$language$Collection$this$.getPermutations();
+    }
+    
+    @.java.lang.Override
     public boolean getEmpty() {
         return $ceylon$language$Collection$this$.getEmpty();
     }
@@ -298,8 +253,18 @@ class ListImplementor<X> implements .com.redhat.ceylon.compiler.java.runtime.mod
     }
     
     @.java.lang.Override
+    public .ceylon.language.Iterable<? extends X, ? extends .java.lang.Object> getDistinct() {
+        return $ceylon$language$Iterable$this$.getDistinct();
+    }
+    
+    @.java.lang.Override
     public .ceylon.language.Sequential<? extends X> sequence() {
         return $ceylon$language$Iterable$this$.sequence();
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object indexes() {
+        return $ceylon$language$Iterable$this$.indexes();
     }
     
     @.java.lang.Override
@@ -350,6 +315,11 @@ class ListImplementor<X> implements .com.redhat.ceylon.compiler.java.runtime.mod
     @.java.lang.Override
     public .ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends X> locateLast(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
         return $ceylon$language$Iterable$this$.locateLast(selecting);
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Iterable<? extends .ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends X>, ? extends .java.lang.Object> locations(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
+        return $ceylon$language$Iterable$this$.locations(selecting);
     }
     
     @.java.lang.Override
@@ -460,6 +430,26 @@ class ListImplementor<X> implements .com.redhat.ceylon.compiler.java.runtime.mod
     
     private <Other>.ceylon.language.Iterable interpose$canonical$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Other, final Other element, final long step) {
         return (.ceylon.language.Iterable)$ceylon$language$Iterable$this$.interpose($reified$Other, element, step);
+    }
+    
+    @.java.lang.Override
+    public final .ceylon.language.Map<? extends X, ? extends .ceylon.language.Integer> frequencies() {
+        return $ceylon$language$Iterable$this$.frequencies();
+    }
+    
+    @.java.lang.Override
+    public final <Result>.ceylon.language.Map<? extends X, ? extends Result> tabulate(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Result, final .ceylon.language.Callable<? extends Result> collecting) {
+        return $ceylon$language$Iterable$this$.tabulate($reified$Result, collecting);
+    }
+    
+    @.java.lang.Override
+    public final <Group>.ceylon.language.Map<? extends Group, ? extends .ceylon.language.Sequence<? extends X>> group(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Group, final .ceylon.language.Callable<? extends Group> grouping) {
+        return $ceylon$language$Iterable$this$.group($reified$Group, grouping);
+    }
+    
+    @.java.lang.Override
+    public final <Group, Result>.ceylon.language.Map<? extends Group, ? extends Result> summarize(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Group, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Result, final .ceylon.language.Callable<? extends Group> grouping, final .ceylon.language.Callable<? extends Result> accumulating) {
+        return $ceylon$language$Iterable$this$.summarize($reified$Group, $reified$Result, grouping, accumulating);
     }
     protected final .ceylon.language.Category$impl<.java.lang.Object> $ceylon$language$Category$this$;
     

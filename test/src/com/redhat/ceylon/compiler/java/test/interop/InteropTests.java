@@ -456,6 +456,12 @@ public class InteropTests extends CompilerTests {
     }
     
     @Test
+    public void testAnnotationsConstrainedClassCtor() {
+        compile("JavaAnnotation.java");
+        compareWithJavaSource("AnnotationsConstrainedClassCtor");
+    }
+    
+    @Test
     public void testAnnotationInteropQualifiedEnum(){
         compareWithJavaSource("AnnotationInteropQualifiedEnum");
     }
@@ -522,5 +528,22 @@ public class InteropTests extends CompilerTests {
     @Test
     public void testIopBug2199(){
         compareWithJavaSource("Bug2199");
+    }
+    
+    @Test
+    public void testIopBug2271(){
+        compareWithJavaSource("Bug2271");
+    }
+
+    @Test
+    public void testIopBug2310(){
+        compile("Bug2310Java.java");
+        compile("Bug2310.ceylon");
+    }
+
+    @Test
+    public void testIopBug2318(){
+        compile("Bug2318Java.java");
+        compile("Bug2318.ceylon");
     }
 }

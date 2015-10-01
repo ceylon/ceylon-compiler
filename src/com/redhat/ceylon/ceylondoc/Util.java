@@ -38,15 +38,17 @@ import com.github.rjeschke.txtmark.Processor;
 import com.github.rjeschke.txtmark.SpanEmitter;
 import com.redhat.ceylon.compiler.java.codegen.Decl;
 import com.redhat.ceylon.compiler.typechecker.context.PhasedUnit;
+import com.redhat.ceylon.model.typechecker.model.Annotated;
 import com.redhat.ceylon.model.typechecker.model.Annotation;
 import com.redhat.ceylon.model.typechecker.model.Class;
 import com.redhat.ceylon.model.typechecker.model.Declaration;
 import com.redhat.ceylon.model.typechecker.model.Import;
+import com.redhat.ceylon.model.typechecker.model.ModelUtil;
 import com.redhat.ceylon.model.typechecker.model.Module;
 import com.redhat.ceylon.model.typechecker.model.ModuleImport;
 import com.redhat.ceylon.model.typechecker.model.Package;
-import com.redhat.ceylon.model.typechecker.model.Type;
 import com.redhat.ceylon.model.typechecker.model.Referenceable;
+import com.redhat.ceylon.model.typechecker.model.Type;
 import com.redhat.ceylon.model.typechecker.model.TypeDeclaration;
 import com.redhat.ceylon.model.typechecker.model.TypedDeclaration;
 import com.redhat.ceylon.model.typechecker.model.Unit;
@@ -117,7 +119,7 @@ public class Util {
         return wikiToHTML(getFirstLine(getRawDoc(module.getUnit(), module.getAnnotations())), linkRenderer.useScope(module));
     }
     
-    public static List<String> getTags(Declaration decl) {
+    public static <T extends Referenceable & Annotated> List<String> getTags(T decl) {
         List<String> tags = new ArrayList<String>();
         Annotation tagged = Util.getAnnotation(decl.getUnit(), decl.getAnnotations(), "tagged");
         if (tagged != null) {
@@ -289,27 +291,26 @@ public class Util {
         return ancestors;
     }
 
-    public static List<Type> getSuperInterfaces(TypeDeclaration decl) {
-        Set<Type> superInterfaces = new HashSet<Type>();
-        List<Type> satisfiedTypes = decl.getSatisfiedTypes();
-        for (Type satisfiedType : satisfiedTypes) {
-            superInterfaces.add(satisfiedType);
+    public static List<TypeDeclaration> getSuperInterfaces(TypeDeclaration decl) {
+        Set<TypeDeclaration> superInterfaces = new HashSet<TypeDeclaration>();
+        for (Type satisfiedType : decl.getSatisfiedTypes()) {
+            superInterfaces.add(satisfiedType.getDeclaration());
             superInterfaces.addAll(getSuperInterfaces(satisfiedType.getDeclaration()));
         }
-        ArrayList<Type> list = new ArrayList<Type>();
+        List<TypeDeclaration> list = new ArrayList<TypeDeclaration>();
         list.addAll(superInterfaces);
         removeDuplicates(list);
         return list;
     }
 
-    private static void removeDuplicates(List<Type> superInterfaces) {
+    private static void removeDuplicates(List<TypeDeclaration> superInterfaces) {
         OUTER: for (int i = 0; i < superInterfaces.size(); i++) {
-            Type pt1 = superInterfaces.get(i);
+            TypeDeclaration decl1 = superInterfaces.get(i);
             // compare it with each type after it
             for (int j = i + 1; j < superInterfaces.size(); j++) {
-                Type pt2 = superInterfaces.get(j);
-                if (pt1.getDeclaration().equals(pt2.getDeclaration())) {
-                    if (pt1.isSubtypeOf(pt2)) {
+                TypeDeclaration decl2 = superInterfaces.get(j);
+                if (decl1.equals(decl2)) {
+                    if (decl1.getType().isSubtypeOf(decl2.getType())) {
                         // we keep the first one because it is more specific
                         superInterfaces.remove(j);
                     } else {
@@ -501,7 +502,7 @@ public class Util {
         }
     }
   
-    private static int nullSafeCompare(final String s1, final String s2) {
+    static int nullSafeCompare(final String s1, final String s2) {
         if (s1 == s2) {
             return 0;
         } else if (s1 == null) {
@@ -514,6 +515,14 @@ public class Util {
 
     public static boolean isEnumerated(TypeDeclaration klass) {
         return klass.getCaseTypes() != null && !klass.getCaseTypes().isEmpty();
+    }
+
+    public static String getDeclarationName(Declaration decl) {
+        String name = decl.getName();
+        if( ModelUtil.isConstructor(decl) && name == null ) {
+            name = ((TypeDeclaration)decl.getContainer()).getName();
+        }
+        return name;
     }
    
 }

@@ -166,6 +166,7 @@ public class CeylonCompileTool extends OutputRepoUsingTool {
     private List<File> resources = DefaultToolOptions.getCompilerResourceDirs();
     private List<String> modulesOrFiles = Arrays.asList("*");
     private boolean continueOnErrors;
+    private boolean progress;
     private List<String> javac = Collections.emptyList();
     private String encoding;
     private String resourceRoot = DefaultToolOptions.getCompilerResourceRootName();
@@ -253,6 +254,12 @@ public class CeylonCompileTool extends OutputRepoUsingTool {
         this.continueOnErrors = continueOnErrors;
     }
 
+    @Option(longName="progress")
+    @Description("Print progress information.")
+    public void setProgress(boolean progress) {
+        this.progress = progress;
+    }
+
     @OptionArgument(shortName='E', argumentName="encoding")
     @Description("Sets the encoding used for reading source files" +
             "(default: platform-specific).")
@@ -301,6 +308,11 @@ public class CeylonCompileTool extends OutputRepoUsingTool {
     
     private Main compiler;
     
+    @Override
+    protected List<File> getSourceDirs() {
+        return sources;
+    }
+
     private static void validateWithJavac(Options options, JavacOption encodingOpt, String option, String argument, String key) {
         if (!encodingOpt.matches(option)) {
             throw new IllegalArgumentException(CeylonCompileMessages.msg(key, option));
@@ -321,7 +333,6 @@ public class CeylonCompileTool extends OutputRepoUsingTool {
     
     @Override
     public void initialize(CeylonTool mainTool) throws IOException {
-        setSystemProperties();
         compiler = new Main("ceylon compile");
         Options options = Options.instance(new Context());
         
@@ -359,9 +370,18 @@ public class CeylonCompileTool extends OutputRepoUsingTool {
         if (continueOnErrors) {
             arguments.add("-continue");
         }
-        
+
+        if (progress) {
+            arguments.add("-progress");
+        }
+
         if (offline) {
             arguments.add("-offline");
+        }
+
+        if (timeout != -1) {
+            arguments.add("-timeout");
+            arguments.add(String.valueOf(timeout));
         }
 
         if (flatClasspath) {
@@ -449,7 +469,7 @@ public class CeylonCompileTool extends OutputRepoUsingTool {
         
         if (suppressWarnings != null) {
             arguments.add("-suppress-warnings");
-            arguments.add(EnumUtil.enumsToString(Warning.class, suppressWarnings));
+            arguments.add(EnumUtil.enumsToString(suppressWarnings));
         }
         
         addJavacArguments(arguments);

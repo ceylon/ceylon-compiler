@@ -35,16 +35,17 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
-import com.redhat.ceylon.ceylondoc.Util.TypeComparatorByName;
 import com.redhat.ceylon.ceylondoc.Util.ReferenceableComparatorByName;
 import com.redhat.ceylon.model.typechecker.model.Class;
 import com.redhat.ceylon.model.typechecker.model.ClassOrInterface;
-import com.redhat.ceylon.model.typechecker.model.Constructor;
 import com.redhat.ceylon.model.typechecker.model.Declaration;
-import com.redhat.ceylon.model.typechecker.model.Interface;
 import com.redhat.ceylon.model.typechecker.model.Function;
-import com.redhat.ceylon.model.typechecker.model.FunctionOrValue;
+import com.redhat.ceylon.model.typechecker.model.Interface;
+import com.redhat.ceylon.model.typechecker.model.ModelUtil;
 import com.redhat.ceylon.model.typechecker.model.Package;
 import com.redhat.ceylon.model.typechecker.model.Type;
 import com.redhat.ceylon.model.typechecker.model.TypeAlias;
@@ -55,17 +56,17 @@ import com.redhat.ceylon.model.typechecker.model.Value;
 public class ClassDoc extends ClassOrPackageDoc {
 
     private TypeDeclaration klass;
-    private List<Constructor> constructors;
-    private List<Function> methods;
-    private List<TypedDeclaration> attributes;
-    private List<Interface> innerInterfaces;
-    private List<Class> innerClasses;
-    private List<Class> innerExceptions;
-    private List<TypeAlias> innerAliases;
-    private List<Type> superInterfaces;
+    private SortedMap<String,Declaration> constructors;
+    private SortedMap<String,Function> methods;
+    private SortedMap<String,TypedDeclaration> attributes;
+    private SortedMap<String,Interface> innerInterfaces;
+    private SortedMap<String,Class> innerClasses;
+    private SortedMap<String,Class> innerExceptions;
+    private SortedMap<String,TypeAlias> innerAliases;
+    private List<TypeDeclaration> superInterfaces;
     private List<TypeDeclaration> superClasses;
-    private Map<MemberSpecification, Map<TypeDeclaration, List<Declaration>>> superclassInheritedMembers = new HashMap<ClassDoc.MemberSpecification, Map<TypeDeclaration,List<Declaration>>>(2);
-    private Map<MemberSpecification, Map<TypeDeclaration, List<Declaration>>> interfaceInheritedMembers = new HashMap<ClassDoc.MemberSpecification, Map<TypeDeclaration,List<Declaration>>>(2);
+    private Map<MemberSpecification, Map<TypeDeclaration, SortedMap<String, Declaration>>> superclassInheritedMembers = new HashMap<ClassDoc.MemberSpecification, Map<TypeDeclaration,SortedMap<String, Declaration>>>(2);
+    private Map<MemberSpecification, Map<TypeDeclaration, SortedMap<String, Declaration>>> interfaceInheritedMembers = new HashMap<ClassDoc.MemberSpecification, Map<TypeDeclaration,SortedMap<String, Declaration>>>(2);
 
     private interface MemberSpecification {
         boolean isSatisfiedBy(Declaration decl);
@@ -92,108 +93,76 @@ public class ClassDoc extends ClassOrPackageDoc {
     }
 
     private void loadMembers() {
-        constructors = new ArrayList<Constructor>();
-        methods = new ArrayList<Function>();
-        attributes = new ArrayList<TypedDeclaration>();
-        innerInterfaces = new ArrayList<Interface>();
-        innerClasses = new ArrayList<Class>();
-        innerExceptions = new ArrayList<Class>();
-        innerAliases = new ArrayList<TypeAlias>();
+        constructors = new TreeMap<String,Declaration>();
+        methods = new TreeMap<String,Function>();
+        attributes = new TreeMap<String,TypedDeclaration>();
+        innerInterfaces = new TreeMap<String,Interface>();
+        innerClasses = new TreeMap<String,Class>();
+        innerExceptions = new TreeMap<String,Class>();
+        innerAliases = new TreeMap<String,TypeAlias>();
         superClasses = getAncestors(klass);
         superInterfaces = getSuperInterfaces(klass);
         
         for (Declaration m : klass.getMembers()) {
             if (tool.shouldInclude(m)) {
-                if (m instanceof Constructor) {
-                    constructors.add((Constructor) m);
+                if (ModelUtil.isConstructor(m)) {
+                    addTo(constructors, m);
                 } else if (m instanceof Value) {
-                    attributes.add((Value) m);
+                    addTo(attributes, (Value)m);
                 } else if (m instanceof Function) {
-                    methods.add((Function) m);
+                    addTo(methods, (Function)m);
                 } else if (m instanceof Interface) {
-                    innerInterfaces.add((Interface) m);
+                    addTo(innerInterfaces, (Interface)m);
                 } else if (m instanceof Class) {
                     Class c = (Class) m;
                     if (Util.isThrowable(c)) {
-                        innerExceptions.add(c);
+                        addTo(innerExceptions, c);
                     } else {
-                        innerClasses.add(c);
+                        addTo(innerClasses, c);
                     }
                 } else if (m instanceof TypeAlias) {
-                    innerAliases.add((TypeAlias) m);
+                    addTo(innerAliases, (TypeAlias)m);
                 }
             }
         }
 
-        Collections.sort(constructors, ReferenceableComparatorByName.INSTANCE);
-        Collections.sort(methods, ReferenceableComparatorByName.INSTANCE);
-        Collections.sort(attributes, ReferenceableComparatorByName.INSTANCE);
-        Collections.sort(superInterfaces, TypeComparatorByName.INSTANCE);
-        Collections.sort(innerInterfaces, ReferenceableComparatorByName.INSTANCE);
-        Collections.sort(innerClasses, ReferenceableComparatorByName.INSTANCE);
-        Collections.sort(innerExceptions, ReferenceableComparatorByName.INSTANCE);
-        Collections.sort(innerAliases, ReferenceableComparatorByName.INSTANCE);
+        Collections.sort(superInterfaces, ReferenceableComparatorByName.INSTANCE);
         
-        loadSuperclassInheritedMembers(attributeSpecification);
-        loadSuperclassInheritedMembers(methodSpecification);
-        loadInterfaceInheritedMembers(attributeSpecification);
-        loadInterfaceInheritedMembers(methodSpecification);
+        loadInheritedMembers(attributeSpecification, superClasses, superclassInheritedMembers);
+        loadInheritedMembers(methodSpecification, superClasses, superclassInheritedMembers);
+        loadInheritedMembers(attributeSpecification, superInterfaces, interfaceInheritedMembers);
+        loadInheritedMembers(methodSpecification, superInterfaces, interfaceInheritedMembers);
     }
 
-    private void loadSuperclassInheritedMembers(MemberSpecification specification) {
-        LinkedHashMap<TypeDeclaration, List<Declaration>> inheritedMembers = new LinkedHashMap<TypeDeclaration, List<Declaration>>();
-        TypeDeclaration subclass = klass;
-        for (TypeDeclaration superClass : superClasses) {
-            List<Declaration> methods = getInheritedMembers(superClass, specification);
-            if (methods.isEmpty())
-                continue;
-            List<Declaration> notRefined = new ArrayList<Declaration>();
-            // clean already listed methods (refined in subclasses)
-            // done in 2 phases to avoid empty tables
-            for (Declaration method : methods) {
-                if (subclass.getDirectMember(method.getName(), null, false) == null) {
-                    notRefined.add(method);
-                }
-            }
-            if (notRefined.isEmpty())
-                continue;
-            inheritedMembers.put(superClass, notRefined);
+    private <T extends Declaration> void addTo(SortedMap<String, T> map, T decl) {
+        map.put(Util.getDeclarationName(decl), decl);
+        for(String alias : decl.getAliases()){
+            map.put(alias, decl);
         }
-        superclassInheritedMembers.put(specification, inheritedMembers);
     }
 
-    private void loadInterfaceInheritedMembers(MemberSpecification memberSpecification) {
-        LinkedHashMap<TypeDeclaration, List<Declaration>> result = new LinkedHashMap<TypeDeclaration, List<Declaration>>();
-        for (Type superInterface : superInterfaces) {
-            TypeDeclaration decl = superInterface.getDeclaration();
-            List<Declaration> members = getInheritedMembers(decl, memberSpecification);
-            for (Declaration member : members) {
-                
-                Declaration refined = member.getRefinedDeclaration();
-                if (refined == null
-                        || refined == member
-                        || (refined.getContainer() instanceof Class && refined.getContainer() != klass)) {
-                    List<Declaration> r = result.get(member.getContainer());
-                    if (r == null) {
-                        r = new ArrayList<Declaration>();
-                        result.put((TypeDeclaration)member.getContainer(), r);
+    private void loadInheritedMembers(MemberSpecification specification, 
+            List<TypeDeclaration> superClassOrInterfaceList, 
+            Map<MemberSpecification, Map<TypeDeclaration, SortedMap<String, Declaration>>> superClassOrInterfaceInheritedMemebers) {
+        LinkedHashMap<TypeDeclaration, SortedMap<String, Declaration>> inheritedMembersMap = 
+                new LinkedHashMap<TypeDeclaration, SortedMap<String, Declaration>>();
+        for (TypeDeclaration superClassOrInterface : superClassOrInterfaceList) {
+            SortedMap<String, Declaration> inheritedMembers = new TreeMap<String, Declaration>();
+            for (Declaration member : superClassOrInterface.getMembers()) {
+                if (specification.isSatisfiedBy(member) && tool.shouldInclude(member) ) {
+                    inheritedMembers.put(Util.getDeclarationName(member), member);
+                    for(String alias : member.getAliases()){
+                        inheritedMembers.put(alias, member);
                     }
-                    r.add(member);
                 }
             }
+            if( !inheritedMembers.isEmpty() ) {
+                inheritedMembersMap.put(superClassOrInterface, inheritedMembers);
+            }
         }
-        interfaceInheritedMembers.put(memberSpecification, result);
+        superClassOrInterfaceInheritedMemebers.put(specification, inheritedMembersMap);
     }
 
-    private List<Declaration> getInheritedMembers(TypeDeclaration decl, MemberSpecification specification) {
-        List<Declaration> members = new ArrayList<Declaration>();
-        for (Declaration m : decl.getMembers())
-            if (tool.shouldInclude(m) && specification.isSatisfiedBy(m)) {
-                members.add((FunctionOrValue) m);
-            }
-        return members;
-    }
-    
     private boolean isObject() {
         return klass instanceof Class && klass.isAnonymous();
     }
@@ -340,17 +309,17 @@ public class ClassDoc extends ClassOrPackageDoc {
         open("span class='type-identifier'");
         write(klass.getName());
         close("span");
-        writeTypeParameters(klass.getTypeParameters());
+        writeTypeParameters(klass.getTypeParameters(), klass);
         close("span");
         writeInheritance(klass);
-        writeTypeParametersConstraints(klass.getTypeParameters());
+        writeTypeParametersConstraints(klass.getTypeParameters(), klass);
     }
 
     private void writeQualifyingType(TypeDeclaration klass) throws IOException {
         if (klass.isClassOrInterfaceMember()) {
             TypeDeclaration container = (TypeDeclaration) klass.getContainer();
             writeQualifyingType(container);
-            linkRenderer().to(container).write();
+            linkRenderer().to(container).useScope(klass).write();
             write(".");
         }
     }    
@@ -500,7 +469,7 @@ public class ClassDoc extends ClassOrPackageDoc {
             write("<span class='hierarchy-arrow-none'></span>");
         }
         writeIcon(type);
-        linkRenderer().to(type).withinText(true).printTypeParameters(false).printAbbreviated(false).write();
+        linkRenderer().to(type).useScope(klass).withinText(true).printTypeParameters(false).printAbbreviated(false).write();
     }
     
     private List<TypeDeclaration> collectSupertypes(TypeDeclaration type) {
@@ -545,13 +514,13 @@ public class ClassDoc extends ClassOrPackageDoc {
                 
                 if( type instanceof TypedDeclaration ) {
                     TypedDeclaration decl = (TypedDeclaration) type;
-                    linkRenderer().to(decl).write();
+                    linkRenderer().to(decl).useScope(klass).write();
                 } else if( type instanceof ClassOrInterface ) {
-                    ClassOrInterface klass = (ClassOrInterface) type;
-                    linkRenderer().to(klass).printAbbreviated(!isAbbreviatedType(klass)).write();
+                    ClassOrInterface coi = (ClassOrInterface) type;
+                    linkRenderer().to(coi).useScope(klass).printAbbreviated(!isAbbreviatedType(coi)).write();
                 } else {
                     Type pt = (Type) type;
-                    linkRenderer().to(pt).printAbbreviated(!isAbbreviatedType(pt.getDeclaration())).write(); 
+                    linkRenderer().to(pt).useScope(klass).printAbbreviated(!isAbbreviatedType(pt.getDeclaration())).write(); 
                 }
             }
             close("div");
@@ -582,13 +551,12 @@ public class ClassDoc extends ClassOrPackageDoc {
     private void writeInheritedMembers(MemberSpecification specification, String tableTitle, String rowTitle) throws IOException {
         boolean first = true;
         
-        Map<TypeDeclaration, List<Declaration>> superClassInheritedMembersMap = superclassInheritedMembers.get(specification);
+        Map<TypeDeclaration, SortedMap<String, Declaration>> superClassInheritedMembersMap = superclassInheritedMembers.get(specification);
         List<TypeDeclaration> superClasses = new ArrayList<TypeDeclaration>(superclassInheritedMembers.get(specification).keySet());
         Collections.sort(superClasses, ReferenceableComparatorByName.INSTANCE);
         
         for (TypeDeclaration superClass : superClasses) {
-            List<Declaration> inheritedMembers = superClassInheritedMembersMap.get(superClass);
-            Collections.sort(inheritedMembers, ReferenceableComparatorByName.INSTANCE);
+            SortedMap<String,Declaration> inheritedMembers = superClassInheritedMembersMap.get(superClass);
 
             if (first) {
                 first = false;
@@ -597,16 +565,15 @@ public class ClassDoc extends ClassOrPackageDoc {
             writeInheritedMembersRow(rowTitle, superClass, inheritedMembers);
         }
 
-        Map<TypeDeclaration, List<Declaration>> superInterfaceInheritedMembersMap = interfaceInheritedMembers.get(specification);
+        Map<TypeDeclaration, SortedMap<String, Declaration>> superInterfaceInheritedMembersMap = interfaceInheritedMembers.get(specification);
         List<TypeDeclaration> superInterfaces = new ArrayList<TypeDeclaration>(superInterfaceInheritedMembersMap.keySet());
         Collections.sort(superInterfaces, ReferenceableComparatorByName.INSTANCE);
         
         for (TypeDeclaration superInterface : superInterfaces) {
-            List<Declaration> members = superInterfaceInheritedMembersMap.get(superInterface);
+            SortedMap<String,Declaration> members = superInterfaceInheritedMembersMap.get(superInterface);
             if (members == null || members.isEmpty()) {
                 continue;
             }
-            Collections.sort(members, ReferenceableComparatorByName.INSTANCE);
 
             if (first) {
                 first = false;
@@ -620,39 +587,55 @@ public class ClassDoc extends ClassOrPackageDoc {
         }
     }
 
-    private void writeInheritedMembersRow(String title, TypeDeclaration superType, List<Declaration> members) throws IOException {
+    private void writeInheritedMembersRow(String title, TypeDeclaration superType, SortedMap<String,Declaration> members) throws IOException {
         open("tr", "td");
         write(title);
         writeIcon(superType);
-        linkRenderer().to(superType).withinText(true).write();
+        linkRenderer().to(superType).useScope(klass).withinText(true).write();
         open("div class='inherited-members'");
         
         boolean first = true;
-        for (Declaration member : members) {
+        for (Entry<String, Declaration> entry : members.entrySet()) {
             if (!first) {
                 write(", ");
             } else {
                 first = false;
             }
-            linkRenderer().withinText(true).to(member).write();
+            String name = entry.getKey();
+            Declaration member = entry.getValue();
+            boolean alias = Util.nullSafeCompare(name, Util.getDeclarationName(member)) != 0;
+            LinkRenderer linkRenderer = linkRenderer().withinText(true).to(member).useScope(klass).printMemberContainerName(false);
+            if(alias){
+                StringBuilder sb = new StringBuilder();
+                sb.append("<code><span class='");
+                if(member instanceof TypeDeclaration)
+                    sb.append("type-");
+                sb.append("identifier'>");
+                sb.append(name);
+                sb.append("</span></code>");
+                linkRenderer.useCustomText(sb.toString());
+            }
+            linkRenderer.write();
         }
         
         close("div");
         close("td", "tr");
     }
     
-    private void writeInnerTypes(List<? extends TypeDeclaration> innerTypeDeclarations, String id, String title) throws IOException {
+    private void writeInnerTypes(Map<String, ? extends TypeDeclaration> innerTypeDeclarations, String id, String title) throws IOException {
         if (!innerTypeDeclarations.isEmpty()) {
             openTable(id, title, 2, true);
-            for (TypeDeclaration innerTypeDeclaration : innerTypeDeclarations) {
+            for (Entry<String, ? extends TypeDeclaration> entry : innerTypeDeclarations.entrySet()) {
+                TypeDeclaration innerTypeDeclaration = entry.getValue();
+                String name = entry.getKey();
                 if (innerTypeDeclaration instanceof ClassOrInterface) {
                     ClassOrInterface innerClassOrInterface = (ClassOrInterface) innerTypeDeclaration;
                     tool.doc(innerClassOrInterface);
-                    doc(innerClassOrInterface);
+                    doc(name, innerClassOrInterface);
                 }
                 if (innerTypeDeclaration instanceof TypeAlias) {
                     TypeAlias innerAlias = (TypeAlias) innerTypeDeclaration;
-                    doc(innerAlias);
+                    doc(name, innerAlias);
                 }
             }
             closeTable();
@@ -668,7 +651,7 @@ public class ClassDoc extends ClassOrPackageDoc {
         
         open("code class='decl-label'");
         write(klass.getName());
-        writeParameterList(klass);
+        writeParameterList(klass, klass);
         close("code");
         
         open("div class='description'");
@@ -685,8 +668,8 @@ public class ClassDoc extends ClassOrPackageDoc {
             return;
         }
         openTable("section-constructors", "Constructors", 1, true);
-        for (Constructor constructor : constructors) {
-            doc(constructor);
+        for (Entry<String, Declaration> entry : constructors.entrySet()) {
+            doc(entry.getKey(), entry.getValue());
         }
         closeTable();
     }
@@ -696,8 +679,8 @@ public class ClassDoc extends ClassOrPackageDoc {
             return;
         }
         openTable(null, "Attributes", 2, true);
-        for (TypedDeclaration attribute : attributes) {
-            doc(attribute);
+        for (Entry<String, TypedDeclaration> entry : attributes.entrySet()) {
+            doc(entry.getKey(), entry.getValue());
         }
         closeTable();
     }
@@ -707,8 +690,8 @@ public class ClassDoc extends ClassOrPackageDoc {
             return;
         }
         openTable(null, "Methods", 2, true);
-        for (Function m : methods) {
-            doc(m);
+        for (Entry<String, Function> entry : methods.entrySet()) {
+            doc(entry.getKey(), entry.getValue());
         }
         closeTable();
     }

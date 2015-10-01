@@ -172,6 +172,7 @@ $(document).ready(function() {
     initFilterActionNone();
     initFilterActionMore();
     initFilterDropdownPanel();
+    initTagsOnClickHandler();
     executeFilter();
 
     function initFilterKeyboardShortcuts() {
@@ -235,22 +236,26 @@ $(document).ready(function() {
             var tagCheckbox = $('<input/>').attr('name', tagName).attr('type', 'checkbox').appendTo(tagDiv);
             var tagLabel = $('<a/>').addClass("tag label").attr('name', tagName).append(tagName).appendTo(tagDiv);
             $('<span/>').addClass('tagOccurrenceCount').append(tagOccurrencesCount[tagName]).appendTo(tagDiv);
-            
-            var eventData = {tagLabel: tagLabel, tagCheckbox: tagCheckbox};
+
             var eventHandler = function(event) {
-                var isSelected = event.data.tagLabel.hasClass('tagSelected')
+                var tagName = $(event.target).attr('name');
+                var tagCheckbox = $('#filterDropdownPanelTags input[name="'+tagName+'"]');
+                var tagLabel = $('#filterDropdownPanelTags a[name="'+tagName+'"]');
+                var isSelected = tagLabel.hasClass('tagSelected')
                 if( isSelected ) {
-                    event.data.tagLabel.removeClass('tagSelected');
-                    event.data.tagCheckbox.attr('checked', false);
+                    tagLabel.removeClass('tagSelected');
+                    tagCheckbox.attr('checked', false);
+                    $('tbody a.tag[name="'+tagName+'"]').removeClass('tagSelected');
                 }
                 else {
-                    event.data.tagLabel.addClass('tagSelected');
-                    event.data.tagCheckbox.attr('checked', true);
+                    tagLabel.addClass('tagSelected');
+                    tagCheckbox.attr('checked', true);
+                    $('tbody a.tag[name="'+tagName+'"]').addClass('tagSelected');
                 }
                 executeFilter();
             };
-            tagCheckbox.click(eventData, eventHandler);
-            tagLabel.click(eventData, eventHandler);
+            tagCheckbox.click(eventHandler);
+            tagLabel.click(eventHandler);
             
             if( tagOccurrencesCount[tagName] == 0 ) {
                 tagDiv.addClass('tagOccurrenceZero');
@@ -268,6 +273,16 @@ $(document).ready(function() {
             $('#filterDropdownPanelInfo').html('No tagged declarations on this page.');
         }
     };
+
+    function initTagsOnClickHandler() {
+        $('tbody a.tag').each(function() {
+            var tagLabel = $(this);
+            tagLabel.click(function() {
+                var tagName = tagLabel.attr('name');
+                $('#filterDropdownPanelTags a[name="'+tagName+'"]').click();
+            });
+        });
+    }
     
     function executeFilter() {
         var selectedTags = [];
@@ -413,7 +428,11 @@ function search(q){
         }
         tagsDiv.appendTo(td);
 		
-        var elemLink = jQuery("<a/>").addClass("link").attr("href", elem.url).append(highlightMatch(elem.name, q));
+		var text = highlightMatch(elem.name, q);
+		if(elem.aliasFor){
+		  text = text.append(" → "+elem.aliasFor);
+		}
+        var elemLink = jQuery("<a/>").addClass("link").attr("href", elem.url).append(text);
         elemLink.appendTo(td);
 
 		var elemDesc = jQuery("<div/>").addClass("description").html(elem.doc);
@@ -528,8 +547,9 @@ function getUrlVars() {
 	var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
 	for ( var i = 0; i < hashes.length; i++) {
 		hash = hashes[i].split('=');
-		vars.push(hash[0]);
-		vars[hash[0]] = hash[1];
+		var name = decodeURIComponent(hash[0]);
+		vars.push(name);
+		vars[name] = decodeURIComponent(hash[1]);
 	}
 	return vars;
 }

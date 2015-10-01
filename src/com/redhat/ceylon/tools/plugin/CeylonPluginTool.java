@@ -13,12 +13,14 @@ import java.util.List;
 
 import com.redhat.ceylon.cmr.api.ArtifactContext;
 import com.redhat.ceylon.cmr.api.ModuleQuery;
+import com.redhat.ceylon.cmr.api.ModuleVersionDetails;
 import com.redhat.ceylon.cmr.api.RepositoryManager;
 import com.redhat.ceylon.cmr.ceylon.OutputRepoUsingTool;
 import com.redhat.ceylon.cmr.impl.IOUtils;
 import com.redhat.ceylon.cmr.impl.ShaSigner;
 import com.redhat.ceylon.common.Constants;
 import com.redhat.ceylon.common.FileUtil;
+import com.redhat.ceylon.common.Messages;
 import com.redhat.ceylon.common.OSUtil;
 import com.redhat.ceylon.common.config.DefaultToolOptions;
 import com.redhat.ceylon.common.tool.Argument;
@@ -142,9 +144,12 @@ public class CeylonPluginTool extends OutputRepoUsingTool {
     }
 
     @Override
+    protected List<File> getSourceDirs() {
+        return sourceFolders;
+    }
+
+    @Override
     public void run() throws Exception {
-        setSystemProperties();
-        
         // make sure we have a list of modules to work on if required
         if(modules == null)
             modules = new ArrayList<ModuleSpec>();
@@ -372,14 +377,6 @@ public class CeylonPluginTool extends OutputRepoUsingTool {
     }
 
     private boolean addScripts(RepositoryManager outputRepositoryManager, ModuleSpec module, boolean errorIfMissing) throws IOException {
-        String version = module.getVersion();
-        if((version == null || version.isEmpty()) && !module.getName().equals(Module.DEFAULT_MODULE_NAME)){
-            version = checkModuleVersionsOrShowSuggestions(getRepositoryManager(), module.getName(), null, ModuleQuery.Type.ALL, null, null);
-            if(version == null)
-                return false;
-        }
-        ArtifactContext artifactScriptsZip = new ArtifactContext(module.getName(), version, ArtifactContext.SCRIPTS_ZIPPED);
-        
         // find all doc folders to zip
         List<File> existingScriptFolders = findExistingScriptFolders(module.getName(), errorIfMissing);
         
@@ -387,6 +384,19 @@ public class CeylonPluginTool extends OutputRepoUsingTool {
             return false;
         }
 
+        String version;
+        if (!module.getName().equals(Module.DEFAULT_MODULE_NAME)){
+            ModuleVersionDetails mvd = getVersionFromSource(module.getName());
+            if (mvd == null) {
+                errorMsg("error.no.script.version", module.getName());
+                return false;
+            }
+            version = mvd.getVersion();
+        } else {
+            version = null;
+        }
+        ArtifactContext artifactScriptsZip = new ArtifactContext(module.getName(), version, ArtifactContext.SCRIPTS_ZIPPED);
+        
         // make the doc zip roots
         IOUtils.ZipRoot[] roots = new IOUtils.ZipRoot[existingScriptFolders.size()];
         int d=0;
@@ -448,7 +458,14 @@ public class CeylonPluginTool extends OutputRepoUsingTool {
     @Override
     public void initialize(CeylonTool mainTool) throws Exception {
         if (system && local) {
-            throw new IllegalArgumentException("Can't specify both --system and --local");
+            throw new IllegalArgumentException(Messages.msg(bundle, "conflicting.destinations"));
+        }
+        if (mode == Mode.pack) {
+            for(ModuleSpec module : modules){
+                if (module.isVersioned()) {
+                    throw new IllegalArgumentException(Messages.msg(bundle, "invalid.module.or.file", module.getName()));
+                }
+            }
         }
     }
 }

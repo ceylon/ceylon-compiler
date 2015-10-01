@@ -57,8 +57,10 @@ import com.redhat.ceylon.compiler.java.tools.CeylonLog;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Comprehension;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.ModuleDescriptor;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.PositionalArgument;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree.Term;
+import com.redhat.ceylon.compiler.typechecker.tree.TreeUtil;
 import com.redhat.ceylon.model.loader.AbstractModelLoader;
 import com.redhat.ceylon.model.loader.LanguageAnnotation;
 import com.redhat.ceylon.model.loader.NamingBase.Unfix;
@@ -456,10 +458,16 @@ public abstract class AbstractTransformer implements Transformation {
         if (canUnbox(type)) {
             if (isCeylonBoolean(type)) {
                 return makeBoolean(false);
-            } else if (isCeylonFloat(type)) {
+            } else if (isCeylonFloat(type)  && type.getUnderlyingType() == null) {
                 return make().Literal(0.0);
-            } else if (isCeylonInteger(type)) {
+            } else if ("float".equals(type.getUnderlyingType())) {
+                return make().Literal((float)0.0);
+            }  else if (isCeylonInteger(type) && type.getUnderlyingType() == null) {
                 return makeLong(0);
+            } else if ("int".equals(type.getUnderlyingType())) {
+                return make().Literal(0);
+            } else if ("short".equals(type.getUnderlyingType())) {
+                return make().TypeCast(make().Type(syms().shortType), make().Literal(0));
             } else if (isCeylonCharacter(type)) {
                 return make().Literal(0);
             } else if (isCeylonByte(type)) {
@@ -770,7 +778,9 @@ public abstract class AbstractTransformer implements Transformation {
             type = typeFact().getBooleanType();
         else if(containsJavaEnumInUnion(type))
             type = typeFact().denotableType(type);
-        
+        if (type.getDeclaration() instanceof Constructor) {
+            type = type.getExtendedType();
+        }
         return type;
     }
 
@@ -1865,6 +1875,10 @@ public abstract class AbstractTransformer implements Transformation {
             type = type.getExtendedType();
         }
         
+        if (type.isTypeConstructor()) {
+            return make().QualIdent(syms().ceylonAbstractTypeConstructorType.tsym);
+        }
+        
         // ERASURE
         if ((flags & JT_CLASS_LITERAL) == 0
                 // don't consider erasure for class literals since it would resolve aliases and we want class
@@ -2920,8 +2934,32 @@ public abstract class AbstractTransformer implements Transformation {
         return res;
     }
 
-    List<JCAnnotation> makeAtModule(Module module) {
+    private String getImportVersionFromDescriptor(ModuleDescriptor moduleDescriptor, ModuleImport moduleImport, Module importedModule) {
+        if (AbstractModelLoader.isJDKModule(importedModule.getNameAsString())) {
+            for(Tree.ImportModule imported : moduleDescriptor.getImportModuleList().getImportModules()){
+                String name=null;
+                if (imported.getImportPath() != null) {
+                    name = TreeUtil.formatPath(imported.getImportPath().getIdentifiers());
+                } else if (imported.getQuotedLiteral() != null) {
+                    name = imported.getQuotedLiteral().getText();
+                    name = name.substring(1, name.length()-1);
+                }
+                
+                if (name != null 
+                        && imported.getVersion() != null
+                        && name.equals(moduleImport.getModule().getNameAsString())) {
+                    String versionString = imported.getVersion().getText();
+                    return versionString.substring(1, versionString.length()-1);
+                }
+            }
+        }
+        return importedModule.getVersion();
+    }
+    
+    List<JCAnnotation> makeAtModule(ModuleDescriptor moduleDescriptor) {
+        Module module = moduleDescriptor.getUnit().getPackage().getModule();
         ListBuffer<JCExpression> imports = new ListBuffer<JCTree.JCExpression>();
+
         for(ModuleImport dependency : module.getImports()){
             if (!isForBackend(dependency.getNativeBackend(), Backend.Java)) {
                 continue;
@@ -2930,9 +2968,12 @@ public abstract class AbstractTransformer implements Transformation {
             JCExpression dependencyName = make().Assign(naming.makeUnquotedIdent("name"),
                     make().Literal(dependencyModule.getNameAsString()));
             JCExpression dependencyVersion = null;
-            if(dependencyModule.getVersion() != null)
+            
+            String versionInDescriptor = getImportVersionFromDescriptor(
+                    moduleDescriptor, dependency, dependencyModule);
+            if(versionInDescriptor != null)
                 dependencyVersion = make().Assign(naming.makeUnquotedIdent("version"),
-                        make().Literal(dependencyModule.getVersion()));
+                        make().Literal(versionInDescriptor));
             
             List<JCExpression> spec;
             if(dependencyVersion != null)
@@ -3188,6 +3229,15 @@ public abstract class AbstractTransformer implements Transformation {
 
     List<JCAnnotation> makeAtIgnore() {
         return makeModelAnnotation(syms().ceylonAtIgnore);
+    }
+    
+    List<JCAnnotation> makeAtConstructorName(String name, boolean delegation) {
+        List<JCExpression> ass = List.<JCExpression>of(
+                make().Assign(naming.makeUnquotedIdent("value"), make().Literal(name == null ? "" : name)));
+        if (delegation) {
+            ass = ass.prepend(make().Assign(naming.makeUnquotedIdent("delegation"), make().Literal(true)));
+        } 
+        return makeModelAnnotation(syms().ceylonAtConstructorName, ass);
     }
     
     List<JCAnnotation> makeAtNoInitCheck() {
@@ -3590,8 +3640,7 @@ public abstract class AbstractTransformer implements Transformation {
         } else if (isCeylonString(exprType)) {
             expr = unboxString(expr);
         } else if (isCeylonCharacter(exprType)) {
-            boolean isJavaCharacter = exprType.getUnderlyingType() != null;
-            expr = unboxCharacter(expr, isJavaCharacter);
+            expr = unboxCharacter(expr);
         } else if (isCeylonByte(exprType)) {
             expr = unboxByte(expr);
         } else if (isCeylonBoolean(exprType)) {
@@ -3703,8 +3752,8 @@ public abstract class AbstractTransformer implements Transformation {
         return makeLetExpr(name, null, type, value, expr);
     }
 
-    private JCTree.JCMethodInvocation unboxCharacter(JCExpression value, boolean isJava) {
-        return makeUnboxType(value, isJava ? "charValue" : "intValue");
+    private JCTree.JCMethodInvocation unboxCharacter(JCExpression value) {
+        return makeUnboxType(value, "intValue");
     }
     
     private JCTree.JCMethodInvocation unboxByte(JCExpression value) {
@@ -3896,6 +3945,13 @@ public abstract class AbstractTransformer implements Transformation {
                 List.<JCTree.JCExpression>nil());
     }
     
+    JCExpression makeLanguageSerializationValue(String valueName) {
+        return make().Apply(
+                List.<JCTree.JCExpression>nil(),
+                naming.makeLanguageSerializationValue(valueName),
+                List.<JCTree.JCExpression>nil());
+    }
+    
     JCExpression makeEmpty() {
         return makeLanguageValue("empty");
     }
@@ -3964,7 +4020,12 @@ public abstract class AbstractTransformer implements Transformation {
         Type arrayType = simplifyType(typeFact().getIteratedType(varargsParameter.getType()));
         while (arrayType.getDeclaration() instanceof TypeParameter) {
             TypeParameter tp = (TypeParameter)arrayType.getDeclaration();
-            arrayType = tp.getSatisfiedTypes().get(0);
+            if(tp.getSatisfiedTypes().isEmpty()){
+                arrayType = typeFact().getObjectType();
+                break;
+            }else{
+                arrayType = tp.getSatisfiedTypes().get(0);
+            }
         }
         
         // we could have a <X>variadic(X&Object), so we need to pick a type which satisfies the bound
@@ -4486,6 +4547,9 @@ public abstract class AbstractTransformer implements Transformation {
             Declaration declaration = type.getDeclaration();
             boolean local = false;
             do{
+                // getDeclarationContainer will skip some containers we don't want to consider, so it's not good
+                // for checking locality, rely on isLocal for that.
+                local |= Decl.isLocal(declaration);
                 // it may be contained in a function or value, and we want its type
                 Declaration enclosingDeclaration = getDeclarationContainer(declaration);
                 if(enclosingDeclaration instanceof TypedDeclaration){
@@ -5254,7 +5318,8 @@ public abstract class AbstractTransformer implements Transformation {
                 }
                 // go up every containing typed declaration
             }while(declaration != null);
-        }
+        }else
+            return hasTypeArguments(qualifyingType);
         // did not find any
         return false;
     }
@@ -5323,10 +5388,13 @@ public abstract class AbstractTransformer implements Transformation {
         while(container != null){
             if(container instanceof Package)
                 return null;
-            if(container instanceof Declaration
-                    // skip anonymous methods
-                    && (container instanceof Function == false || !((Declaration) container).isAnonymous()))
-                return (Declaration) container;
+            if(container instanceof Declaration){
+                if(Decl.skipContainer(container)){
+                    // skip it and go on
+                }else{
+                    return (Declaration) container;
+                }
+            }
             container = container.getContainer();
         }
         // did not find anything

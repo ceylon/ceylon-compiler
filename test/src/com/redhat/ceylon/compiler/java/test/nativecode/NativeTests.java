@@ -130,8 +130,8 @@ public class NativeTests extends CompilerTests {
     @Test
     public void testNativeMethodSharedInvalid() {
         testNativeErrors("NativeMethodSharedInvalid",
-                new CompilerError(20, "native implementation must have a header: 'nativeMethodSharedInvalid'"),
-                new CompilerError(23, "native implementation must have a header: 'nativeMethodSharedInvalid'"));
+                new CompilerError(20, "shared native implementation must have a header: 'nativeMethodSharedInvalid'"),
+                new CompilerError(23, "shared native implementation must have a header: 'nativeMethodSharedInvalid'"));
     }
     
     @Test
@@ -208,8 +208,8 @@ public class NativeTests extends CompilerTests {
     @Test
     public void testNativeAttributeSharedInvalid() {
         testNativeErrors("NativeAttributeSharedInvalid",
-                new CompilerError(20, "native implementation must have a header: 'nativeAttributeSharedInvalid'"),
-                new CompilerError(22, "native implementation must have a header: 'nativeAttributeSharedInvalid'"));
+                new CompilerError(20, "shared native implementation must have a header: 'nativeAttributeSharedInvalid'"),
+                new CompilerError(22, "shared native implementation must have a header: 'nativeAttributeSharedInvalid'"));
     }
     
     @Test
@@ -279,8 +279,8 @@ public class NativeTests extends CompilerTests {
     @Test
     public void testNativeClassSharedInvalid() {
         testNativeErrors("NativeClassSharedInvalid",
-                new CompilerError(20, "native implementation must have a header: 'NativeClassSharedInvalid'"),
-                new CompilerError(22, "native implementation must have a header: 'NativeClassSharedInvalid'"));
+                new CompilerError(20, "shared native implementation must have a header: 'NativeClassSharedInvalid'"),
+                new CompilerError(22, "shared native implementation must have a header: 'NativeClassSharedInvalid'"));
     }
     
     @Test
@@ -321,7 +321,15 @@ public class NativeTests extends CompilerTests {
                 new CompilerError(179, "native header does not have the same number of type parameters as native implementation: 'NativeClassMismatch11'"),
                 new CompilerError(184, "type parameter does not have the same bounds as its header: 'B' for 'NativeClassMismatch12'"),
                 new CompilerError(184, "type parameter does not have the same name as its header: 'B' for 'NativeClassMismatch12'"),
-                new CompilerError(186, "type parameter does not have the same bounds as its header: 'A' for 'NativeClassMismatch12'")
+                new CompilerError(186, "type parameter does not have the same bounds as its header: 'A' for 'NativeClassMismatch12'"),
+                new CompilerError(195, "native header 'test3' of 'NativeClassMismatch13' has no native implementation"),
+                new CompilerError(196, "member implementing a native header member must be marked native: 'test1' in 'NativeClassMismatch13'"),
+                new CompilerError(197, "member implementing a native header member must be marked native: 'test2' in 'NativeClassMismatch13'"),
+                new CompilerError(198, "member implementing a native header member must be marked native: 'test3' in 'NativeClassMismatch13'"),
+                new CompilerError(201, "native header 'test3' of 'NativeClassMismatch13' has no native implementation"),
+                new CompilerError(202, "member implementing a native header member must be marked native: 'test1' in 'NativeClassMismatch13'"),
+                new CompilerError(203, "member implementing a native header member must be marked native: 'test2' in 'NativeClassMismatch13'"),
+                new CompilerError(204, "member implementing a native header member must be marked native: 'test3' in 'NativeClassMismatch13'")
         );
     }
     
@@ -481,18 +489,18 @@ public class NativeTests extends CompilerTests {
     @Test
     public void testNativeRefWrong() {
         assertErrors(new String[] {"nativerefwrong/test.ceylon", "nativerefwrong/module.ceylon", "modsample/test.ceylon", "modsample/package.ceylon", "modsample/module.ceylon", "modok/test.ceylon", "modok/package.ceylon", "modok/module.ceylon"}, defaultOptions, null,
-                new CompilerError(30, "non-native declaration: 'test1' accesses native code: 'nativeMethodJvm', mark it or the module native"),
-                new CompilerError(32, "non-native declaration: 'test' accesses native code: 'nativeMethodJvm', mark it or the module native"),
-                new CompilerError(37, "non-native declaration: 'test2' accesses native code: 'nativeMethodJs', mark it or the module native"),
-                new CompilerError(39, "non-native declaration: 'test' accesses native code: 'nativeMethodJs', mark it or the module native"),
-                new CompilerError(53, "non-native declaration: 'test4' accesses native code: 'foo', mark it or the module native"),
-                new CompilerError(54, "non-native declaration: 'test4' accesses native code: 'Bar', mark it or the module native"),
-                new CompilerError(56, "non-native declaration: 'test' accesses native code: 'foo', mark it or the module native"),
-                new CompilerError(57, "non-native declaration: 'test' accesses native code: 'Bar', mark it or the module native"),
-                new CompilerError(63, "native declaration: 'test5' accesses native code for different backend: 'nativeMethodJvm'"),
-                new CompilerError(65, "native declaration: 'test' accesses native code for different backend: 'nativeMethodJvm'"),
-                new CompilerError(71, "native declaration: 'test6' accesses native code for different backend: 'nativeMethodJs'"),
-                new CompilerError(73, "native declaration: 'test' accesses native code for different backend: 'nativeMethodJs'")
+                new CompilerError(30, "non-native declaration: 'x' accesses native code: 'nativeMethodJvm', mark it or the module native"),
+                new CompilerError(32, "non-native declaration: 'x' accesses native code: 'nativeMethodJvm', mark it or the module native"),
+                new CompilerError(37, "non-native declaration: 'x' accesses native code: 'nativeMethodJs', mark it or the module native"),
+                new CompilerError(39, "non-native declaration: 'x' accesses native code: 'nativeMethodJs', mark it or the module native"),
+                new CompilerError(53, "non-native declaration: 'x' accesses native code: 'foo', mark it or the module native"),
+                new CompilerError(54, "non-native declaration: 'y' accesses native code: 'Bar', mark it or the module native"),
+                new CompilerError(56, "non-native declaration: 'x' accesses native code: 'foo', mark it or the module native"),
+                new CompilerError(57, "non-native declaration: 'y' accesses native code: 'Bar', mark it or the module native"),
+                new CompilerError(63, "native declaration: 'x' accesses native code for different backend: 'nativeMethodJvm'"),
+                new CompilerError(65, "native declaration: 'x' accesses native code for different backend: 'nativeMethodJvm'"),
+                new CompilerError(71, "native declaration: 'x' accesses native code for different backend: 'nativeMethodJs'"),
+                new CompilerError(73, "native declaration: 'x' accesses native code for different backend: 'nativeMethodJs'")
         );
     }
     

@@ -28,6 +28,7 @@ import static com.sun.tools.javac.code.Flags.PRIVATE;
 import static com.sun.tools.javac.code.Flags.PROTECTED;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
+import static com.sun.tools.javac.code.Flags.VARARGS;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import com.redhat.ceylon.compiler.java.codegen.StatementTransformer.DeferredSpec
 import com.redhat.ceylon.compiler.java.codegen.recovery.Drop;
 import com.redhat.ceylon.compiler.java.codegen.recovery.Errors;
 import com.redhat.ceylon.compiler.java.codegen.recovery.HasErrorException;
+import com.redhat.ceylon.compiler.java.codegen.recovery.ThrowerCatchallConstructor;
 import com.redhat.ceylon.compiler.java.codegen.recovery.ThrowerMethod;
 import com.redhat.ceylon.compiler.java.codegen.recovery.TransformationPlan;
 import com.redhat.ceylon.compiler.typechecker.tree.Node;
@@ -85,6 +87,7 @@ import com.redhat.ceylon.model.typechecker.model.FunctionOrValue;
 import com.redhat.ceylon.model.typechecker.model.Functional;
 import com.redhat.ceylon.model.typechecker.model.Generic;
 import com.redhat.ceylon.model.typechecker.model.Interface;
+import com.redhat.ceylon.model.typechecker.model.ModelUtil;
 import com.redhat.ceylon.model.typechecker.model.Package;
 import com.redhat.ceylon.model.typechecker.model.Parameter;
 import com.redhat.ceylon.model.typechecker.model.ParameterList;
@@ -104,6 +107,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
+import com.sun.tools.javac.tree.JCTree.JCCase;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -112,6 +116,8 @@ import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCReturn;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.tree.JCTree.JCSwitch;
+import com.sun.tools.javac.tree.JCTree.JCUnary;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -226,6 +232,21 @@ public class ClassTransformer extends AbstractTransformer {
         List<JCStatement> childDefs = visitClassOrInterfaceDefinition(def, classBuilder);
         // everything else is synthetic
         at(null);
+        TransformationPlan plan = errors().hasDeclarationError(def);
+        if (plan instanceof ThrowerCatchallConstructor) {
+            MethodDefinitionBuilder initBuilder = classBuilder.addConstructor();
+            initBuilder.body(statementGen().makeThrowUnresolvedCompilationError(plan.getErrorMessage().getMessage()));
+            // Although we have the class pl which we could use we don't know 
+            // that it won't collide with the default named constructor's pl
+            // which would cause a javac error about two constructors with the same sig
+            // so we generate a Object... here. There's still a risk of collision though
+            // when the default constructor has pl (ObjectArray).
+            ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.implicitParameter(this, "ignored");
+            pdb.modifiers(VARARGS);
+            pdb.type(make().TypeArray(make().Type(syms().objectType)), null);
+            initBuilder.parameter(pdb);
+        } 
+        
         // If it's a Class without initializer parameters...
         if (Strategy.generateMain(def)) {
             // ... then add a main() method
@@ -611,6 +632,7 @@ public class ClassTransformer extends AbstractTransformer {
                     && !isCeylonString(parameterType)) {
                 // Convert from array to Sequential
                 Type iteratedType = typeFact().getIteratedType(parameterType);
+                boolean nonEmpty = typeFact().isNonemptyIterableType(parameterType);
                 if (isCeylonBasicType(iteratedType)) {
                     argExpr = utilInvocation().sequentialWrapperBoxed(annoAttr);
                 } else if (Decl.isAnnotationClass(iteratedType.getDeclaration())) {
@@ -663,6 +685,9 @@ public class ClassTransformer extends AbstractTransformer {
                 } else {
                     argExpr = makeErroneous(parameter, "compiler bug");
                 }
+                if (nonEmpty) {
+                    argExpr = make().TypeCast(makeJavaType(parameterType), argExpr);
+                }
             } else if (Decl.isAnnotationClass(parameterType.getDeclaration())) {
                 argExpr = instantiateAnnotationClass(parameterType, annoAttr);
             } else if (isCeylonMetamodelDeclaration(parameterType)) {
@@ -677,6 +702,7 @@ public class ClassTransformer extends AbstractTransformer {
                 argExpr = annoAttr;
                 argExpr = expressionGen().applyErasureAndBoxing(annoAttr, parameterType.withoutUnderlyingType(), false, BoxingStrategy.UNBOXED, parameterType);
             }
+            
             args.add(argExpr);
         }
         annoCtor.body(at(def).Exec(
@@ -783,6 +809,8 @@ public class ClassTransformer extends AbstractTransformer {
             Type programElement = constrainedType.getTypeArgumentList().get(2);
             if (programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("InterfaceDeclaration")).getType())
                     || programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("ClassDeclaration")).getType())
+                    || programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("ClassWithInitializerDeclaration")).getType())
+                    || programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("ClassWithConstructorsDeclaration")).getType())
                     || programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("Package")).getType())
                     || programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("Module")).getType())) {
                 types.add(AnnotationTarget.TYPE);
@@ -792,9 +820,12 @@ public class ClassTransformer extends AbstractTransformer {
                 types.add(AnnotationTarget.METHOD);
                 types.add(AnnotationTarget.PARAMETER);
             } 
-            if (programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("ConstructorDeclaration")).getType())) {
+            if (programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("CallableConstructorDeclaration")).getType())) {
                 types.add(AnnotationTarget.CONSTRUCTOR);
             } 
+            if (programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("ValueConstructorDeclaration")).getType())) {
+                types.add(AnnotationTarget.CONSTRUCTOR);
+            }
             if (programElement.covers(((TypeDeclaration)typeFact().getLanguageModuleDeclarationDeclaration("Import")).getType())) {
                 types.add(AnnotationTarget.FIELD);
             }
@@ -1093,6 +1124,11 @@ public class ClassTransformer extends AbstractTransformer {
         // do reified type params first
         classBuilder.reifiedTypeParameters(model.getTypeParameters());
         if (def.getParameterList() != null) {
+            TransformationPlan error = errors().hasDeclarationAndMarkBrokenness(def);
+            if (error instanceof ThrowerCatchallConstructor) {
+                InitializerBuilder initBuilder = classBuilder.getInitBuilder();
+                initBuilder.init(make().If(make().Literal(true),statementGen().makeThrowUnresolvedCompilationError(error.getErrorMessage().getMessage()), null));
+            }
             for (Tree.Parameter param : def.getParameterList().getParameters()) {
                 Tree.TypedDeclaration member = def != null ? Decl.getMemberDeclaration(def, param) : null;
                 makeAttributeForValueParameter(classBuilder, param, member);
@@ -1260,8 +1296,10 @@ public class ClassTransformer extends AbstractTransformer {
         at(null);
         classBuilder.serializable();
         serializationConstructor(model, classBuilder);
-        serializationSerialize(model, classBuilder);
-        serializationDeserialize(model, classBuilder);
+        serializationReferences(model, classBuilder);
+        serializationGet(model, classBuilder);
+        serializationSet(model, classBuilder);
+        
     }
     
     private boolean hasField(Declaration member) {
@@ -1415,94 +1453,6 @@ public class ClassTransformer extends AbstractTransformer {
     }
     
     /**
-     * <p>Generates the {@code $serialize$()} method to serialize the classes state
-     * which:</p>
-     * <ul>
-     * <li>invokes {@code super.$serialize$()}, if the super class is also 
-     *     serializable,</li>
-     * <li>invokes {@code dtor.putTypeArgument()} for each type argument in the 
-     *     class,</li>
-     * <li>invokes {@code dtor.putValue()} for each attribute in the class 
-     *     whose state is held in a field.</li>
-     * </ul>
-     */
-    private void serializationSerialize(Class model,
-            ClassDefinitionBuilder classBuilder) {
-        MethodDefinitionBuilder mdb = MethodDefinitionBuilder.systemMethod(this, Unfix.$serialize$.toString());
-        mdb.isOverride(true);
-        mdb.ignoreModelAnnotations();
-        mdb.modifiers(PUBLIC);
-        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.systemParameter(this, Unfix.deconstructor.toString());
-        pdb.modifiers(FINAL);
-        pdb.type(makeJavaType(typeFact().getDeconstructorType()), null);
-        mdb.parameter(pdb);
-        
-        ListBuffer<JCStatement> stmts = ListBuffer.lb();
-        if (extendsSerializable(model)) {
-            // invoke super.$serialize$()
-            stmts.add(make().Exec(make().Apply(null,
-                    naming.makeQualIdent(naming.makeSuper(), Unfix.$serialize$.toString()),
-                    List.<JCExpression>of(naming.makeUnquotedIdent(Unfix.deconstructor)))));
-        }
-        
-        // Get the outer instance, if any
-        if (model.getContainer() instanceof ClassOrInterface) {
-            ClassOrInterface outerInstanceModel = (ClassOrInterface)model.getContainer();
-            Type outerInstanceType = outerInstanceModel.getType();
-            stmts.add(make().Exec(make().Apply(
-                    List.of(makeJavaType(outerInstanceType, JT_TYPE_ARGUMENT)), 
-                    naming.makeQualIdent(naming.makeUnquotedIdent(Unfix.deconstructor.toString()), "putOuterInstance"),
-                    List.of(makeReifiedTypeArgument(outerInstanceType),
-                            expressionGen().makeOuterExpr(outerInstanceType)))));
-        }
-        
-        // get state from fields
-        for (Declaration member : model.getMembers()) {
-            if (hasField(member)) {
-                Value value = (Value)member;
-                final Type serializedValueType;
-                JCExpression serializedValue;
-                //if (Decl.isValueTypeDecl(simplifyType(value.getType()))) {
-                
-                if (value.isLate()) {
-                    JCExpression test;
-                    if(CodegenUtil.needsLateInitField(value, typeFact()))
-                        test = make().Unary(JCTree.NOT, 
-                                            naming.makeUnquotedIdent(Naming.getInitializationFieldName(value.getName())));
-                    else
-                        test = make().Binary(JCTree.EQ, 
-                                             naming.makeUnquotedIdent(value.getName()),
-                                             makeNull());
-                    stmts.add(make().If(
-                            test, 
-                            makeThrowAssertionException(make().Literal("instance cannot be serialized: " + member.getQualifiedNameString() + " has not been initialized")), 
-                            null));
-                }
-                
-                serializedValueType = value.getType();
-                if (value.isToplevel() || value.isLate()) {
-                    serializedValue = make().Apply(null, naming.makeQualifiedName(naming.makeThis(), value, Naming.NA_MEMBER), List.<JCExpression>nil());
-                } else {
-                    serializedValue = naming.makeQualifiedName(naming.makeThis(), value, Naming.NA_IDENT);
-                }
-                serializedValue = expressionGen().applyErasureAndBoxing(serializedValue, 
-                        value.getType(), 
-                        !CodegenUtil.isUnBoxed(value), 
-                        BoxingStrategy.BOXED, 
-                        value.getType());
-                stmts.add(make().Exec(make().Apply(
-                        List.of(makeJavaType(serializedValueType, JT_TYPE_ARGUMENT)), 
-                        naming.makeQualIdent(naming.makeUnquotedIdent(Unfix.deconstructor.toString()), "putValue"),
-                        List.of(makeReifiedTypeArgument(serializedValueType),
-                                makeValueDeclaration(value),
-                                serializedValue))));
-            }
-        }
-        
-        mdb.body(stmts.toList());
-        classBuilder.method(mdb);
-    }
-    /**
      * <p>Generates the {@code $deserialize$()} method to deserialize 
      * the classes state, which:</p>
      * <ul>
@@ -1514,75 +1464,302 @@ public class ClassTransformer extends AbstractTransformer {
      *     class by invoking {@code dted.getValue()}.</li>
      * </ul>
      */
-    private void serializationDeserialize(Class model,
+    private void serializationReferences(Class model,
             ClassDefinitionBuilder classBuilder) {
-        MethodDefinitionBuilder mdb = MethodDefinitionBuilder.systemMethod(this, Unfix.$deserialize$.toString());
+        MethodDefinitionBuilder mdb = MethodDefinitionBuilder.systemMethod(this, Unfix.$references$.toString());
         mdb.isOverride(true);
         mdb.ignoreModelAnnotations();
         mdb.modifiers(PUBLIC);
-        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.systemParameter(this, Unfix.deconstructed.toString());
-        pdb.modifiers(FINAL);
-        pdb.type(make().Type(syms().ceylonDeconstructedType), null);
-        mdb.parameter(pdb);
+        
+        mdb.resultType(null, make().TypeApply(naming.makeQuotedFQIdent("java.util.Collection"),
+                List.<JCExpression>of(make().Type(syms().ceylonReachableReferenceType))));
         
         ListBuffer<JCStatement> stmts = ListBuffer.lb();
-        boolean requiredLookup = false;
-        
-        
-        // assign fields
-        for (Declaration member : model.getMembers()) {
-            if (hasField(member)) {
-                requiredLookup |= makeDeserializationAssignment(stmts, (Value)member);
-            }
-        }
-        if (requiredLookup) {
-            // if we needed to use a lookup object to reset final fields, 
-            // prepend that variable
-            stmts.prepend(makeVar(FINAL, 
-                    "lookup", 
-                    naming.makeQualIdent(make().Type(syms().methodHandlesType), "Lookup"), 
-                    make().Apply(null, naming.makeQuotedFQIdent("java.lang.invoke.MethodHandles.lookup"), List.<JCExpression>nil())));
-        }
-        
+        // TODO this is all static information, but the method itself needs to be 
+        // callable virtually, so we should cache it somehow.
+        SyntheticName r = naming.synthetic(Unfix.reference);
         if (extendsSerializable(model)) {
             // prepend the invocation of super.$serialize$()
-            stmts.prepend(make().Exec(make().Apply(null,
-                    naming.makeQualIdent(naming.makeSuper(), Unfix.$deserialize$.toString()),
-                    List.<JCExpression>of(naming.makeUnquotedIdent(Unfix.deconstructed.toString())))));
+            stmts.add(makeVar(r, 
+                    make().TypeApply(naming.makeQuotedFQIdent("java.util.Collection"),
+                            List.<JCExpression>of(make().Type(syms().ceylonReachableReferenceType))), 
+                    make().Apply(null,
+                    naming.makeQualIdent(naming.makeSuper(), Unfix.$references$.toString()),
+                    List.<JCExpression>nil())));
+        } else {
+            stmts.add(makeVar(r, 
+                    make().TypeApply(naming.makeQuotedFQIdent("java.util.Collection"),
+                            List.<JCExpression>of(make().Type(syms().ceylonReachableReferenceType))), 
+                    make().NewClass(null, null,
+                            make().TypeApply(
+                                    naming.makeQuotedFQIdent("java.util.ArrayList"),
+                                    List.<JCExpression>of(make().Type(syms().ceylonReachableReferenceType))),
+                            List.<JCExpression>nil(),
+                            null)));
         }
+        if (model.isMember()) {
+            JCExpressionStatement outer = make().Exec(make().Apply(null,
+                    naming.makeQualIdent(r.makeIdent(), "add"),
+                    List.<JCExpression>of(
+                            make().Apply(null,
+                            naming.makeQualIdent(make().Type(syms().ceylonOuterImplType), "get_"), List.<JCExpression>nil()))));
+            stmts.add(outer);
+        }
+        
+        
+        for (Declaration member : model.getMembers()) {
+            if (hasField(member)) {
+                // Obtain a ValueDeclaration
+                JCExpression valueDeclaration = expressionGen().makeMemberValueOrFunctionDeclarationLiteral(null, member, false);
+                // Create a MemberImpl
+                JCExpression mi = make().NewClass(null, null,
+                        make().QualIdent(syms().ceylonMemberImplType.tsym),
+                        List.of(valueDeclaration),
+                        null);
+                JCExpressionStatement attribute = make().Exec(make().Apply(null,
+                        naming.makeQualIdent(r.makeIdent(), "add"),
+                        List.of(mi)));
+                stmts.add(attribute);
+            }
+        }
+        stmts.add(make().Return(r.makeIdent()));
         mdb.body(stmts.toList());
         classBuilder.method(mdb);
     }
     
-    private boolean makeDeserializationAssignment(ListBuffer<JCStatement> stmts, Value value) {
-        Type typeOrReferenceType;
-        boolean isValueType = Decl.isValueTypeDecl(simplifyType(value.getType()));
-        //if (isValueType) {
-        typeOrReferenceType = value.getType();
-        //} else {
-          //  typeOrReferenceType = typeFact().getReferenceType(value.getType());
-        //}
+    private void serializationGet(Class model,
+            ClassDefinitionBuilder classBuilder) {
+        MethodDefinitionBuilder mdb = MethodDefinitionBuilder.systemMethod(this, Unfix.$get$.toString());
+        mdb.isOverride(true);
+        mdb.ignoreModelAnnotations();
+        mdb.modifiers(PUBLIC);
+        
+        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.systemParameter(this, Unfix.reference.toString());
+        pdb.modifiers(FINAL);
+        pdb.type(make().Type(syms().ceylonReachableReferenceType), null);
+        mdb.parameter(pdb);
+        
+        mdb.resultType(null, make().Type(syms().objectType));
+        /*
+         * public void $set$(Object reference, Object instance) {
+         *     switch((String)reference) {
+         *     case ("attr1")
+         *           return ...;
+         *     // ... other fields of this class
+         *     case ("lateAttr1")
+         *           if (!$init$lateAttr1) {
+         *               return ceylon.language.serialization.uninitializedLateValue.get_();
+         *           }
+         *           return ...;
+         *     case (null):
+         *           return Outer.this;
+         *     default:
+         *           return super.get(reference);
+         */
+        ListBuffer<JCCase> cases = ListBuffer.<JCCase>lb();
+        boolean[] needsLookup = new boolean[]{false};
+        for (Declaration member : model.getMembers()) {
+            if (hasField(member)) {
+                ListBuffer<JCStatement> caseStmts = ListBuffer.<JCStatement>lb();
+                if (member instanceof Value
+                        && ((Value)member).isLate()) {
+                    // TODO this should be encapsulated so the ADB and this
+                    // code can just call something common
+                    JCExpression test;
+                    if (CodegenUtil.needsLateInitField((Value)member, typeFact())) {
+                        test = make().Unary(JCTree.NOT, naming.makeUnquotedIdent(Naming.getInitializationFieldName(member.getName())));
+                    } else {
+                        test = make().Binary(JCTree.EQ, naming.makeQualifiedName(naming.makeThis(), (Value)member, Naming.NA_IDENT), makeNull());
+                    }
+                    caseStmts.add(make().If(
+                            test,
+                            make().Return(makeLanguageSerializationValue("uninitializedLateValue")), null));
+                }
+                caseStmts.add(make().Return(makeSerializationGetter((Value)member)));
+                cases.add(make().Case(make().Literal(member.getQualifiedNameString()), caseStmts.toList()));
+            }
+        }
+        SyntheticName reference = naming.synthetic(Unfix.reference);
+        ListBuffer<JCStatement> defaultCase = ListBuffer.lb();
+        if (extendsSerializable(model)) {
+            // super.get(reference);
+            defaultCase.add(make().Return(make().Apply(null,
+                    naming.makeQualIdent(naming.makeSuper(), Unfix.$get$.toString()),
+                    List.<JCExpression>of(reference.makeIdent()))));
+        } else {
+            // throw (or pass to something else to throw, based on policy)
+            defaultCase.add(make().Throw(make().NewClass(null, null,
+                    naming.makeQuotedFQIdent("java.lang.RuntimeException"),
+                    List.<JCExpression>of(make().Literal("unknown attribute")),
+                    null)));
+        }
+        cases.add(make().Case(null, defaultCase.toList()));
+        
+        ListBuffer<JCStatement> stmts = ListBuffer.<JCStatement>lb();
+        if (needsLookup[0]) {
+            // if we needed to use a lookup object to reset final fields, 
+            // prepend that variable
+            stmts.add(makeVar(FINAL, 
+                "lookup", 
+                naming.makeQualIdent(make().Type(syms().methodHandlesType), "Lookup"), 
+                make().Apply(null, naming.makeQuotedFQIdent("java.lang.invoke.MethodHandles.lookup"), List.<JCExpression>nil())));
+        }
+        
+        JCSwitch swtch = make().Switch(
+                make().Apply(null,
+                        naming.makeSelect(make().Apply(null,
+                                naming.makeSelect(
+                                        make().TypeCast(make().Type(syms().ceylonMemberType), reference.makeIdent()),
+                                        "getAttribute"),
+                                List.<JCExpression>nil()),
+                                "getQualifiedName"),
+                        List.<JCExpression>nil()),
+                cases.toList());
+        
+        if (model.isMember()
+                && !model.getExtendedType().getDeclaration().isMember()) {
+            stmts.add(make().If(make().TypeTest(reference.makeIdent(),
+                    make().Type(syms().ceylonOuterType)),
+                    
+                    make().Return(expressionGen().makeOuterExpr(((TypeDeclaration)model.getContainer()).getType())),
+                    swtch));
             
-        Naming.SyntheticName n = naming.alias("valueOrRef");
-        JCExpression newValue = make().Apply(List.of(makeJavaType(typeOrReferenceType, JT_TYPE_ARGUMENT)),
-                naming.makeQualIdent(naming.makeUnquotedIdent(Unfix.deconstructed.toString()), "getValue"),
-                List.<JCExpression>of(
-                        makeReifiedTypeArgument(typeOrReferenceType),
-                        makeValueDeclaration(value)));
-        // let ( 
-        // Object valueOrRef = ^^;
-        // valueOrRef instanceof Reference ? (($InstanceLeaker$)valueOrRef).$leakInstance$() : (Type)valueOrRef;
-        // )
-        newValue = make().LetExpr(makeVar(0, n, make().Type(syms().objectType), newValue), 
-                make().Conditional(
-                        make().TypeTest(n.makeIdent(),
-                                makeJavaType(typeFact().getReferenceType(value.getType()), JT_RAW)), 
-                        make().Apply(null,
-                                naming.makeQualIdent(make().TypeCast(
-                                        make().TypeApply(make().QualIdent(syms().ceylonInstanceLeakerType.tsym), List.of(makeJavaType(value.getType(), JT_TYPE_ARGUMENT))), n.makeIdent()), "$leakInstance$"),
-                                List.<JCExpression>nil()), 
-                        make().TypeCast(makeJavaType(typeOrReferenceType, JT_NO_PRIMITIVES), n.makeIdent())));
+        } else {
+            stmts.add(swtch);
+        }
+    
+        mdb.body(stmts.toList());
+        
+        classBuilder.method(mdb);
+    }
+    
+    private JCExpression makeSerializationGetter(Value value) {
+            
+        JCExpression result;
+        if (value.isToplevel() || value.isLate()) {// XXX duplicates logic in AttributeDefinitionBuilder
+            // We use the setter for late values, since that will allocate 
+            // the array if needed.
+            result = make().Apply(null,
+                    naming.makeQualifiedName(naming.makeThis(), value, Naming.NA_MEMBER | Naming.NA_GETTER),
+                    List.<JCExpression>nil());
+        } else {
+            // We bypass the setter
+//            if (value.isVariable()) {
+                result = naming.makeQualifiedName(naming.makeThis(), value, Naming.NA_IDENT);
+            /*} else {
+                // The field will have final modifier, so we need some 
+                // jiggery pokery to reset it.
+                requiredLookup[0] = true;
+                String fieldName = value.getName();
+                JCExpression fieldType = makeJavaType(value.getType());//TODO probably wrong
+                result = makeReassignFinalField(fieldType, fieldName, newValue);
+            }*/
+        }
+        result = expressionGen().applyErasureAndBoxing(result, value.getType(), 
+                !CodegenUtil.isUnBoxed(value) , 
+                BoxingStrategy.BOXED, value.getType());
+        return result;
+    }
+    
+    private void serializationSet(Class model,
+            ClassDefinitionBuilder classBuilder) {
+        MethodDefinitionBuilder mdb = MethodDefinitionBuilder.systemMethod(this, Unfix.$set$.toString());
+        mdb.isOverride(true);
+        mdb.ignoreModelAnnotations();
+        mdb.modifiers(PUBLIC);
+        
+        ParameterDefinitionBuilder pdb = ParameterDefinitionBuilder.systemParameter(this, Unfix.reference.toString());
+        pdb.modifiers(FINAL);
+        pdb.type(make().Type(syms().ceylonReachableReferenceType), null);
+        mdb.parameter(pdb);
+        
+        ParameterDefinitionBuilder pdb2 = ParameterDefinitionBuilder.systemParameter(this, Unfix.instance.toString());
+        pdb2.modifiers(FINAL);
+        pdb2.type(make().Type(syms().objectType), null);
+        mdb.parameter(pdb2);
 
+        //mdb.resultType(null, naming.makeQuotedFQIdent("java.util.Collection"));
+        /*
+         * public void $set$(Object reference, Object instance) {
+         *     switch((String)reference) {
+         *     case ("attr1")
+         *           this.field1 = ...;
+         *           break;
+         *     // ... other fields of this class
+         *     default:
+         *           super.set(reference, instance);
+         */
+        SyntheticName reference = naming.synthetic(Unfix.reference);
+        SyntheticName instance = naming.synthetic(Unfix.instance);
+        
+        ListBuffer<JCCase> cases = ListBuffer.<JCCase>lb();
+        boolean[] needsLookup = new boolean[]{false};
+        for (Declaration member : model.getMembers()) {
+            if (hasField(member)) {
+                ListBuffer<JCStatement> caseStmts = ListBuffer.<JCStatement>lb();
+                if (member instanceof Value
+                        && ((Value)member).isLate()) {
+                    caseStmts.add(make().If(make().TypeTest(instance.makeIdent(),
+                            make().Type(syms().ceylonUninitializedLateValueType)),
+                            make().Break(null), null));
+                }
+                caseStmts.add(makeDeserializationAssignment((Value)member, needsLookup));
+                caseStmts.add(make().Break(null));
+                cases.add(make().Case(make().Literal(member.getQualifiedNameString()), caseStmts.toList()));
+            }
+        }
+        
+        ListBuffer<JCStatement> defaultCase = ListBuffer.lb();
+        if (extendsSerializable(model)) {
+            // super.set(reference, instance);
+            defaultCase.add(make().Exec(make().Apply(null,
+                    naming.makeQualIdent(naming.makeSuper(), Unfix.$set$.toString()),
+                    List.<JCExpression>of(reference.makeIdent(), instance.makeIdent()))));
+        } else {
+            // throw (or pass to something else to throw, based on policy)
+            defaultCase.add(make().Throw(make().NewClass(null, null,
+                    naming.makeQuotedFQIdent("java.lang.RuntimeException"),
+                    List.<JCExpression>of(make().Literal("unknown attribute")),
+                    null)));
+        }
+        cases.add(make().Case(null, defaultCase.toList()));
+        
+        ListBuffer<JCStatement> stmts = ListBuffer.<JCStatement>lb();
+        if (needsLookup[0]) {
+            // if we needed to use a lookup object to reset final fields, 
+            // prepend that variable
+            stmts.add(makeVar(FINAL, 
+                "lookup", 
+                naming.makeQualIdent(make().Type(syms().methodHandlesType), "Lookup"), 
+                make().Apply(null, naming.makeQuotedFQIdent("java.lang.invoke.MethodHandles.lookup"), List.<JCExpression>nil())));
+        }
+        
+        JCSwitch swtch = make().Switch(
+                make().Apply(null, naming.makeSelect(make().Apply(null, naming.makeSelect(make().TypeCast(make().Type(syms().ceylonMemberType), 
+                        reference.makeIdent()), "getAttribute"),
+                        List.<JCExpression>nil()), "getQualifiedName"),
+                        List.<JCExpression>nil()),
+                        cases.toList());
+        stmts.add(make().If(make().TypeTest(reference.makeIdent(),
+                make().Type(syms().ceylonMemberType)),
+                swtch,
+                make().Throw(make().NewClass(null, null,
+                        make().Type(syms().ceylonAssertionErrorType),
+                        List.<JCExpression>of(make().Binary(JCTree.PLUS,
+                                make().Literal("unexpected reachable reference "), reference.makeIdent())),
+                        null))));
+    
+        mdb.body(stmts.toList());
+        
+        classBuilder.method(mdb);
+    }
+    
+
+    private JCStatement makeDeserializationAssignment(Value value, boolean[] requiredLookup) {
+        boolean isValueType = Decl.isValueTypeDecl(simplifyType(value.getType()));
+            
+        Naming.SyntheticName n = naming.synthetic(Unfix.instance);
+        JCExpression newValue = make().TypeCast(makeJavaType(value.getType(), JT_NO_PRIMITIVES), n.makeIdent());
         if (isValueType) {
             newValue = expressionGen().applyErasureAndBoxing(newValue, 
                     value.getType(), true, CodegenUtil.getBoxingStrategy(value), 
@@ -1591,7 +1768,6 @@ public class ClassTransformer extends AbstractTransformer {
             // We need to obtain the instance from the reference
             // but we don't need the instance to be fully deserialized
         }
-        boolean requiredLookup = false;
         final JCStatement assignment;
         if (value.isToplevel() || value.isLate()) {// XXX duplicates logic in AttributeDefinitionBuilder
             // We use the setter for late values, since that will allocate 
@@ -1608,14 +1784,13 @@ public class ClassTransformer extends AbstractTransformer {
             } else {
                 // The field will have final modifier, so we need some 
                 // jiggery pokery to reset it.
-                requiredLookup = true;
+                requiredLookup[0] = true;
                 String fieldName = value.getName();
                 JCExpression fieldType = makeJavaType(value.getType());//TODO probably wrong
                 assignment = makeReassignFinalField(fieldType, fieldName, newValue);
             }
         }
-        stmts.add(assignment);
-        return requiredLookup;
+        return assignment;
     }
 
     private JCStatement makeReassignFinalField(JCExpression fieldType,
@@ -1941,11 +2116,13 @@ public class ClassTransformer extends AbstractTransformer {
     }
 
     private void addAtContainer(ClassDefinitionBuilder classBuilder, TypeDeclaration model) {
-        Scope scope = model.getContainer();
+        Scope scope = Decl.getNonSkippedContainer((Scope)model);
+        Scope declarationScope = Decl.getFirstDeclarationContainer((Scope)model);
         boolean inlineObjectInToplevelAttr = Decl.isTopLevelObjectExpressionType(model);
-        if(scope == null || (scope instanceof Package && !inlineObjectInToplevelAttr))
+        if(scope == null || (scope instanceof Package && !inlineObjectInToplevelAttr) && scope == declarationScope)
             return;
         if(scope instanceof ClassOrInterface 
+                && scope == declarationScope
                 && !inlineObjectInToplevelAttr
                 // we do not check for types inside initialiser section which are private and not captured because we treat them as members
                 && !(model instanceof Interface && Decl.hasLocalNotInitializerAncestor(model))){
@@ -2067,10 +2244,11 @@ public class ClassTransformer extends AbstractTransformer {
             
             if (member instanceof Class) {
                 Class klass = (Class)member;
+                final Type typedMember = satisfiedType.getTypeMember(klass, Collections.<Type>emptyList());
                 if (Strategy.generateInstantiator(member)
                         && !klass.hasConstructors()
                     && !model.isFormal()
-                    && needsCompanionDelegate(model, member)
+                    && needsCompanionDelegate(model, typedMember)
                     && model.getDirectMember(member.getName(), null, false) == null) {
                     // instantiator method implementation
                     generateInstantiatorDelegate(classBuilder, satisfiedType,
@@ -2101,8 +2279,8 @@ public class ClassTransformer extends AbstractTransformer {
             if (member instanceof Function) {
                 Function method = (Function)member;
                 final TypedReference typedMember = satisfiedType.getTypedMember(method, Collections.<Type>emptyList());
-                Declaration sub = (Declaration)model.getMember(method.getName(), null, false);
-                if (sub instanceof Function) {
+                Declaration sub = (Declaration)model.getMember(method.getName(), getSignatureIfRequired(typedMember), false, true);
+                if (sub instanceof Function/* && !sub.isAbstraction()*/) {
                     Function subMethod = (Function)sub;
                     if (subMethod.getParameterLists().isEmpty()) {
                         continue;
@@ -2154,7 +2332,7 @@ public class ClassTransformer extends AbstractTransformer {
                     // if it has the *most refined* default concrete member, 
                     // then generate a method on the class
                     // delegating to the $impl instance
-                    if (needsCompanionDelegate(model, member)) {
+                    if (needsCompanionDelegate(model, typedMember)) {
 
                         final MethodDefinitionBuilder concreteMemberDelegate = makeDelegateToCompanion(iface,
                                 typedMember,
@@ -2193,7 +2371,7 @@ public class ClassTransformer extends AbstractTransformer {
                     || member instanceof Setter) {
                 TypedDeclaration attr = (TypedDeclaration)member;
                 final TypedReference typedMember = satisfiedType.getTypedMember(attr, null);
-                if (needsCompanionDelegate(model, member)) {
+                if (needsCompanionDelegate(model, typedMember)) {
                     Setter setter = (member instanceof Setter) ? (Setter)member : null;
                     if (member instanceof Value) {
                         if (member instanceof JavaBeanValue) {
@@ -2238,8 +2416,14 @@ public class ClassTransformer extends AbstractTransformer {
                         throw new BugException("assertion failed: " + member.getQualifiedNameString() + " was unexpectedly a variable value");
                     }
                 }
-            } else if (needsCompanionDelegate(model, member)) {
-                throw new BugException("unhandled concrete interface member " + member.getQualifiedNameString() + " " + member.getClass());
+            } else {
+                Reference typedMember = member instanceof TypeDeclaration 
+                        ? satisfiedType.getTypeMember((TypeDeclaration)member, Collections.<Type>emptyList())
+                        : satisfiedType.getTypedMember((TypedDeclaration)member, Collections.<Type>emptyList());
+
+                if (needsCompanionDelegate(model, typedMember)) {
+                    throw new BugException("unhandled concrete interface member " + member.getQualifiedNameString() + " " + member.getClass());
+                }
             }
         }
         
@@ -2342,9 +2526,11 @@ public class ClassTransformer extends AbstractTransformer {
         classBuilder.method(overload);
     }
 
-    private boolean needsCompanionDelegate(final Class model, Declaration member) {
+    private boolean needsCompanionDelegate(final Class model, Reference ref) {
         final boolean mostRefined;
-        Declaration m = model.getMember(member.getName(), null, false);
+        Declaration member = ref.getDeclaration();
+        java.util.List<Type> sig = getSignatureIfRequired(ref);
+        Declaration m = model.getMember(member.getName(), sig, false, true);
         if (member instanceof Setter && Decl.isGetter(m)) {
             mostRefined = member.equals(((Value)m).getSetter());
         } else {
@@ -2352,6 +2538,27 @@ public class ClassTransformer extends AbstractTransformer {
         }
         return mostRefined
                 && (member.isDefault() || !member.isFormal());
+    }
+
+    private java.util.List<Type> getSignatureIfRequired(Reference ref) {
+        if(requiresMemberSignatureMatch(ref.getDeclaration()))
+            return ModelUtil.getSignature(ref);
+        return null;
+    }
+
+    private boolean requiresMemberSignatureMatch(Declaration declaration) {
+        if(declaration instanceof Function){
+            java.util.List<ParameterList> parameterLists = ((Functional)declaration).getParameterLists();
+            if(parameterLists != null && parameterLists.size() == 1){
+                ParameterList parameterList = parameterLists.get(0);
+                for(Parameter param : parameterList.getParameters()){
+                    if(param.getModel().isFunctional())
+                        return false;
+                }
+            }
+            return declaration.isAbstraction() || declaration.isOverloaded();
+        }
+        return false;
     }
 
     /**
@@ -2508,7 +2715,8 @@ public class ClassTransformer extends AbstractTransformer {
                 if(isTurnedToRaw(typedMember.getQualifyingType())
                         // see note in BoxingVisitor.visit(QualifiedMemberExpression) about mixin super calls and variant type args
                         // in invariant locations
-                        || needsRawCastForMixinSuperCall(iface, methodType))
+                        || needsRawCastForMixinSuperCall(iface, methodType)
+                        || needsCastForErasedInstantiator(iface, methodName, member))
                     typeErased = true;
                 expr = gen().expressionGen().applyErasureAndBoxing(expr, methodType, typeErased, 
                         exprBoxed, boxingStrategy,
@@ -2517,6 +2725,12 @@ public class ClassTransformer extends AbstractTransformer {
             }
         }
         return concreteWrapper;
+    }
+
+    protected boolean needsCastForErasedInstantiator(Interface iface,
+            final String methodName, Declaration member) {
+        return Decl.isAncestorLocal(iface) && Decl.isAncestorLocal(member)
+                && methodName.endsWith(NamingBase.Suffix.$new$.toString());
     }
 
     private boolean isUnimplementedMemberClass(Type currentType, Reference typedMember) {
@@ -3056,7 +3270,8 @@ public class ClassTransformer extends AbstractTransformer {
     int transformConstructorDeclFlags(Constructor ctor) {
         return Decl.isShared(ctor) 
                 && !Decl.isAncestorLocal(ctor) 
-                && !ctor.isAbstract() ? PUBLIC : PRIVATE;
+                && !ctor.isAbstract() 
+                && !Decl.isEnumeratedConstructor(ctor)? PUBLIC : PRIVATE;
     }
 
     private int transformTypeAliasDeclFlags(TypeAlias decl) {
@@ -3748,6 +3963,8 @@ public class ClassTransformer extends AbstractTransformer {
                 throw new BugException(term, "unhandled primary: " + term == null ? "null" : term.getNodeType());
             }
             invocation.handleBoxing(true);
+            invocation.setErased(CodegenUtil.hasTypeErased(term) 
+                    || getReturnTypeOfCallable(term.getTypeModel()).isNothing());
             bodyExpr = expressionGen().transformInvocation(invocation);
         } else {
             bodyExpr = expressionGen().transformExpression(model, term);
@@ -4348,11 +4565,10 @@ public class ClassTransformer extends AbstractTransformer {
         @Override
         protected void appendImplicitParameters(java.util.List<TypeParameter> typeParameterList) {
             super.appendImplicitParameters(typeParameterList);
-            if (constructor != null
-                    && !Decl.isDefaultConstructor(constructor)) {
+            if (constructor != null) {
                 if (delegationConstructor) {
                     overloadBuilder.parameter(makeConstructorNameParameter(constructor, DeclNameFlag.QUALIFIED, DeclNameFlag.DELEGATION));
-                } else {
+                } else if (!Decl.isDefaultConstructor(constructor)){
                     overloadBuilder.parameter(makeConstructorNameParameter(constructor));
                 }
             }
@@ -5015,7 +5231,7 @@ public class ClassTransformer extends AbstractTransformer {
         // Add the rest of the parameters (this worries about aliasing)
         if (parameterList != null) {
             transformClassOrCtorParameters(null, (Class)ctor.getContainer(), ctor, that, 
-                    parameterList, Arrays.asList(declFlags).contains(DeclNameFlag.DELEGATION),
+                    parameterList, contains(declFlags, DeclNameFlag.DELEGATION),
                     classBuilder, ctorDb, generateInstantiator, decl, impl);
         }
         
@@ -5025,7 +5241,16 @@ public class ClassTransformer extends AbstractTransformer {
         result.add(ctorDb.build());
         return result.toList();
     }
-
+    
+    <E extends Enum<E>> boolean contains(E[] values, E value) {
+        for (E v : values) {
+            if (v == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     protected void transformConstructorName(
             ClassDefinitionBuilder classBuilder, ListBuffer<JCTree> result,
             Constructor ctor, Class clz, int classMods, String ctorName, DeclNameFlag...declFlags) {
@@ -5067,6 +5292,7 @@ public class ClassTransformer extends AbstractTransformer {
         }
         constructorNameClass.modifiers(classMods);
         constructorNameClass.annotations(makeAtIgnore());
+        constructorNameClass.annotations(makeAtConstructorName(ctor.getName(), contains(declFlags, DeclNameFlag.DELEGATION)));
         constructorNameClass.getInitBuilder().modifiers(PRIVATE);
         
         List<JCTree> ctorNameClassDecl = constructorNameClass.build();

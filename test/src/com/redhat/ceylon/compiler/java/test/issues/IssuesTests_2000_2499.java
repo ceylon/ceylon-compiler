@@ -470,4 +470,130 @@ public class IssuesTests_2000_2499 extends CompilerTests {
     public void testBug2259() {
         compareWithJavaSource("bug22xx/Bug2259"); 
     }
+
+    @Test
+    public void testBug2260() {
+        assertErrors("bug22xx/Bug2260",
+                new CompilerError(29, "duplicate annotation: there are multiple annotations of type 'Anno'"),
+                new CompilerError(31, "duplicate annotation: there are multiple annotations of type 'Transient' for targets: '[GETTER]'"));
+    }
+
+    @Test
+    public void testBug2262() {
+        compareWithJavaSource("bug22xx/Bug2262"); 
+    }
+
+    @Test
+    public void testBug2264() {
+        compareWithJavaSource("bug22xx/Bug2264"); 
+    }
+
+    @Test
+    public void testBug2265() {
+        compareWithJavaSource("bug22xx/Bug2265");
+        run("com.redhat.ceylon.compiler.java.test.issues.bug22xx.bug2265");
+    }
+    
+    @Test
+    public void testBug2266() {
+        compareWithJavaSource("bug22xx/Bug2266");
+    }
+    
+    @Test
+    public void testBug2269() {
+        compileAndRun("com.redhat.ceylon.compiler.java.test.issues.bug22xx.bug2269", "bug22xx/Bug2269.ceylon"); 
+    }
+    
+    @Test
+    public void testBug2272() {
+        compareWithJavaSource("bug22xx/Bug2272"); 
+    }
+
+    @Test
+    public void testBug2273() {
+        compareWithJavaSource("bug22xx/Bug2273"); 
+    }
+    
+    @Test
+    public void testBug2274() {
+        compareWithJavaSource("bug22xx/Bug2274"); 
+    }
+    
+    @Test
+    public void testBug2276() {
+        compareWithJavaSource("bug22xx/Bug2276"); 
+        run("com.redhat.ceylon.compiler.java.test.issues.bug22xx.bug2276"); 
+    }
+    
+    @Test
+    public void testBug2279() {
+        compareWithJavaSource("bug22xx/Bug2279"); 
+    }
+    
+    @Test
+    public void testBug2280() {
+        compareWithJavaSource("bug22xx/Bug2280"); 
+    }
+    
+    @Test
+    public void testBug2281() {
+        compareWithJavaSource("bug22xx/Bug2281"); 
+    }
+    
+    @Test
+    public void testBug2282() {
+        compareWithJavaSource("bug22xx/Bug2282"); 
+    }
+    
+    @Test
+    public void testBug2284() {
+        compareWithJavaSource("bug22xx/Bug2284"); 
+    }
+    
+    @Test
+    public void testBug2288() {
+        compareWithJavaSource("bug22xx/Bug2288"); 
+    }
+    
+    @Test
+    public void testBug2289() {
+        compareWithJavaSource("bug22xx/bug2289/Bug2289"); 
+    }
+    
+    @Test
+    public void testBug2291() {
+        compareWithJavaSource("bug22xx/Bug2291"); 
+    }
+    
+    @Test
+    public void testBug2293() {
+        compareWithJavaSource("bug22xx/Bug2293"); 
+    }
+    
+    @Test
+    public void testBug2302() throws Exception {
+        compile("bug23xx/Bug2302A.ceylon"); 
+        compile("bug23xx/Bug2302B.ceylon");
+    }
+    
+    @Test
+    public void testBug2304() throws Exception {
+        compileAndRun("com.redhat.ceylon.compiler.java.test.issues.bug23xx.bug2304",
+                "bug23xx/Bug2304.ceylon"); 
+    }
+    
+    @Test
+    public void testBug2305() throws Exception {
+        compareWithJavaSource("bug23xx/Bug2305"); 
+    }
+
+    @Test
+    public void testBug2306() throws Exception {
+        compareWithJavaSource("bug23xx/Bug2306"); 
+    }
+
+    @Test
+    public void testBug2322() throws Exception {
+        compareWithJavaSource("bug23xx/Bug2322"); 
+    }
 }

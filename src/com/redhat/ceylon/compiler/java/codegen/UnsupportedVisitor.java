@@ -1,46 +1,26 @@
 package com.redhat.ceylon.compiler.java.codegen;
 
 import java.util.EnumSet;
+import java.util.List;
 
 import com.redhat.ceylon.common.Backend;
+import com.redhat.ceylon.compiler.typechecker.tree.Node;
 import com.redhat.ceylon.compiler.typechecker.tree.Tree;
+import com.redhat.ceylon.compiler.typechecker.tree.Tree.Annotation;
 import com.redhat.ceylon.compiler.typechecker.tree.Visitor;
 import com.redhat.ceylon.compiler.typechecker.util.NativeUtil;
 import com.redhat.ceylon.model.loader.model.OutputElement;
 
 public class UnsupportedVisitor extends Visitor {
     
+    static final String DYNAMIC_UNSUPPORTED_ERR = "dynamic is not supported on the JVM";
+
     @Override
     public void visit(Tree.Annotation that) {
         String msg = AnnotationInvocationVisitor.checkForBannedJavaAnnotation(that);
         if (msg != null) {
             that.addError(msg, Backend.Java);
         }
-        super.visit(that);
-    }
-    
-    @Override
-    public void visit(Tree.DynamicStatement that) {
-        that.addUnsupportedError("dynamic is not yet supported on this platform", Backend.Java);
-        super.visit(that);
-    }
-    
-    @Override
-    public void visit(Tree.Dynamic that) {
-        that.addUnsupportedError("dynamic is not yet supported on this platform", Backend.Java);
-        super.visit(that);
-    }
-
-    @Override
-    public void visit(Tree.DynamicClause that) {
-        // do not report an error for a dynamic clause as that can only occur inside a dynamic statement and
-        // we already reported an error for that one
-        super.visit(that);
-    }
-
-    @Override
-    public void visit(Tree.DynamicModifier that) {
-        that.addUnsupportedError("dynamic is not yet supported on this platform", Backend.Java);
         super.visit(that);
     }
 
@@ -141,9 +121,12 @@ public class UnsupportedVisitor extends Visitor {
 
     private void interopAnnotationTargeting(EnumSet<OutputElement> outputs,
             Tree.AnnotationList annotationList) {
-        for (Tree.Annotation annotation : annotationList.getAnnotations()) {
+        List<Annotation> annotations = annotationList.getAnnotations();
+        for (Tree.Annotation annotation : annotations) {
             AnnotationUtil.interopAnnotationTargeting(outputs, annotation, true);
         }
+        AnnotationUtil.duplicateInteropAnnotation(outputs, annotations);
     }
+    
 
 }

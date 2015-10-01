@@ -652,8 +652,15 @@ public class StatementTransformer extends AbstractTransformer {
         at(expr);
         if(expectedType == null)
             expectedType = outerExpression.getTypeModel();
+        if (!expectedType.getDeclaration().isAnonymous()) {
+            expectedType = typeFact().denotableType(expectedType);
+        }
         BoxingStrategy boxingStrategy = CodegenUtil.getBoxingStrategy(outerExpression);
-        return List.<JCStatement>of(make().Exec(make().Assign(makeUnquotedIdent(tmpVar), expressionGen().transformExpression(expr, boxingStrategy, typeFact().denotableType(expectedType)))));
+        
+        return List.<JCStatement>of(make().Exec(make().Assign(
+                makeUnquotedIdent(tmpVar), 
+                expressionGen().transformExpression(expr, boxingStrategy, 
+                        expectedType))));
     }
     
     private JCBlock makeThenBlock(Cond cond, Node thenPart, Substitution subs, String tmpVar, Tree.Term outerExpression, Type expectedType) {
@@ -3960,15 +3967,32 @@ public class StatementTransformer extends AbstractTransformer {
                 // This exception could be thrown for example if an enumerated 
                 // type is recompiled after having a subclass added, but the 
                 // switch is not recompiled.
-                return makeThrowEnumeratedTypeError();
+                if(outerExpression != null){
+                    // Actually this only works for statements. For expressions we're not allowed to throw,
+                    // we get a verifier error at runtime otherwise: https://github.com/ceylon/ceylon-compiler/issues/2276
+                    
+                    List<JCStatement> stmts = List.<JCStatement>of(make().Exec(make().Assign(
+                            makeUnquotedIdent(tmpVar), 
+                            expressionGen().applyErasureAndBoxing(makeDefaultExprForType(expectedType),
+                                    expectedType,
+                                    !canUnbox(expectedType),
+                                    CodegenUtil.getBoxingStrategy(outerExpression),
+                                    expectedType))));
+                    stmts = stmts.prepend(make().Exec(utilInvocation().rethrow(makeNewEnumeratedTypeError())));
+                    return make().Block(0L, stmts);
+                }else{
+                    return makeThrowEnumeratedTypeError();
+                }
             }
         }
         protected JCStatement makeThrowEnumeratedTypeError() {
-            return make().Throw(
-                        make().NewClass(null, List.<JCExpression>nil(), 
-                                makeIdent(syms().ceylonEnumeratedTypeErrorType), 
-                                List.<JCExpression>of(make().Literal(
-                                        "Supposedly exhaustive switch was not exhaustive")), null));
+            return make().Throw(makeNewEnumeratedTypeError());
+        }
+        protected JCExpression makeNewEnumeratedTypeError() {
+            return make().NewClass(null, List.<JCExpression>nil(), 
+                            makeIdent(syms().ceylonEnumeratedTypeErrorType), 
+                            List.<JCExpression>of(make().Literal(
+                                    "Supposedly exhaustive switch was not exhaustive")), null);
         }
         public abstract JCStatement transformSwitch(Node node, Tree.SwitchClause switchClause, Tree.SwitchCaseList caseList, 
                                                     String tmpVar, Tree.Term outerExpression, Type expectedType);

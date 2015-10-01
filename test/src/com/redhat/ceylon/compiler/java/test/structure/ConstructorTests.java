@@ -178,6 +178,16 @@ public class ConstructorTests extends CompilerTests {
     }
     
     @Test
+    public void testCtorDelegationWithDp() {
+        compareWithJavaSource("constructor/CtorDelegationWithDp");
+    }
+    
+    @Test
+    public void testCtorDelegationWithGenericSuper() {
+        compareWithJavaSource("constructor/CtorDelegationWithGenericSuper");
+    }
+    
+    @Test
     public void testCtorDelegationExtendDefault() {
         compareWithJavaSource("constructor/CtorDelegationExtendDefault");
     }
@@ -264,6 +274,23 @@ public class ConstructorTests extends CompilerTests {
     }
     
     @Test
+    public void testCtorBug2176A() {
+        compareWithJavaSource("constructor/Bug2176A");
+    }
+    
+    @Test
+    public void testCtorBug2176B() {
+        compile("constructor/Bug2176B1.ceylon");
+        compareWithJavaSource("constructor/Bug2176B2");
+    }
+    
+    @Test
+    public void testCtorBug2176C() {
+        compareWithJavaSource("constructor/Bug2176C");
+        run("com.redhat.ceylon.compiler.java.test.structure.constructor.bug2176C");
+    }
+    
+    @Test
     public void testCtorSingletonCtorExtendingGenericClass() {
         compareWithJavaSource("constructor/SingletonCtorExtendingGenericClass");
     }
@@ -271,6 +298,11 @@ public class ConstructorTests extends CompilerTests {
     @Test
     public void testCtorSingletonExtendingNamed() {
         compareWithJavaSource("constructor/SingletonExtendingNamed");
+    }
+
+    @Test
+    public void testCtorBug2209() {
+        compile("constructor/Bug2209.ceylon");
     }
     
     @Test
@@ -302,4 +334,15 @@ public class ConstructorTests extends CompilerTests {
     public void testCtorBug2256() {
         compareWithJavaSource("constructor/Bug2256");
     }
+    
+    @Test
+    public void testCtorBug2299() {
+        compareWithJavaSource("constructor/Bug2299");
+    }
+    
+    @Test
+    public void testCtorUnusedPartial() {
+        compareWithJavaSource("constructor/UnusedPartial");
+    }
+
 }

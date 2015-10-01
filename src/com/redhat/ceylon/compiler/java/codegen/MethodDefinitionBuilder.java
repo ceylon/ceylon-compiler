@@ -66,6 +66,7 @@ public class MethodDefinitionBuilder
     private final AbstractTransformer gen;
     
     private final String name;
+    private String realName;
     
     private long modifiers;
 
@@ -104,11 +105,19 @@ public class MethodDefinitionBuilder
     }
     
     public static MethodDefinitionBuilder getter(AbstractTransformer gen, TypedDeclaration attr, boolean indirect) {
-        return new MethodDefinitionBuilder(gen, false, Naming.getGetterName(attr, indirect));
+        MethodDefinitionBuilder mdb = new MethodDefinitionBuilder(gen, false, Naming.getGetterName(attr, indirect));
+        if (Naming.isAmbiguousGetterName(attr)) {
+            mdb.realName(attr.getName());
+        }
+        return mdb;
     }
     
     public static MethodDefinitionBuilder setter(AbstractTransformer gen, TypedDeclaration attr) {
-        return new MethodDefinitionBuilder(gen, false, Naming.getSetterName(attr));
+        MethodDefinitionBuilder mdb = new MethodDefinitionBuilder(gen, false, Naming.getSetterName(attr));
+        if (Naming.isAmbiguousGetterName(attr)) {
+            mdb.realName(attr.getName());
+        }
+        return mdb;
     }
     
     public static MethodDefinitionBuilder callable(AbstractTransformer gen) {
@@ -141,6 +150,11 @@ public class MethodDefinitionBuilder
         resultTypeExpr = makeVoidType();
     }
     
+    public MethodDefinitionBuilder realName(String realName) {
+        this.realName = realName;
+        return this;
+    }
+    
     private ListBuffer<JCAnnotation> getAnnotations() {
         ListBuffer<JCAnnotation> result = ListBuffer.lb();
         if (Annotations.includeUser(this.annotationFlags)) {
@@ -164,6 +178,9 @@ public class MethodDefinitionBuilder
             }
             if (isTransient) {
                 result.appendList(gen.makeAtTransient());
+            }
+            if(realName != null){
+                result.appendList(gen.makeAtName(realName));
             }
         }
         return result;
@@ -347,6 +364,9 @@ public class MethodDefinitionBuilder
         // error recovery
         if(nonWideningType == null)
             return false;
+        if (parameter.getModel().getTypeErased()) {
+            return false;
+        }
         Declaration method = parameter.getDeclaration();
         TypeDeclaration paramTypeDecl = nonWideningType.getDeclaration();
         if (paramTypeDecl instanceof TypeParameter

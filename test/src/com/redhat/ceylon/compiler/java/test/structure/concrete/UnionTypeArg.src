@@ -64,6 +64,11 @@ class UnionTypeArg implements .com.redhat.ceylon.compiler.java.runtime.model.Rei
     }
     
     @.java.lang.Override
+    public .ceylon.language.Iterable getDistinct() {
+        return (.ceylon.language.Iterable)$ceylon$language$Iterable$this$.getDistinct();
+    }
+    
+    @.java.lang.Override
     public long getSize() {
         return $ceylon$language$Iterable$this$.getSize();
     }
@@ -91,6 +96,11 @@ class UnionTypeArg implements .com.redhat.ceylon.compiler.java.runtime.model.Rei
     @.java.lang.Override
     public .ceylon.language.Sequential sequence() {
         return (.ceylon.language.Sequential)$ceylon$language$Iterable$this$.sequence();
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object indexes() {
+        return $ceylon$language$Iterable$this$.indexes();
     }
     
     @.java.lang.Override
@@ -151,6 +161,11 @@ class UnionTypeArg implements .com.redhat.ceylon.compiler.java.runtime.model.Rei
     @.java.lang.Override
     public .ceylon.language.Entry locateLast(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
         return (.ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends .java.lang.Object>)(.ceylon.language.Entry)$ceylon$language$Iterable$this$.locateLast(selecting);
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Iterable<? extends .ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends .java.lang.Object>, ? extends .java.lang.Object> locations(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
+        return (.ceylon.language.Iterable<? extends .ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends .java.lang.Object>, ? extends .java.lang.Object>)(.ceylon.language.Iterable)$ceylon$language$Iterable$this$.locations(selecting);
     }
     
     @.java.lang.Override
@@ -272,6 +287,26 @@ class UnionTypeArg implements .com.redhat.ceylon.compiler.java.runtime.model.Rei
     private <Other>.ceylon.language.Iterable interpose$canonical$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Other, final Other element, final long step) {
         return (.ceylon.language.Iterable)$ceylon$language$Iterable$this$.interpose($reified$Other, element, step);
     }
+    
+    @.java.lang.Override
+    public final .ceylon.language.Map frequencies() {
+        return (.ceylon.language.Map)$ceylon$language$Iterable$this$.frequencies();
+    }
+    
+    @.java.lang.Override
+    public final <Result>.ceylon.language.Map tabulate(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Result, final .ceylon.language.Callable<? extends Result> collecting) {
+        return (.ceylon.language.Map)$ceylon$language$Iterable$this$.tabulate($reified$Result, collecting);
+    }
+    
+    @.java.lang.Override
+    public final <Group>.ceylon.language.Map<? extends Group, ? extends .ceylon.language.Sequence<? extends .java.lang.Object>> group(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Group, final .ceylon.language.Callable<? extends Group> grouping) {
+        return (.ceylon.language.Map<? extends Group, ? extends .ceylon.language.Sequence<? extends .java.lang.Object>>)(.ceylon.language.Map)$ceylon$language$Iterable$this$.group($reified$Group, grouping);
+    }
+    
+    @.java.lang.Override
+    public final <Group, Result>.ceylon.language.Map<? extends Group, ? extends Result> summarize(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Group, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Result, final .ceylon.language.Callable<? extends Group> grouping, final .ceylon.language.Callable<? extends Result> accumulating) {
+        return (.ceylon.language.Map<? extends Group, ? extends Result>)(.ceylon.language.Map)$ceylon$language$Iterable$this$.summarize($reified$Group, $reified$Result, grouping, accumulating);
+    }
     protected final .ceylon.language.Category$impl<.java.lang.Object> $ceylon$language$Category$this$;
     
     @.java.lang.Override
@@ -364,6 +399,11 @@ class UnionTypeArgOverride implements .com.redhat.ceylon.compiler.java.runtime.m
     }
     
     @.java.lang.Override
+    public .ceylon.language.Iterable getDistinct() {
+        return (.ceylon.language.Iterable)$ceylon$language$Iterable$this$.getDistinct();
+    }
+    
+    @.java.lang.Override
     public long getSize() {
         return $ceylon$language$Iterable$this$.getSize();
     }
@@ -391,6 +431,11 @@ class UnionTypeArgOverride implements .com.redhat.ceylon.compiler.java.runtime.m
     @.java.lang.Override
     public .ceylon.language.Sequential sequence() {
         return (.ceylon.language.Sequential)$ceylon$language$Iterable$this$.sequence();
+    }
+    
+    @.java.lang.Override
+    public .java.lang.Object indexes() {
+        return $ceylon$language$Iterable$this$.indexes();
     }
     
     @.java.lang.Override
@@ -441,6 +486,11 @@ class UnionTypeArgOverride implements .com.redhat.ceylon.compiler.java.runtime.m
     @.java.lang.Override
     public .ceylon.language.Entry locateLast(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
         return (.ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends .java.lang.Object>)(.ceylon.language.Entry)$ceylon$language$Iterable$this$.locateLast(selecting);
+    }
+    
+    @.java.lang.Override
+    public .ceylon.language.Iterable<? extends .ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends .java.lang.Object>, ? extends .java.lang.Object> locations(final .ceylon.language.Callable<? extends .ceylon.language.Boolean> selecting) {
+        return (.ceylon.language.Iterable<? extends .ceylon.language.Entry<? extends .ceylon.language.Integer, ? extends .java.lang.Object>, ? extends .java.lang.Object>)(.ceylon.language.Iterable)$ceylon$language$Iterable$this$.locations(selecting);
     }
     
     @.java.lang.Override
@@ -561,6 +611,26 @@ class UnionTypeArgOverride implements .com.redhat.ceylon.compiler.java.runtime.m
     
     private <Other>.ceylon.language.Iterable interpose$canonical$(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Other, final Other element, final long step) {
         return (.ceylon.language.Iterable)$ceylon$language$Iterable$this$.interpose($reified$Other, element, step);
+    }
+    
+    @.java.lang.Override
+    public final .ceylon.language.Map frequencies() {
+        return (.ceylon.language.Map)$ceylon$language$Iterable$this$.frequencies();
+    }
+    
+    @.java.lang.Override
+    public final <Result>.ceylon.language.Map tabulate(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Result, final .ceylon.language.Callable<? extends Result> collecting) {
+        return (.ceylon.language.Map)$ceylon$language$Iterable$this$.tabulate($reified$Result, collecting);
+    }
+    
+    @.java.lang.Override
+    public final <Group>.ceylon.language.Map<? extends Group, ? extends .ceylon.language.Sequence<? extends .java.lang.Object>> group(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Group, final .ceylon.language.Callable<? extends Group> grouping) {
+        return (.ceylon.language.Map<? extends Group, ? extends .ceylon.language.Sequence<? extends .java.lang.Object>>)(.ceylon.language.Map)$ceylon$language$Iterable$this$.group($reified$Group, grouping);
+    }
+    
+    @.java.lang.Override
+    public final <Group, Result>.ceylon.language.Map<? extends Group, ? extends Result> summarize(final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Group, final .com.redhat.ceylon.compiler.java.runtime.model.TypeDescriptor $reified$Result, final .ceylon.language.Callable<? extends Group> grouping, final .ceylon.language.Callable<? extends Result> accumulating) {
+        return (.ceylon.language.Map<? extends Group, ? extends Result>)(.ceylon.language.Map)$ceylon$language$Iterable$this$.summarize($reified$Group, $reified$Result, grouping, accumulating);
     }
     protected final .ceylon.language.Category$impl<.java.lang.Object> $ceylon$language$Category$this$;
     

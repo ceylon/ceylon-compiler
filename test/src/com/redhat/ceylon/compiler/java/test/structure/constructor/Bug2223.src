@@ -20,11 +20,7 @@ public class Bug2223 implements .com.redhat.ceylon.compiler.java.runtime.model.R
     
     class Foo implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
         
-        public Foo(.com.redhat.ceylon.compiler.java.test.structure.constructor.Bug2223.Foo$foo $name$) {
-        }
-        
-        Foo getFoo$foo() {
-            return .com.redhat.ceylon.compiler.java.test.structure.constructor.Bug2223.this.getFoo$foo();
+        private Foo(.com.redhat.ceylon.compiler.java.test.structure.constructor.Bug2223.Foo$foo $name$) {
         }
         
         @.java.lang.Override
@@ -47,11 +43,7 @@ public class Bug2223 implements .com.redhat.ceylon.compiler.java.runtime.model.R
     
     class Bar implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
         
-        public Bar(.com.redhat.ceylon.compiler.java.test.structure.constructor.Bug2223.Bar$foo $name$) {
-        }
-        
-        Bar getBar$foo() {
-            return .com.redhat.ceylon.compiler.java.test.structure.constructor.Bug2223.this.getBar$foo();
+        private Bar(.com.redhat.ceylon.compiler.java.test.structure.constructor.Bug2223.Bar$foo $name$) {
         }
         
         @.java.lang.Override

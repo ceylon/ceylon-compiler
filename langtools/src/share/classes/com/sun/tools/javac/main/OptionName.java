@@ -82,7 +82,9 @@ public enum OptionName {
     D("-d"),
     CEYLONOUT("-out"),
     CEYLONOFFLINE("-offline"),
+    CEYLONTIMEOUT("-timeout"),
     CEYLONCONTINUE("-continue"),
+    CEYLONPROGRESS("-progress"),
     // Backwards-compat
     CEYLONMAVENOVERRIDES("-maven-overrides"),
     CEYLONOVERRIDES("-overrides"),

@@ -249,7 +249,8 @@ public class CeylonModelLoader extends AbstractModelLoader {
                         continue;
                     ClassSymbol enclosingClass = getEnclosing((ClassSymbol) m);
 
-                    if(!Util.isLoadedFromSource(enclosingClass)){
+                    if(enclosingClass == m
+                            && !Util.isLoadedFromSource(enclosingClass)){
                         m.complete();
                         // avoid anonymous and local classes
                         if(isAnonymousOrLocal((ClassSymbol) m))
@@ -260,7 +261,12 @@ public class CeylonModelLoader extends AbstractModelLoader {
                         // skip module and package descriptors
                         if(isModuleOrPackageDescriptorName(m.name.toString()))
                             continue;
-                        convertToDeclaration(module, lookupClassMirror(module, m.getQualifiedName().toString()), DeclarationType.VALUE);
+                        ClassMirror classMirror = lookupClassMirror(module, m.getQualifiedName().toString());
+                        // Some languages like Scala generate classes like com.foo.package which we would
+                        // quote to com.foo.$package, which does not exist, so we'd get a null leading to an NPE
+                        // So ATM we just avoid it, presumably we don't support what it does anyways
+                        if(classMirror != null)
+                            convertToDeclaration(module, classMirror, DeclarationType.VALUE);
                     }
                 }
                 if(module.getNameAsString().equals(JAVA_BASE_MODULE_NAME)

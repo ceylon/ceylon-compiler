@@ -19,11 +19,7 @@ class SingletonCtorsInMemberClasses implements .com.redhat.ceylon.compiler.java.
     
     public class Bar implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
         
-        public Bar(.com.redhat.ceylon.compiler.java.test.structure.constructor.SingletonCtorsInMemberClasses.Bar$bar $name$) {
-        }
-        
-        Bar getBar$bar() {
-            return .com.redhat.ceylon.compiler.java.test.structure.constructor.SingletonCtorsInMemberClasses.this.getBar$bar();
+        private Bar(.com.redhat.ceylon.compiler.java.test.structure.constructor.SingletonCtorsInMemberClasses.Bar$bar $name$) {
         }
         
         @.java.lang.Override
@@ -66,10 +62,6 @@ public final class singletonCtorsInMemberClasses_ {
             class Bar implements .com.redhat.ceylon.compiler.java.runtime.model.ReifiedType {
                 
                 private Bar(Foo.Bar$bar $name$) {
-                }
-                
-                Bar getBar$bar() {
-                    return Foo.this.getBar$bar();
                 }
                 
                 @.java.lang.Override

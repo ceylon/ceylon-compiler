@@ -60,6 +60,10 @@ public class AnnotationsTests extends CompilerTests {
         compareWithJavaSource("Constructor");
     }
     @Test
+    public void testConstructorClass(){
+        compareWithJavaSource("ConstructorClass");
+    }
+    @Test
     public void testMemberClass(){
         compareWithJavaSource("MemberKlass");
     }
@@ -306,5 +310,16 @@ public class AnnotationsTests extends CompilerTests {
     public void testSingletonConstructorTargets(){
         compile("Targets.java");
         compareWithJavaSource("SingletonConstructorTargets");
+    }
+    
+    @Test
+    public void testBug2160(){
+        compile("Targets.java");
+        compareWithJavaSource("Bug2160");
+    }
+    
+    @Test
+    public void testBug2315(){
+        compareWithJavaSource("Bug2315");
     }
  }

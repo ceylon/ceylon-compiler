@@ -87,6 +87,7 @@ public class LinkRenderer {
     private boolean printWikiStyleLinks = false;
     private boolean printLinkDropdownMenu = true;
     private boolean printParenthesisAfterMethodName = true;
+    private boolean printMemberContainerName = true;
     
     private final TypePrinter producedTypeNamePrinter = new TypePrinter() {
         
@@ -175,18 +176,8 @@ public class LinkRenderer {
         return this;
     }
     
-    public LinkRenderer useScope(Module module) {
-        scope = module;
-        return this;
-    }
-
-    public LinkRenderer useScope(Package pkg) {
-        scope = pkg;
-        return this;
-    }
-
-    public LinkRenderer useScope(Declaration decl) {
-        scope = decl;
+    public LinkRenderer useScope(Referenceable scope) {
+        this.scope = scope;
         return this;
     }
     
@@ -222,6 +213,11 @@ public class LinkRenderer {
     
     public LinkRenderer printParenthesisAfterMethodName(boolean printParenthesisAfterMethodName) {
         this.printParenthesisAfterMethodName = printParenthesisAfterMethodName;
+        return this;
+    }
+    
+    public LinkRenderer printMemberContainerName(boolean printMemberContainerName) {
+        this.printMemberContainerName = printMemberContainerName;
         return this;
     }
 
@@ -306,7 +302,7 @@ public class LinkRenderer {
     }
     
     private String processTypedDeclaration(TypedDeclaration decl) {
-        String declName = decl.getName();
+        String declName = Util.getDeclarationName(decl);
         Scope declContainer = decl.getContainer();
         
         if( isLinkable(decl) ) {
@@ -588,7 +584,11 @@ public class LinkRenderer {
             return customText;
         }
         else {
-            String name = decl.getName();
+            String name = Util.getDeclarationName(decl);
+            if( scope != null && scope.getUnit() != null ) {
+                name = scope.getUnit().getAliasedName(decl, name);
+            }
+
             String result;
             if (decl instanceof TypeDeclaration) {
                 result = "<span class='type-identifier'>" + name + "</span>";
@@ -599,10 +599,8 @@ public class LinkRenderer {
                 }
                 result = "<span class='identifier'>" + name + "</span>";
             }
-            if (decl.isMember() &&
-                    decl.getContainer()!=from) {
-                result = getLinkText((Declaration) decl.getContainer())
-                        + '.' + result;
+            if (printMemberContainerName && decl.isMember() && decl.getContainer() != from) {
+                result = getLinkText((Declaration) decl.getContainer()) + '.' + result;
             }
             return result;
         }
