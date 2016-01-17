@@ -20,17 +20,17 @@ First make sure you have compiled the ceylon projects according to the instructi
 
  4. In the next page of the "Import" dialog:
 
-    a) Make sure the "Select root directory" is selected
+    a) Make sure "Search for nested projects" is selected
+    
+    b) Click the "Browse..." button next to "Select root directory"
 
-    b) Click the "Browse..." button
-
-    c) Select the folder where the compiler, language, spec, common, runtime and module-resolver projects are located
+    c) Select the folder where the ceylon-common, ceylon-compiler, ceylon-runtime directories are located
 
     d) Click "Ok"
 
  5. Back in the Wizard dialog:
 
-    a) Make sure the projects ceylon-compiler, ceylon-spec, ceylon.language, ceylon-common, ceylon-runtime and ceylon-module-resolver are selected
+    a) Make sure the projects ceylon-common, ceylon-compiler, ceylon-spec, ceylon-module-resolver, ceylon-runtime and ceylon.language are selected
 
     b) Click "Finish"
 
